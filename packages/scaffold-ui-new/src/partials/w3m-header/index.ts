@@ -39,7 +39,7 @@ function headings() {
     ApproveTransaction: 'Approve Transaction',
     BuyInProgress: 'Buy',
     ConnectingExternal: name ?? 'Connect Wallet',
-    ConnectingWalletConnect: name ?? 'Scan with your mobile wallet',
+    ConnectingWalletConnect: name ?? 'WalletConnect',
     ConnectingSiwe: 'Sign In',
     Convert: 'Convert',
     ConvertSelectToken: 'Select token',
@@ -136,7 +136,7 @@ export class W3mHeader extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex padding="4" justifyContent="space-between" alignItems="center">
+      <wui-flex .padding=${this.getPadding()} justifyContent="space-between" alignItems="center">
         ${this.leftHeaderTemplate()} ${this.titleTemplate()} ${this.rightHeaderTemplate()}
       </wui-flex>
     `
@@ -167,29 +167,24 @@ export class W3mHeader extends LitElement {
       return this.closeButtonTemplate()
     }
 
-    return html`<wui-flex columnGap="1">
-      <wui-icon
-        name="clock"
+    return html`<wui-flex>
+      <wui-icon-link
+        icon="clock"
         @click=${() => RouterController.push('SmartSessionList')}
         data-testid="w3m-header-smart-sessions"
-        color="invert"
-        size="lg"
-        cursor="pointer"
-      ></wui-icon>
+      ></wui-icon-link>
       ${this.closeButtonTemplate()}
     </wui-flex> `
   }
 
   private closeButtonTemplate() {
     return html`
-      <wui-icon
-        name="close"
-        color="inverse"
+      <wui-icon-link
+        ?disabled=${this.buffering}
+        icon="close"
         @click=${this.onClose.bind(this)}
-        size="lg"
         data-testid="w3m-header-close"
-        cursor="pointer"
-      ></wui-icon>
+      ></wui-icon-link>
     `
   }
 
@@ -201,12 +196,12 @@ export class W3mHeader extends LitElement {
         view-direction="${this.viewDirection}"
         class="w3m-header-title"
         alignItems="center"
-        columnGap="1"
+        gap="xs"
       >
-        <wui-text variant="md-regular" color="primary" data-testid="w3m-header-text">
-          ${this.headerText}
-        </wui-text>
-        ${isBeta ? html`<wui-tag variant="accent">Beta</wui-tag>` : null}
+        <wui-text variant="paragraph-700" color="fg-100" data-testid="w3m-header-text"
+          >${this.headerText}</wui-text
+        >
+        ${isBeta ? html`<wui-tag variant="main">Beta</wui-tag>` : null}
       </wui-flex>
     `
   }
@@ -216,29 +211,35 @@ export class W3mHeader extends LitElement {
     const isConnectHelp = view === 'Connect'
     const isApproveTransaction = view === 'ApproveTransaction'
     const isConnectingSIWEView = view === 'ConnectingSiwe'
+    const isAccountView = view === 'Account'
 
     const shouldHideBack = isApproveTransaction || isConnectingSIWEView
 
-    if (this.showBack && !shouldHideBack) {
-      return html`<wui-icon
+    if (isAccountView) {
+      return html`<wui-select
         id="dynamic"
-        name="chevronLeft"
-        @click=${this.onGoBack.bind(this)}
-        color="invert"
-        size="lg"
-        cursor="pointer"
-      ></wui-icon>`
+        data-testid="w3m-account-select-network"
+        active-network=${ifDefined(this.network?.name)}
+        @click=${this.onNetworks.bind(this)}
+        imageSrc=${ifDefined(AssetUtil.getNetworkImage(this.network))}
+      ></wui-select>`
     }
 
-    return html`<wui-icon
+    if (this.showBack && !shouldHideBack) {
+      return html`<wui-icon-link
+        id="dynamic"
+        icon="chevronLeft"
+        ?disabled=${this.buffering}
+        @click=${this.onGoBack.bind(this)}
+      ></wui-icon-link>`
+    }
+
+    return html`<wui-icon-link
       data-hidden=${!isConnectHelp}
       id="dynamic"
-      name="helpCircle"
+      icon="helpCircle"
       @click=${this.onWalletHelp.bind(this)}
-      color="invert"
-      size="lg"
-      cursor="pointer"
-    ></wui-icon>`
+    ></wui-icon-link>`
   }
 
   private onNetworks() {
@@ -254,6 +255,14 @@ export class W3mHeader extends LitElement {
     const isValidNetwork = requestedCaipNetworks?.find(({ id }) => id === this.network?.id)
 
     return isMultiNetwork || !isValidNetwork
+  }
+
+  private getPadding() {
+    if (this.heading) {
+      return ['l', '2l', 'l', '2l'] as const
+    }
+
+    return ['0', '2l', '0', '2l'] as const
   }
 
   private onViewChange() {
