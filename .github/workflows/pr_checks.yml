@@ -34,7 +34,7 @@ jobs:
           cache: 'pnpm'
 
       - name: install
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install 
 
       - name: build
         run: pnpm build
@@ -108,7 +108,7 @@ jobs:
         run: chmod +x node_modules/*/bin/*
 
       - name: install
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: check
         run: pnpm ${{ matrix.style-command }}
@@ -151,7 +151,7 @@ jobs:
         run: chmod +x node_modules/*/bin/*
 
       - name: install
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: build sample apps
         run: pnpm build:sample-apps
@@ -193,7 +193,7 @@ jobs:
         run: chmod +x node_modules/*/bin/*
 
       - name: install
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Test
         run: pnpm test:ci
