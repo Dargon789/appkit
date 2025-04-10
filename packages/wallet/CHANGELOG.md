@@ -1,5 +1,17 @@
 # @reown/appkit-wallet
 
+## 2.0.0
+
+### Major Changes
+
+- bump
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @reown/appkit-common@2.0.0
+  - @reown/appkit-polyfills@2.0.0
+
 ## 1.7.0
 
 ### Minor Changes

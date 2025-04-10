@@ -1,5 +1,16 @@
 # @reown/appkit-core
 
+## 2.0.0
+
+### Major Changes
+
+- bump
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @reown/appkit-controllers@2.0.0
+
 ## 1.7.0
 
 ### Minor Changes

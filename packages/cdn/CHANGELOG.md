@@ -1,5 +1,21 @@
 # @reown/appkit-cdn
 
+## 2.0.0
+
+### Major Changes
+
+- bump
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @reown/appkit-adapter-ethers@2.0.0
+  - @reown/appkit-adapter-ethers5@2.0.0
+  - @reown/appkit-adapter-solana@2.0.0
+  - @reown/appkit-adapter-wagmi@2.0.0
+  - @reown/appkit@2.0.0
+  - @reown/appkit-polyfills@2.0.0
+
 ## 1.7.0
 
 ### Minor Changes

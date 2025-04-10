@@ -1,5 +1,11 @@
 # @reown/appkit-common
 
+## 2.0.0
+
+### Major Changes
+
+- bump
+
 ## 1.7.0
 
 ### Minor Changes

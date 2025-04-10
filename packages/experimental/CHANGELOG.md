@@ -1,5 +1,19 @@
 # @reown/appkit-experimental
 
+## 2.0.0
+
+### Major Changes
+
+- bump
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @reown/appkit@2.0.0
+  - @reown/appkit-common@2.0.0
+  - @reown/appkit-controllers@2.0.0
+  - @reown/appkit-ui@2.0.0
+
 ## 1.7.0
 
 ### Minor Changes

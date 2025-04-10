@@ -1,5 +1,22 @@
 # @reown/appkit-adapter-ethers
 
+## 2.0.0
+
+### Major Changes
+
+- bump
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @reown/appkit@2.0.0
+  - @reown/appkit-utils@2.0.0
+  - @reown/appkit-common@2.0.0
+  - @reown/appkit-controllers@2.0.0
+  - @reown/appkit-polyfills@2.0.0
+  - @reown/appkit-scaffold-ui@2.0.0
+  - @reown/appkit-wallet@2.0.0
+
 ## 1.7.0
 
 ### Minor Changes
