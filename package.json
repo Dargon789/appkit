@@ -56,7 +56,7 @@
     "@typescript-eslint/parser": "6.18.1",
     "@vitest/coverage-v8": "2.1.9",
     "@vitest/ui": "2.1.8",
-    "buffer": "^6.0.0",
+    "buffer": "^6.0.3",
     "danger": "11.3.1",
     "eslint": "8.56.0",
     "eslint-config-prettier": "9.1.0",
@@ -73,7 +73,7 @@
     "vite-plugin-node-polyfills": "0.23.0",
     "vitest": "2.1.9"
   },
-  "packageManager": "pnpm@10.6.5+sha512.cdf928fca20832cd59ec53826492b7dc25dc524d4370b6b4adbf65803d32efaa6c1c88147c0ae4e8d579a6c9eec715757b50d4fa35eea179d868eada4ed043af",
+  "packageManager": "pnpm@10.8.0+sha512.0e82714d1b5b43c74610193cb20734897c1d00de89d0e18420aebc5977fa13d780a9cb05734624e81ebd81cc876cd464794850641c48b9544326b5622ca29971",
   "pnpm": {
     "overrides": {
       "@solana/web3.js": "1.95.8"
@@ -94,17 +94,18 @@
     "example": "examples"
   },
   "dependencies": {
+    "apkit-wallet#build": "link:@reown/apkit-wallet#build",
     "eslint-compat-utils": "^0.5.1",
-    "eslint-config-next": "^15.2.1",
+    "eslint-config-next": "^15.3.0",
     "eslint-import-resolver-node": "^0.3.9",
-    "eslint-import-resolver-typescript": "^3.9.1",
+    "eslint-import-resolver-typescript": "^3.10.0",
     "eslint-module-utils": "^2.12.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-lit": "^1.15.0",
-    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-svelte": "^3.0.3",
+    "eslint-plugin-svelte": "^3.5.1",
     "eslint-plugin-wc": "^2.2.1",
     "eslint-scope": "^7.2.2",
     "eslint-visitor-keys": "^3.4.3",
