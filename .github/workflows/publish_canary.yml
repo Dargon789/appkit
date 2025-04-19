@@ -70,3 +70,10 @@ jobs:
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+      - name: Debug AWS Credentials
+        run: |
+          echo "AWS_ACCESS_KEY_ID: ${AWS_ECR_PUBLISHER_ACCESS_KEY_ID}"
+          echo "AWS_SECRET_ACCESS_KEY: ${AWS_ECR_PUBLISHER_SECRET_ACCESS_KEY}"
+        env:
+          AWS_ECR_PUBLISHER_ACCESS_KEY_ID: ${{ secrets.AWS_ECR_PUBLISHER_ACCESS_KEY_ID }}
+          AWS_ECR_PUBLISHER_SECRET_ACCESS_KEY: ${{ secrets.AWS_ECR_PUBLISHER_SECRET_ACCESS_KEY }}
