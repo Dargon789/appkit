@@ -108,7 +108,7 @@ jobs:
         run: chmod +x node_modules/*/bin/*
 
       - name: install
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install 
 
       - name: check
         run: pnpm ${{ matrix.style-command }}
