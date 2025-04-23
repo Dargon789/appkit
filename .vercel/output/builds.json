@@ -19,20 +19,18 @@
       },
       "error": {
         "name": "Error",
-        "stack": "Error: No Output Directory named \"dist\" found after the Build completed. You can configure the Output Directory in your Project Settings.\n    at validateDistDir (/usr/local/lib/node_modules/vercel/node_modules/@vercel/static-build/dist/index.js:27384:11)\n    at Object.build (/usr/local/lib/node_modules/vercel/node_modules/@vercel/static-build/dist/index.js:27926:11)\n    at async _Span.trace (/usr/local/lib/node_modules/vercel/node_modules/@vercel/build-utils/dist/index.js:24398:14)\n    at async doBuild (/usr/local/lib/node_modules/vercel/dist/index.js:134031:23)\n    at async _Span.trace (/usr/local/lib/node_modules/vercel/node_modules/@vercel/build-utils/dist/index.js:24398:14)\n    at async main2 (/usr/local/lib/node_modules/vercel/dist/index.js:133819:5)\n    at async main13 (/usr/local/lib/node_modules/vercel/dist/index.js:173048:19)",
-        "message": "No Output Directory named \"dist\" found after the Build completed. You can configure the Output Directory in your Project Settings.",
+        "stack": "Error: Command \"pnpm run build\" exited with 1\n    at ChildProcess.<anonymous> (/usr/local/lib/node_modules/vercel/node_modules/@vercel/build-utils/dist/index.js:23106:9)\n    at ChildProcess.emit (node:events:517:28)\n    at ChildProcess.emit (node:domain:489:12)\n    at maybeClose (node:internal/child_process:1098:16)\n    at ChildProcess._handle.onexit (node:internal/child_process:303:5)\n    at Process.callbackTrampoline (node:internal/async_hooks:128:17)",
+        "message": "Command \"pnpm run build\" exited with 1",
         "hideStackTrace": true,
-        "code": "STATIC_BUILD_NO_OUT_DIR",
-        "link": "https://vercel.link/missing-public-directory"
+        "code": "BUILD_UTILS_SPAWN_1"
       }
     }
   ],
   "error": {
     "name": "Error",
-    "stack": "Error: No Output Directory named \"dist\" found after the Build completed. You can configure the Output Directory in your Project Settings.\n    at validateDistDir (/usr/local/lib/node_modules/vercel/node_modules/@vercel/static-build/dist/index.js:27384:11)\n    at Object.build (/usr/local/lib/node_modules/vercel/node_modules/@vercel/static-build/dist/index.js:27926:11)\n    at async _Span.trace (/usr/local/lib/node_modules/vercel/node_modules/@vercel/build-utils/dist/index.js:24398:14)\n    at async doBuild (/usr/local/lib/node_modules/vercel/dist/index.js:134031:23)\n    at async _Span.trace (/usr/local/lib/node_modules/vercel/node_modules/@vercel/build-utils/dist/index.js:24398:14)\n    at async main2 (/usr/local/lib/node_modules/vercel/dist/index.js:133819:5)\n    at async main13 (/usr/local/lib/node_modules/vercel/dist/index.js:173048:19)",
-    "message": "No Output Directory named \"dist\" found after the Build completed. You can configure the Output Directory in your Project Settings.",
+    "stack": "Error: Command \"pnpm run build\" exited with 1\n    at ChildProcess.<anonymous> (/usr/local/lib/node_modules/vercel/node_modules/@vercel/build-utils/dist/index.js:23106:9)\n    at ChildProcess.emit (node:events:517:28)\n    at ChildProcess.emit (node:domain:489:12)\n    at maybeClose (node:internal/child_process:1098:16)\n    at ChildProcess._handle.onexit (node:internal/child_process:303:5)\n    at Process.callbackTrampoline (node:internal/async_hooks:128:17)",
+    "message": "Command \"pnpm run build\" exited with 1",
     "hideStackTrace": true,
-    "code": "STATIC_BUILD_NO_OUT_DIR",
-    "link": "https://vercel.link/missing-public-directory"
+    "code": "BUILD_UTILS_SPAWN_1"
   }
 }
