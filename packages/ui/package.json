@@ -444,7 +444,7 @@
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.1.0"
   },
   "author": "Reown <support@reown.com> (https://reown.com)",
   "license": "Apache-2.0",
