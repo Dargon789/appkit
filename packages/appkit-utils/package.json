@@ -58,7 +58,7 @@
     "@coinbase/wallet-sdk": "4.3.2",
     "@solana/wallet-adapter-base": "0.9.24",
     "@solana/web3.js": "1.98.1",
-    "@vitest/coverage-v8": "2.1.9",
+    "@vitest/coverage-v8": "3.1.1",
     "vitest": "2.1.9"
   },
   "peerDependencies": {
