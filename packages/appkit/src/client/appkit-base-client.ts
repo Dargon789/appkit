@@ -27,6 +27,7 @@ import type {
   OptionsControllerState,
   PublicStateControllerState,
   RouterControllerState,
+  SIWXConfig,
   SendTransactionArgs,
   SocialProvider,
   ThemeControllerState,
@@ -43,6 +44,7 @@ import {
   ChainController,
   ConnectionController,
   ConnectorController,
+  ConstantsUtil as CoreConstantsUtil,
   CoreHelperUtil,
   EnsController,
   EventsController,
@@ -448,12 +450,11 @@ export abstract class AppKitBaseClient {
         return result?.signature || ''
       },
       sendTransaction: async (args: SendTransactionArgs) => {
-        if (args.chainNamespace === ConstantsUtil.CHAIN.EVM) {
+        const namespace = args.chainNamespace as ChainNamespace
+        if (CoreConstantsUtil.SEND_SUPPORTED_NAMESPACES.includes(namespace)) {
           const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
 
-          const provider = ProviderUtil.getProvider(
-            ChainController.state.activeChain as ChainNamespace
-          )
+          const provider = ProviderUtil.getProvider(namespace)
           const result = await adapter?.sendTransaction({
             ...args,
             caipNetwork: this.getCaipNetwork(),
@@ -1514,6 +1515,10 @@ export abstract class AppKitBaseClient {
 
   public async disconnect(chainNamespace?: ChainNamespace) {
     await ConnectionController.disconnect(chainNamespace)
+  }
+
+  public getSIWX<SIWXConfigInterface = SIWXConfig>() {
+    return OptionsController.state.siwx as SIWXConfigInterface | undefined
   }
 
   // -- review these -------------------------------------------------------------------
