@@ -51,7 +51,7 @@
     "@reown/appkit-wallet": "workspace:*",
     "@walletconnect/logger": "2.1.2",
     "@walletconnect/universal-provider": "2.19.2",
-    "valtio": "1.13.2",
+    "valtio": "2.1.4",
     "viem": ">=2.23.11"
   },
   "devDependencies": {
