@@ -27,6 +27,7 @@ import type {
   OptionsControllerState,
   PublicStateControllerState,
   RouterControllerState,
+  SIWXConfig,
   SendTransactionArgs,
   SocialProvider,
   ThemeControllerState,
@@ -43,6 +44,7 @@ import {
   ChainController,
   ConnectionController,
   ConnectorController,
+  ConstantsUtil as CoreConstantsUtil,
   CoreHelperUtil,
   EnsController,
   EventsController,
@@ -405,6 +407,7 @@ export abstract class AppKitBaseClient {
         const { accounts } = await adapter.getAccounts({ namespace: chainToUse, id })
         this.setAllAccounts(accounts, chainToUse)
         this.setStatus('connected', chainToUse)
+        this.syncConnectedWalletInfo(chainToUse)
       },
       reconnectExternal: async ({ id, info, type, provider }) => {
         const namespace = ChainController.state.activeChain as ChainNamespace
@@ -412,6 +415,7 @@ export abstract class AppKitBaseClient {
         if (adapter?.reconnect) {
           await adapter?.reconnect({ id, info, type, provider, chainId: this.getCaipNetwork()?.id })
           StorageUtil.addConnectedNamespace(namespace)
+          this.syncConnectedWalletInfo(namespace)
         }
       },
       disconnect: async (chainNamespace?: ChainNamespace) => {
@@ -426,6 +430,7 @@ export abstract class AppKitBaseClient {
         ProviderUtil.resetChain(namespace)
         this.setUser(undefined, namespace)
         this.setStatus('disconnected', namespace)
+        this.setConnectedWalletInfo(undefined, namespace)
       },
       checkInstalled: (ids?: string[]) => {
         if (!ids) {
@@ -445,12 +450,11 @@ export abstract class AppKitBaseClient {
         return result?.signature || ''
       },
       sendTransaction: async (args: SendTransactionArgs) => {
-        if (args.chainNamespace === ConstantsUtil.CHAIN.EVM) {
+        const namespace = args.chainNamespace as ChainNamespace
+        if (CoreConstantsUtil.SEND_SUPPORTED_NAMESPACES.includes(namespace)) {
           const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
 
-          const provider = ProviderUtil.getProvider(
-            ChainController.state.activeChain as ChainNamespace
-          )
+          const provider = ProviderUtil.getProvider(namespace)
           const result = await adapter?.sendTransaction({
             ...args,
             caipNetwork: this.getCaipNetwork(),
@@ -904,6 +908,7 @@ export abstract class AppKitBaseClient {
         this.setStatus('disconnected', chainNamespace)
       }
 
+      this.syncConnectedWalletInfo(chainNamespace)
       await ChainController.setApprovedCaipNetworksData(chainNamespace)
     })
 
@@ -1510,6 +1515,10 @@ export abstract class AppKitBaseClient {
 
   public async disconnect(chainNamespace?: ChainNamespace) {
     await ConnectionController.disconnect(chainNamespace)
+  }
+
+  public getSIWX<SIWXConfigInterface = SIWXConfig>() {
+    return OptionsController.state.siwx as SIWXConfigInterface | undefined
   }
 
   // -- review these -------------------------------------------------------------------
