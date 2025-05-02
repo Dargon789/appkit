@@ -1,4 +1,46 @@
-import{N as g,X as j,O as v,Q as l,ai as _,a6 as oe,ar as ie,a5 as c,a1 as w,af as D,aq as ae,ab as L,a8 as ne,a2 as G,av as z,P as h,a9 as T,R as H,$ as q,a4 as $,an as R,T as se,ay as re,a0 as ce,Y as le}from"./cxC4FtgZ.js";import{c as y,n as p,r as d,o as Y,U as de}from"./D1u8rsYX.js";import"./BmM00R2E.js";import"./D5z3hTdP.js";import"./CmZgvnX6.js";import"./DsbIaR_i.js";import"./BDn2hctu.js";import"./BDdoSM5a.js";const ue=g`
+import './BDdoSM5a.js'
+import './BDn2hctu.js'
+import './BmM00R2E.js'
+import './CmZgvnX6.js'
+import { o as Y, r as d, U as de, n as p, c as y } from './D1u8rsYX.js'
+import './D5z3hTdP.js'
+import './DsbIaR_i.js'
+import {
+  a4 as $,
+  af as D,
+  a2 as G,
+  R as H,
+  ab as L,
+  an as R,
+  a9 as T,
+  ai as _,
+  aq as ae,
+  a5 as c,
+  a0 as ce,
+  N as g,
+  P as h,
+  ar as ie,
+  X as j,
+  Q as l,
+  Y as le,
+  a8 as ne,
+  a6 as oe,
+  $ as q,
+  ay as re,
+  T as se,
+  O as v,
+  a1 as w,
+  av as z
+} from './cxC4FtgZ.js'
+
+import { c as y, n as p, r as d, o as Y, U as de } from './D1u8rsYX.js'
+import './BmM00R2E.js'
+import './D5z3hTdP.js'
+import './CmZgvnX6.js'
+import './DsbIaR_i.js'
+import './BDn2hctu.js'
+import './BDdoSM5a.js'
+const ue = g`
   :host {
     display: block;
     border-radius: clamp(0px, var(--wui-border-radius-l), 44px);
@@ -12,7 +54,26 @@ import{N as g,X as j,O as v,Q as l,ai as _,a6 as oe,ar as ie,a5 as c,a1 as w,af 
       0 0 0 1px var(--wui-color-gray-glass-005),
       0px 4px 12px 4px var(--w3m-card-embedded-shadow-color);
   }
-`;var pe=function(s,e,t,i){var a=arguments.length,o=a<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,n;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")o=Reflect.decorate(s,e,t,i);else for(var r=s.length-1;r>=0;r--)(n=s[r])&&(o=(a<3?n(o):a>3?n(e,t,o):n(e,t))||o);return a>3&&o&&Object.defineProperty(e,t,o),o};let M=class extends v{render(){return l`<slot></slot>`}};M.styles=[j,ue];M=pe([y("wui-card")],M);const he=g`
+`
+var pe = function (s, e, t, i) {
+  var a = arguments.length,
+    o = a < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    n
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    o = Reflect.decorate(s, e, t, i)
+  else
+    for (var r = s.length - 1; r >= 0; r--)
+      (n = s[r]) && (o = (a < 3 ? n(o) : a > 3 ? n(e, t, o) : n(e, t)) || o)
+  return a > 3 && o && Object.defineProperty(e, t, o), o
+}
+let M = class extends v {
+  render() {
+    return l`<slot></slot>`
+  }
+}
+M.styles = [j, ue]
+M = pe([y('wui-card')], M)
+const he = g`
   :host {
     display: flex;
     align-items: center;
@@ -44,9 +105,32 @@ import{N as g,X as j,O as v,Q as l,ai as _,a6 as oe,ar as ie,a5 as c,a1 as w,af 
     border-radius: var(--wui-border-radius-3xs);
     background-color: var(--local-icon-bg-value);
   }
-`;var A=function(s,e,t,i){var a=arguments.length,o=a<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,n;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")o=Reflect.decorate(s,e,t,i);else for(var r=s.length-1;r>=0;r--)(n=s[r])&&(o=(a<3?n(o):a>3?n(e,t,o):n(e,t))||o);return a>3&&o&&Object.defineProperty(e,t,o),o};let x=class extends v{constructor(){super(...arguments),this.message="",this.backgroundColor="accent-100",this.iconColor="accent-100",this.icon="info"}render(){return this.style.cssText=`
+`
+var A = function (s, e, t, i) {
+  var a = arguments.length,
+    o = a < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    n
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    o = Reflect.decorate(s, e, t, i)
+  else
+    for (var r = s.length - 1; r >= 0; r--)
+      (n = s[r]) && (o = (a < 3 ? n(o) : a > 3 ? n(e, t, o) : n(e, t)) || o)
+  return a > 3 && o && Object.defineProperty(e, t, o), o
+}
+let x = class extends v {
+  constructor() {
+    super(...arguments),
+      (this.message = ''),
+      (this.backgroundColor = 'accent-100'),
+      (this.iconColor = 'accent-100'),
+      (this.icon = 'info')
+  }
+  render() {
+    return (
+      (this.style.cssText = `
       --local-icon-bg-value: var(--wui-color-${this.backgroundColor});
-   `,l`
+   `),
+      l`
       <wui-flex flexDirection="row" justifyContent="space-between" alignItems="center">
         <wui-flex columnGap="xs" flexDirection="row" alignItems="center">
           <wui-flex
@@ -69,7 +153,20 @@ import{N as g,X as j,O as v,Q as l,ai as _,a6 as oe,ar as ie,a5 as c,a1 as w,af 
           @click=${this.onClose}
         ></wui-icon>
       </wui-flex>
-    `}onClose(){_.close()}};x.styles=[j,he];A([p()],x.prototype,"message",void 0);A([p()],x.prototype,"backgroundColor",void 0);A([p()],x.prototype,"iconColor",void 0);A([p()],x.prototype,"icon",void 0);x=A([y("wui-alertbar")],x);const we=g`
+    `
+    )
+  }
+  onClose() {
+    _.close()
+  }
+}
+x.styles = [j, he]
+A([p()], x.prototype, 'message', void 0)
+A([p()], x.prototype, 'backgroundColor', void 0)
+A([p()], x.prototype, 'iconColor', void 0)
+A([p()], x.prototype, 'icon', void 0)
+x = A([y('wui-alertbar')], x)
+const we = g`
   :host {
     display: block;
     position: absolute;
@@ -79,14 +176,88 @@ import{N as g,X as j,O as v,Q as l,ai as _,a6 as oe,ar as ie,a5 as c,a1 as w,af 
     opacity: 0;
     pointer-events: none;
   }
-`;var Q=function(s,e,t,i){var a=arguments.length,o=a<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,n;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")o=Reflect.decorate(s,e,t,i);else for(var r=s.length-1;r>=0;r--)(n=s[r])&&(o=(a<3?n(o):a>3?n(e,t,o):n(e,t))||o);return a>3&&o&&Object.defineProperty(e,t,o),o};const me={info:{backgroundColor:"fg-350",iconColor:"fg-325",icon:"info"},success:{backgroundColor:"success-glass-reown-020",iconColor:"success-125",icon:"checkmark"},warning:{backgroundColor:"warning-glass-reown-020",iconColor:"warning-100",icon:"warningCircle"},error:{backgroundColor:"error-glass-reown-020",iconColor:"error-125",icon:"exclamationTriangle"}};let P=class extends v{constructor(){super(),this.unsubscribe=[],this.open=_.state.open,this.onOpen(!0),this.unsubscribe.push(_.subscribeKey("open",e=>{this.open=e,this.onOpen(!1)}))}disconnectedCallback(){this.unsubscribe.forEach(e=>e())}render(){const{message:e,variant:t}=_.state,i=me[t];return l`
+`
+var Q = function (s, e, t, i) {
+  var a = arguments.length,
+    o = a < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    n
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    o = Reflect.decorate(s, e, t, i)
+  else
+    for (var r = s.length - 1; r >= 0; r--)
+      (n = s[r]) && (o = (a < 3 ? n(o) : a > 3 ? n(e, t, o) : n(e, t)) || o)
+  return a > 3 && o && Object.defineProperty(e, t, o), o
+}
+const me = {
+  info: { backgroundColor: 'fg-350', iconColor: 'fg-325', icon: 'info' },
+  success: {
+    backgroundColor: 'success-glass-reown-020',
+    iconColor: 'success-125',
+    icon: 'checkmark'
+  },
+  warning: {
+    backgroundColor: 'warning-glass-reown-020',
+    iconColor: 'warning-100',
+    icon: 'warningCircle'
+  },
+  error: {
+    backgroundColor: 'error-glass-reown-020',
+    iconColor: 'error-125',
+    icon: 'exclamationTriangle'
+  }
+}
+let P = class extends v {
+  constructor() {
+    super(),
+      (this.unsubscribe = []),
+      (this.open = _.state.open),
+      this.onOpen(!0),
+      this.unsubscribe.push(
+        _.subscribeKey('open', e => {
+          ;(this.open = e), this.onOpen(!1)
+        })
+      )
+  }
+  disconnectedCallback() {
+    this.unsubscribe.forEach(e => e())
+  }
+  render() {
+    const { message: e, variant: t } = _.state,
+      i = me[t]
+    return l`
       <wui-alertbar
         message=${e}
-        backgroundColor=${i==null?void 0:i.backgroundColor}
-        iconColor=${i==null?void 0:i.iconColor}
-        icon=${i==null?void 0:i.icon}
+        backgroundColor=${i == null ? void 0 : i.backgroundColor}
+        iconColor=${i == null ? void 0 : i.iconColor}
+        icon=${i == null ? void 0 : i.icon}
       ></wui-alertbar>
-    `}onOpen(e){this.open?(this.animate([{opacity:0,transform:"scale(0.85)"},{opacity:1,transform:"scale(1)"}],{duration:150,fill:"forwards",easing:"ease"}),this.style.cssText="pointer-events: auto"):e||(this.animate([{opacity:1,transform:"scale(1)"},{opacity:0,transform:"scale(0.85)"}],{duration:150,fill:"forwards",easing:"ease"}),this.style.cssText="pointer-events: none")}};P.styles=we;Q([d()],P.prototype,"open",void 0);P=Q([y("w3m-alertbar")],P);const fe=g`
+    `
+  }
+  onOpen(e) {
+    this.open
+      ? (this.animate(
+          [
+            { opacity: 0, transform: 'scale(0.85)' },
+            { opacity: 1, transform: 'scale(1)' }
+          ],
+          { duration: 150, fill: 'forwards', easing: 'ease' }
+        ),
+        (this.style.cssText = 'pointer-events: auto'))
+      : e ||
+        (this.animate(
+          [
+            { opacity: 1, transform: 'scale(1)' },
+            { opacity: 0, transform: 'scale(0.85)' }
+          ],
+          { duration: 150, fill: 'forwards', easing: 'ease' }
+        ),
+        (this.style.cssText = 'pointer-events: none'))
+  }
+}
+P.styles = we
+Q([d()], P.prototype, 'open', void 0)
+P = Q([y('w3m-alertbar')], P)
+const fe = g`
   button {
     display: block;
     display: flex;
@@ -115,16 +286,44 @@ import{N as g,X as j,O as v,Q as l,ai as _,a6 as oe,ar as ie,a5 as c,a1 as w,af 
   button:active {
     background-color: var(--wui-color-gray-glass-005);
   }
-`;var J=function(s,e,t,i){var a=arguments.length,o=a<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,n;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")o=Reflect.decorate(s,e,t,i);else for(var r=s.length-1;r>=0;r--)(n=s[r])&&(o=(a<3?n(o):a>3?n(e,t,o):n(e,t))||o);return a>3&&o&&Object.defineProperty(e,t,o),o};let B=class extends v{constructor(){super(...arguments),this.imageSrc=""}render(){return l`<button>
+`
+var J = function (s, e, t, i) {
+  var a = arguments.length,
+    o = a < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    n
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    o = Reflect.decorate(s, e, t, i)
+  else
+    for (var r = s.length - 1; r >= 0; r--)
+      (n = s[r]) && (o = (a < 3 ? n(o) : a > 3 ? n(e, t, o) : n(e, t)) || o)
+  return a > 3 && o && Object.defineProperty(e, t, o), o
+}
+let B = class extends v {
+  constructor() {
+    super(...arguments), (this.imageSrc = '')
+  }
+  render() {
+    return l`<button>
       ${this.imageTemplate()}
       <wui-icon size="xs" color="fg-200" name="chevronBottom"></wui-icon>
-    </button>`}imageTemplate(){return this.imageSrc?l`<wui-image src=${this.imageSrc} alt="select visual"></wui-image>`:l`<wui-icon-box
+    </button>`
+  }
+  imageTemplate() {
+    return this.imageSrc
+      ? l`<wui-image src=${this.imageSrc} alt="select visual"></wui-image>`
+      : l`<wui-icon-box
       size="xxs"
       iconColor="fg-200"
       backgroundColor="fg-100"
       background="opaque"
       icon="networkPlaceholder"
-    ></wui-icon-box>`}};B.styles=[j,oe,ie,fe];J([p()],B.prototype,"imageSrc",void 0);B=J([y("wui-select")],B);const be=g`
+    ></wui-icon-box>`
+  }
+}
+B.styles = [j, oe, ie, fe]
+J([p()], B.prototype, 'imageSrc', void 0)
+B = J([y('wui-select')], B)
+const be = g`
   :host {
     height: 64px;
   }
@@ -200,25 +399,161 @@ import{N as g,X as j,O as v,Q as l,ai as _,a6 as oe,ar as ie,a5 as c,a1 as w,af 
       opacity: 1;
     }
   }
-`;var m=function(s,e,t,i){var a=arguments.length,o=a<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,n;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")o=Reflect.decorate(s,e,t,i);else for(var r=s.length-1;r>=0;r--)(n=s[r])&&(o=(a<3?n(o):a>3?n(e,t,o):n(e,t))||o);return a>3&&o&&Object.defineProperty(e,t,o),o};const ge=["SmartSessionList"];function K(){var n,r,N,C,W,E,O;const s=(r=(n=c.state.data)==null?void 0:n.connector)==null?void 0:r.name,e=(C=(N=c.state.data)==null?void 0:N.wallet)==null?void 0:C.name,t=(E=(W=c.state.data)==null?void 0:W.network)==null?void 0:E.name,i=e??s,a=H.getConnectors();return{Connect:`Connect ${a.length===1&&((O=a[0])==null?void 0:O.id)==="w3m-email"?"Email":""} Wallet`,Create:"Create Wallet",ChooseAccountName:void 0,Account:void 0,AccountSettings:void 0,AllWallets:"All Wallets",ApproveTransaction:"Approve Transaction",BuyInProgress:"Buy",ConnectingExternal:i??"Connect Wallet",ConnectingWalletConnect:i??"WalletConnect",ConnectingWalletConnectBasic:"WalletConnect",ConnectingSiwe:"Sign In",Convert:"Convert",ConvertSelectToken:"Select token",ConvertPreview:"Preview convert",Downloads:i?`Get ${i}`:"Downloads",EmailLogin:"Email Login",EmailVerifyOtp:"Confirm Email",EmailVerifyDevice:"Register Device",GetWallet:"Get a wallet",Networks:"Choose Network",OnRampProviders:"Choose Provider",OnRampActivity:"Activity",OnRampTokenSelect:"Select Token",OnRampFiatSelect:"Select Currency",Profile:void 0,SwitchNetwork:t??"Switch Network",SwitchAddress:"Switch Address",Transactions:"Activity",UnsupportedChain:"Switch Network",UpgradeEmailWallet:"Upgrade your Wallet",UpdateEmailWallet:"Edit Email",UpdateEmailPrimaryOtp:"Confirm Current Email",UpdateEmailSecondaryOtp:"Confirm New Email",WhatIsABuy:"What is Buy?",RegisterAccountName:"Choose name",RegisterAccountNameSuccess:"",WalletReceive:"Receive",WalletCompatibleNetworks:"Compatible Networks",Swap:"Swap",SwapSelectToken:"Select token",SwapPreview:"Preview swap",WalletSend:"Send",WalletSendPreview:"Review send",WalletSendSelectToken:"Select Token",WhatIsANetwork:"What is a network?",WhatIsAWallet:"What is a wallet?",ConnectWallets:"Connect wallet",ConnectSocials:"All socials",ConnectingSocial:q.state.socialProvider?q.state.socialProvider:"Connect Social",ConnectingMultiChain:"Select chain",ConnectingFarcaster:"Farcaster",SwitchActiveChain:"Switch chain",SmartSessionCreated:void 0,SmartSessionList:"Smart Sessions",SIWXSignMessage:"Sign In"}}let u=class extends v{constructor(){super(),this.unsubscribe=[],this.heading=K()[c.state.view],this.network=w.state.activeCaipNetwork,this.networkImage=D.getNetworkImage(this.network),this.buffering=!1,this.showBack=!1,this.prevHistoryLength=1,this.view=c.state.view,this.viewDirection="",this.headerText=K()[c.state.view],this.unsubscribe.push(ae.subscribeNetworkImages(()=>{this.networkImage=D.getNetworkImage(this.network)}),c.subscribeKey("view",e=>{setTimeout(()=>{this.view=e,this.headerText=K()[e]},L.ANIMATION_DURATIONS.HeaderText),this.onViewChange(),this.onHistoryChange()}),ne.subscribeKey("buffering",e=>this.buffering=e),w.subscribeKey("activeCaipNetwork",e=>{this.network=e,this.networkImage=D.getNetworkImage(this.network)}))}disconnectCallback(){this.unsubscribe.forEach(e=>e())}render(){return l`
+`
+var m = function (s, e, t, i) {
+  var a = arguments.length,
+    o = a < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    n
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    o = Reflect.decorate(s, e, t, i)
+  else
+    for (var r = s.length - 1; r >= 0; r--)
+      (n = s[r]) && (o = (a < 3 ? n(o) : a > 3 ? n(e, t, o) : n(e, t)) || o)
+  return a > 3 && o && Object.defineProperty(e, t, o), o
+}
+const ge = ['SmartSessionList']
+function K() {
+  var n, r, N, C, W, E, O
+  const s = (r = (n = c.state.data) == null ? void 0 : n.connector) == null ? void 0 : r.name,
+    e = (C = (N = c.state.data) == null ? void 0 : N.wallet) == null ? void 0 : C.name,
+    t = (E = (W = c.state.data) == null ? void 0 : W.network) == null ? void 0 : E.name,
+    i = e ?? s,
+    a = H.getConnectors()
+  return {
+    Connect: `Connect ${a.length === 1 && ((O = a[0]) == null ? void 0 : O.id) === 'w3m-email' ? 'Email' : ''} Wallet`,
+    Create: 'Create Wallet',
+    ChooseAccountName: void 0,
+    Account: void 0,
+    AccountSettings: void 0,
+    AllWallets: 'All Wallets',
+    ApproveTransaction: 'Approve Transaction',
+    BuyInProgress: 'Buy',
+    ConnectingExternal: i ?? 'Connect Wallet',
+    ConnectingWalletConnect: i ?? 'WalletConnect',
+    ConnectingWalletConnectBasic: 'WalletConnect',
+    ConnectingSiwe: 'Sign In',
+    Convert: 'Convert',
+    ConvertSelectToken: 'Select token',
+    ConvertPreview: 'Preview convert',
+    Downloads: i ? `Get ${i}` : 'Downloads',
+    EmailLogin: 'Email Login',
+    EmailVerifyOtp: 'Confirm Email',
+    EmailVerifyDevice: 'Register Device',
+    GetWallet: 'Get a wallet',
+    Networks: 'Choose Network',
+    OnRampProviders: 'Choose Provider',
+    OnRampActivity: 'Activity',
+    OnRampTokenSelect: 'Select Token',
+    OnRampFiatSelect: 'Select Currency',
+    Profile: void 0,
+    SwitchNetwork: t ?? 'Switch Network',
+    SwitchAddress: 'Switch Address',
+    Transactions: 'Activity',
+    UnsupportedChain: 'Switch Network',
+    UpgradeEmailWallet: 'Upgrade your Wallet',
+    UpdateEmailWallet: 'Edit Email',
+    UpdateEmailPrimaryOtp: 'Confirm Current Email',
+    UpdateEmailSecondaryOtp: 'Confirm New Email',
+    WhatIsABuy: 'What is Buy?',
+    RegisterAccountName: 'Choose name',
+    RegisterAccountNameSuccess: '',
+    WalletReceive: 'Receive',
+    WalletCompatibleNetworks: 'Compatible Networks',
+    Swap: 'Swap',
+    SwapSelectToken: 'Select token',
+    SwapPreview: 'Preview swap',
+    WalletSend: 'Send',
+    WalletSendPreview: 'Review send',
+    WalletSendSelectToken: 'Select Token',
+    WhatIsANetwork: 'What is a network?',
+    WhatIsAWallet: 'What is a wallet?',
+    ConnectWallets: 'Connect wallet',
+    ConnectSocials: 'All socials',
+    ConnectingSocial: q.state.socialProvider ? q.state.socialProvider : 'Connect Social',
+    ConnectingMultiChain: 'Select chain',
+    ConnectingFarcaster: 'Farcaster',
+    SwitchActiveChain: 'Switch chain',
+    SmartSessionCreated: void 0,
+    SmartSessionList: 'Smart Sessions',
+    SIWXSignMessage: 'Sign In'
+  }
+}
+let u = class extends v {
+  constructor() {
+    super(),
+      (this.unsubscribe = []),
+      (this.heading = K()[c.state.view]),
+      (this.network = w.state.activeCaipNetwork),
+      (this.networkImage = D.getNetworkImage(this.network)),
+      (this.buffering = !1),
+      (this.showBack = !1),
+      (this.prevHistoryLength = 1),
+      (this.view = c.state.view),
+      (this.viewDirection = ''),
+      (this.headerText = K()[c.state.view]),
+      this.unsubscribe.push(
+        ae.subscribeNetworkImages(() => {
+          this.networkImage = D.getNetworkImage(this.network)
+        }),
+        c.subscribeKey('view', e => {
+          setTimeout(() => {
+            ;(this.view = e), (this.headerText = K()[e])
+          }, L.ANIMATION_DURATIONS.HeaderText),
+            this.onViewChange(),
+            this.onHistoryChange()
+        }),
+        ne.subscribeKey('buffering', e => (this.buffering = e)),
+        w.subscribeKey('activeCaipNetwork', e => {
+          ;(this.network = e), (this.networkImage = D.getNetworkImage(this.network))
+        })
+      )
+  }
+  disconnectCallback() {
+    this.unsubscribe.forEach(e => e())
+  }
+  render() {
+    return l`
       <wui-flex .padding=${this.getPadding()} justifyContent="space-between" alignItems="center">
         ${this.leftHeaderTemplate()} ${this.titleTemplate()} ${this.rightHeaderTemplate()}
       </wui-flex>
-    `}onWalletHelp(){G.sendEvent({type:"track",event:"CLICK_WALLET_HELP"}),c.push("WhatIsAWallet")}async onClose(){c.state.view==="UnsupportedChain"||await z.isSIWXCloseDisabled()?h.shake():h.close(!0)}rightHeaderTemplate(){var t,i,a;const e=(a=(i=(t=T)==null?void 0:t.state)==null?void 0:i.features)==null?void 0:a.smartSessions;return c.state.view!=="Account"||!e?this.closeButtonTemplate():l`<wui-flex>
+    `
+  }
+  onWalletHelp() {
+    G.sendEvent({ type: 'track', event: 'CLICK_WALLET_HELP' }), c.push('WhatIsAWallet')
+  }
+  async onClose() {
+    c.state.view === 'UnsupportedChain' || (await z.isSIWXCloseDisabled()) ? h.shake() : h.close(!0)
+  }
+  rightHeaderTemplate() {
+    var t, i, a
+    const e =
+      (a = (i = (t = T) == null ? void 0 : t.state) == null ? void 0 : i.features) == null
+        ? void 0
+        : a.smartSessions
+    return c.state.view !== 'Account' || !e
+      ? this.closeButtonTemplate()
+      : l`<wui-flex>
       <wui-icon-link
         icon="clock"
-        @click=${()=>c.push("SmartSessionList")}
+        @click=${() => c.push('SmartSessionList')}
         data-testid="w3m-header-smart-sessions"
       ></wui-icon-link>
       ${this.closeButtonTemplate()}
-    </wui-flex> `}closeButtonTemplate(){return l`
+    </wui-flex> `
+  }
+  closeButtonTemplate() {
+    return l`
       <wui-icon-link
         ?disabled=${this.buffering}
         icon="close"
         @click=${this.onClose.bind(this)}
         data-testid="w3m-header-close"
       ></wui-icon-link>
-    `}titleTemplate(){const e=ge.includes(this.view);return l`
+    `
+  }
+  titleTemplate() {
+    const e = ge.includes(this.view)
+    return l`
       <wui-flex
         view-direction="${this.viewDirection}"
         class="w3m-header-title"
@@ -228,26 +563,116 @@ import{N as g,X as j,O as v,Q as l,ai as _,a6 as oe,ar as ie,a5 as c,a1 as w,af 
         <wui-text variant="paragraph-700" color="fg-100" data-testid="w3m-header-text"
           >${this.headerText}</wui-text
         >
-        ${e?l`<wui-tag variant="main">Beta</wui-tag>`:null}
+        ${e ? l`<wui-tag variant="main">Beta</wui-tag>` : null}
       </wui-flex>
-    `}leftHeaderTemplate(){var C;const{view:e}=c.state,t=e==="Connect",i=T.state.enableEmbedded,a=e==="ApproveTransaction",o=e==="ConnectingSiwe",n=e==="Account",r=T.state.enableNetworkSwitch,N=a||o||t&&i;return n&&r?l`<wui-select
+    `
+  }
+  leftHeaderTemplate() {
+    var C
+    const { view: e } = c.state,
+      t = e === 'Connect',
+      i = T.state.enableEmbedded,
+      a = e === 'ApproveTransaction',
+      o = e === 'ConnectingSiwe',
+      n = e === 'Account',
+      r = T.state.enableNetworkSwitch,
+      N = a || o || (t && i)
+    return n && r
+      ? l`<wui-select
         id="dynamic"
         data-testid="w3m-account-select-network"
-        active-network=${Y((C=this.network)==null?void 0:C.name)}
+        active-network=${Y((C = this.network) == null ? void 0 : C.name)}
         @click=${this.onNetworks.bind(this)}
         imageSrc=${Y(this.networkImage)}
-      ></wui-select>`:this.showBack&&!N?l`<wui-icon-link
+      ></wui-select>`
+      : this.showBack && !N
+        ? l`<wui-icon-link
         data-testid="header-back"
         id="dynamic"
         icon="chevronLeft"
         ?disabled=${this.buffering}
         @click=${this.onGoBack.bind(this)}
-      ></wui-icon-link>`:l`<wui-icon-link
+      ></wui-icon-link>`
+        : l`<wui-icon-link
       data-hidden=${!t}
       id="dynamic"
       icon="helpCircle"
       @click=${this.onWalletHelp.bind(this)}
-    ></wui-icon-link>`}onNetworks(){this.isAllowedNetworkSwitch()&&(G.sendEvent({type:"track",event:"CLICK_NETWORKS"}),c.push("Networks"))}isAllowedNetworkSwitch(){const e=w.getAllRequestedCaipNetworks(),t=e?e.length>1:!1,i=e==null?void 0:e.find(({id:a})=>{var o;return a===((o=this.network)==null?void 0:o.id)});return t||!i}getPadding(){return this.heading?["l","2l","l","2l"]:["0","2l","0","2l"]}onViewChange(){const{history:e}=c.state;let t=L.VIEW_DIRECTION.Next;e.length<this.prevHistoryLength&&(t=L.VIEW_DIRECTION.Prev),this.prevHistoryLength=e.length,this.viewDirection=t}async onHistoryChange(){var i;const{history:e}=c.state,t=(i=this.shadowRoot)==null?void 0:i.querySelector("#dynamic");e.length>1&&!this.showBack&&t?(await t.animate([{opacity:1},{opacity:0}],{duration:200,fill:"forwards",easing:"ease"}).finished,this.showBack=!0,t.animate([{opacity:0},{opacity:1}],{duration:200,fill:"forwards",easing:"ease"})):e.length<=1&&this.showBack&&t&&(await t.animate([{opacity:1},{opacity:0}],{duration:200,fill:"forwards",easing:"ease"}).finished,this.showBack=!1,t.animate([{opacity:0},{opacity:1}],{duration:200,fill:"forwards",easing:"ease"}))}onGoBack(){c.goBack()}};u.styles=be;m([d()],u.prototype,"heading",void 0);m([d()],u.prototype,"network",void 0);m([d()],u.prototype,"networkImage",void 0);m([d()],u.prototype,"buffering",void 0);m([d()],u.prototype,"showBack",void 0);m([d()],u.prototype,"prevHistoryLength",void 0);m([d()],u.prototype,"view",void 0);m([d()],u.prototype,"viewDirection",void 0);m([d()],u.prototype,"headerText",void 0);u=m([y("w3m-header")],u);const ve=g`
+    ></wui-icon-link>`
+  }
+  onNetworks() {
+    this.isAllowedNetworkSwitch() &&
+      (G.sendEvent({ type: 'track', event: 'CLICK_NETWORKS' }), c.push('Networks'))
+  }
+  isAllowedNetworkSwitch() {
+    const e = w.getAllRequestedCaipNetworks(),
+      t = e ? e.length > 1 : !1,
+      i =
+        e == null
+          ? void 0
+          : e.find(({ id: a }) => {
+              var o
+              return a === ((o = this.network) == null ? void 0 : o.id)
+            })
+    return t || !i
+  }
+  getPadding() {
+    return this.heading ? ['l', '2l', 'l', '2l'] : ['0', '2l', '0', '2l']
+  }
+  onViewChange() {
+    const { history: e } = c.state
+    let t = L.VIEW_DIRECTION.Next
+    e.length < this.prevHistoryLength && (t = L.VIEW_DIRECTION.Prev),
+      (this.prevHistoryLength = e.length),
+      (this.viewDirection = t)
+  }
+  async onHistoryChange() {
+    var i
+    const { history: e } = c.state,
+      t = (i = this.shadowRoot) == null ? void 0 : i.querySelector('#dynamic')
+    e.length > 1 && !this.showBack && t
+      ? (await t.animate([{ opacity: 1 }, { opacity: 0 }], {
+          duration: 200,
+          fill: 'forwards',
+          easing: 'ease'
+        }).finished,
+        (this.showBack = !0),
+        t.animate([{ opacity: 0 }, { opacity: 1 }], {
+          duration: 200,
+          fill: 'forwards',
+          easing: 'ease'
+        }))
+      : e.length <= 1 &&
+        this.showBack &&
+        t &&
+        (await t.animate([{ opacity: 1 }, { opacity: 0 }], {
+          duration: 200,
+          fill: 'forwards',
+          easing: 'ease'
+        }).finished,
+        (this.showBack = !1),
+        t.animate([{ opacity: 0 }, { opacity: 1 }], {
+          duration: 200,
+          fill: 'forwards',
+          easing: 'ease'
+        }))
+  }
+  onGoBack() {
+    c.goBack()
+  }
+}
+u.styles = be
+m([d()], u.prototype, 'heading', void 0)
+m([d()], u.prototype, 'network', void 0)
+m([d()], u.prototype, 'networkImage', void 0)
+m([d()], u.prototype, 'buffering', void 0)
+m([d()], u.prototype, 'showBack', void 0)
+m([d()], u.prototype, 'prevHistoryLength', void 0)
+m([d()], u.prototype, 'view', void 0)
+m([d()], u.prototype, 'viewDirection', void 0)
+m([d()], u.prototype, 'headerText', void 0)
+u = m([y('w3m-header')], u)
+const ve = g`
   :host {
     display: flex;
     column-gap: var(--wui-spacing-s);
@@ -267,19 +692,60 @@ import{N as g,X as j,O as v,Q as l,ai as _,a6 as oe,ar as ie,a5 as c,a1 as w,af 
   :host wui-loading-spinner {
     margin-left: var(--wui-spacing-3xs);
   }
-`;var k=function(s,e,t,i){var a=arguments.length,o=a<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,n;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")o=Reflect.decorate(s,e,t,i);else for(var r=s.length-1;r>=0;r--)(n=s[r])&&(o=(a<3?n(o):a>3?n(e,t,o):n(e,t))||o);return a>3&&o&&Object.defineProperty(e,t,o),o};let f=class extends v{constructor(){super(...arguments),this.backgroundColor="accent-100",this.iconColor="accent-100",this.icon="checkmark",this.message="",this.loading=!1,this.iconType="default"}render(){return l`
+`
+var k = function (s, e, t, i) {
+  var a = arguments.length,
+    o = a < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    n
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    o = Reflect.decorate(s, e, t, i)
+  else
+    for (var r = s.length - 1; r >= 0; r--)
+      (n = s[r]) && (o = (a < 3 ? n(o) : a > 3 ? n(e, t, o) : n(e, t)) || o)
+  return a > 3 && o && Object.defineProperty(e, t, o), o
+}
+let f = class extends v {
+  constructor() {
+    super(...arguments),
+      (this.backgroundColor = 'accent-100'),
+      (this.iconColor = 'accent-100'),
+      (this.icon = 'checkmark'),
+      (this.message = ''),
+      (this.loading = !1),
+      (this.iconType = 'default')
+  }
+  render() {
+    return l`
       ${this.templateIcon()}
       <wui-text variant="paragraph-500" color="fg-100" data-testid="wui-snackbar-message"
         >${this.message}</wui-text
       >
-    `}templateIcon(){return this.loading?l`<wui-loading-spinner size="md" color="accent-100"></wui-loading-spinner>`:this.iconType==="default"?l`<wui-icon size="xl" color=${this.iconColor} name=${this.icon}></wui-icon>`:l`<wui-icon-box
+    `
+  }
+  templateIcon() {
+    return this.loading
+      ? l`<wui-loading-spinner size="md" color="accent-100"></wui-loading-spinner>`
+      : this.iconType === 'default'
+        ? l`<wui-icon size="xl" color=${this.iconColor} name=${this.icon}></wui-icon>`
+        : l`<wui-icon-box
       size="sm"
       iconSize="xs"
       iconColor=${this.iconColor}
       backgroundColor=${this.backgroundColor}
       icon=${this.icon}
       background="opaque"
-    ></wui-icon-box>`}};f.styles=[j,ve];k([p()],f.prototype,"backgroundColor",void 0);k([p()],f.prototype,"iconColor",void 0);k([p()],f.prototype,"icon",void 0);k([p()],f.prototype,"message",void 0);k([p()],f.prototype,"loading",void 0);k([p()],f.prototype,"iconType",void 0);f=k([y("wui-snackbar")],f);const ye=g`
+    ></wui-icon-box>`
+  }
+}
+f.styles = [j, ve]
+k([p()], f.prototype, 'backgroundColor', void 0)
+k([p()], f.prototype, 'iconColor', void 0)
+k([p()], f.prototype, 'icon', void 0)
+k([p()], f.prototype, 'message', void 0)
+k([p()], f.prototype, 'loading', void 0)
+k([p()], f.prototype, 'iconType', void 0)
+f = k([y('wui-snackbar')], f)
+const ye = g`
   :host {
     display: block;
     position: absolute;
@@ -289,15 +755,77 @@ import{N as g,X as j,O as v,Q as l,ai as _,a6 as oe,ar as ie,a5 as c,a1 as w,af 
     left: 50%;
     width: max-content;
   }
-`;var Z=function(s,e,t,i){var a=arguments.length,o=a<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,n;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")o=Reflect.decorate(s,e,t,i);else for(var r=s.length-1;r>=0;r--)(n=s[r])&&(o=(a<3?n(o):a>3?n(e,t,o):n(e,t))||o);return a>3&&o&&Object.defineProperty(e,t,o),o};const Ce={loading:void 0,success:{backgroundColor:"success-100",iconColor:"success-100",icon:"checkmark"},error:{backgroundColor:"error-100",iconColor:"error-100",icon:"close"}};let U=class extends v{constructor(){super(),this.unsubscribe=[],this.timeout=void 0,this.open=$.state.open,this.unsubscribe.push($.subscribeKey("open",e=>{this.open=e,this.onOpen()}))}disconnectedCallback(){clearTimeout(this.timeout),this.unsubscribe.forEach(e=>e())}render(){const{message:e,variant:t,svg:i}=$.state,a=Ce[t],{icon:o,iconColor:n}=i??a??{};return l`
+`
+var Z = function (s, e, t, i) {
+  var a = arguments.length,
+    o = a < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    n
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    o = Reflect.decorate(s, e, t, i)
+  else
+    for (var r = s.length - 1; r >= 0; r--)
+      (n = s[r]) && (o = (a < 3 ? n(o) : a > 3 ? n(e, t, o) : n(e, t)) || o)
+  return a > 3 && o && Object.defineProperty(e, t, o), o
+}
+const Ce = {
+  loading: void 0,
+  success: { backgroundColor: 'success-100', iconColor: 'success-100', icon: 'checkmark' },
+  error: { backgroundColor: 'error-100', iconColor: 'error-100', icon: 'close' }
+}
+let U = class extends v {
+  constructor() {
+    super(),
+      (this.unsubscribe = []),
+      (this.timeout = void 0),
+      (this.open = $.state.open),
+      this.unsubscribe.push(
+        $.subscribeKey('open', e => {
+          ;(this.open = e), this.onOpen()
+        })
+      )
+  }
+  disconnectedCallback() {
+    clearTimeout(this.timeout), this.unsubscribe.forEach(e => e())
+  }
+  render() {
+    const { message: e, variant: t, svg: i } = $.state,
+      a = Ce[t],
+      { icon: o, iconColor: n } = i ?? a ?? {}
+    return l`
       <wui-snackbar
         message=${e}
-        backgroundColor=${a==null?void 0:a.backgroundColor}
+        backgroundColor=${a == null ? void 0 : a.backgroundColor}
         iconColor=${n}
         icon=${o}
-        .loading=${t==="loading"}
+        .loading=${t === 'loading'}
       ></wui-snackbar>
-    `}onOpen(){clearTimeout(this.timeout),this.open?(this.animate([{opacity:0,transform:"translateX(-50%) scale(0.85)"},{opacity:1,transform:"translateX(-50%) scale(1)"}],{duration:150,fill:"forwards",easing:"ease"}),this.timeout&&clearTimeout(this.timeout),$.state.autoClose&&(this.timeout=setTimeout(()=>$.hide(),2500))):this.animate([{opacity:1,transform:"translateX(-50%) scale(1)"},{opacity:0,transform:"translateX(-50%) scale(0.85)"}],{duration:150,fill:"forwards",easing:"ease"})}};U.styles=ye;Z([d()],U.prototype,"open",void 0);U=Z([y("w3m-snackbar")],U);const xe=g`
+    `
+  }
+  onOpen() {
+    clearTimeout(this.timeout),
+      this.open
+        ? (this.animate(
+            [
+              { opacity: 0, transform: 'translateX(-50%) scale(0.85)' },
+              { opacity: 1, transform: 'translateX(-50%) scale(1)' }
+            ],
+            { duration: 150, fill: 'forwards', easing: 'ease' }
+          ),
+          this.timeout && clearTimeout(this.timeout),
+          $.state.autoClose && (this.timeout = setTimeout(() => $.hide(), 2500)))
+        : this.animate(
+            [
+              { opacity: 1, transform: 'translateX(-50%) scale(1)' },
+              { opacity: 0, transform: 'translateX(-50%) scale(0.85)' }
+            ],
+            { duration: 150, fill: 'forwards', easing: 'ease' }
+          )
+  }
+}
+U.styles = ye
+Z([d()], U.prototype, 'open', void 0)
+U = Z([y('w3m-snackbar')], U)
+const xe = g`
   :host {
     z-index: var(--w3m-z-index);
     display: block;
@@ -437,15 +965,80 @@ import{N as g,X as j,O as v,Q as l,ai as _,a6 as oe,ar as ie,a5 as c,a1 as w,af 
       height: var(--new-height);
     }
   }
-`;var S=function(s,e,t,i){var a=arguments.length,o=a<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,n;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")o=Reflect.decorate(s,e,t,i);else for(var r=s.length-1;r>=0;r--)(n=s[r])&&(o=(a<3?n(o):a>3?n(e,t,o):n(e,t))||o);return a>3&&o&&Object.defineProperty(e,t,o),o};const F="scroll-lock";let b=class extends v{constructor(){super(),this.unsubscribe=[],this.abortController=void 0,this.hasPrefetched=!1,this.enableEmbedded=T.state.enableEmbedded,this.open=h.state.open,this.caipAddress=w.state.activeCaipAddress,this.caipNetwork=w.state.activeCaipNetwork,this.shake=h.state.shake,this.filterByNamespace=H.state.filterByNamespace,this.initializeTheming(),R.prefetchAnalyticsConfig(),this.unsubscribe.push(h.subscribeKey("open",e=>e?this.onOpen():this.onClose()),h.subscribeKey("shake",e=>this.shake=e),w.subscribeKey("activeCaipNetwork",e=>this.onNewNetwork(e)),w.subscribeKey("activeCaipAddress",e=>this.onNewAddress(e)),T.subscribeKey("enableEmbedded",e=>this.enableEmbedded=e),H.subscribeKey("filterByNamespace",e=>{var t;this.filterByNamespace!==e&&!((t=w.getAccountData(e))!=null&&t.caipAddress)&&(R.fetchRecommendedWallets(),this.filterByNamespace=e)}))}firstUpdated(){if(this.caipAddress){if(this.enableEmbedded){h.close(),this.prefetch();return}this.onNewAddress(this.caipAddress)}this.open&&this.onOpen(),this.enableEmbedded&&this.prefetch()}disconnectedCallback(){this.unsubscribe.forEach(e=>e()),this.onRemoveKeyboardListener()}render(){return this.style.cssText=`
-      --local-border-bottom-mobile-radius: ${this.enableEmbedded?"clamp(0px, var(--wui-border-radius-l), 44px)":"0px"};
-    `,this.enableEmbedded?l`${this.contentTemplate()}
-        <w3m-tooltip></w3m-tooltip> `:this.open?l`
+`
+var S = function (s, e, t, i) {
+  var a = arguments.length,
+    o = a < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    n
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    o = Reflect.decorate(s, e, t, i)
+  else
+    for (var r = s.length - 1; r >= 0; r--)
+      (n = s[r]) && (o = (a < 3 ? n(o) : a > 3 ? n(e, t, o) : n(e, t)) || o)
+  return a > 3 && o && Object.defineProperty(e, t, o), o
+}
+const F = 'scroll-lock'
+let b = class extends v {
+  constructor() {
+    super(),
+      (this.unsubscribe = []),
+      (this.abortController = void 0),
+      (this.hasPrefetched = !1),
+      (this.enableEmbedded = T.state.enableEmbedded),
+      (this.open = h.state.open),
+      (this.caipAddress = w.state.activeCaipAddress),
+      (this.caipNetwork = w.state.activeCaipNetwork),
+      (this.shake = h.state.shake),
+      (this.filterByNamespace = H.state.filterByNamespace),
+      this.initializeTheming(),
+      R.prefetchAnalyticsConfig(),
+      this.unsubscribe.push(
+        h.subscribeKey('open', e => (e ? this.onOpen() : this.onClose())),
+        h.subscribeKey('shake', e => (this.shake = e)),
+        w.subscribeKey('activeCaipNetwork', e => this.onNewNetwork(e)),
+        w.subscribeKey('activeCaipAddress', e => this.onNewAddress(e)),
+        T.subscribeKey('enableEmbedded', e => (this.enableEmbedded = e)),
+        H.subscribeKey('filterByNamespace', e => {
+          var t
+          this.filterByNamespace !== e &&
+            !((t = w.getAccountData(e)) != null && t.caipAddress) &&
+            (R.fetchRecommendedWallets(), (this.filterByNamespace = e))
+        })
+      )
+  }
+  firstUpdated() {
+    if (this.caipAddress) {
+      if (this.enableEmbedded) {
+        h.close(), this.prefetch()
+        return
+      }
+      this.onNewAddress(this.caipAddress)
+    }
+    this.open && this.onOpen(), this.enableEmbedded && this.prefetch()
+  }
+  disconnectedCallback() {
+    this.unsubscribe.forEach(e => e()), this.onRemoveKeyboardListener()
+  }
+  render() {
+    return (
+      (this.style.cssText = `
+      --local-border-bottom-mobile-radius: ${this.enableEmbedded ? 'clamp(0px, var(--wui-border-radius-l), 44px)' : '0px'};
+    `),
+      this.enableEmbedded
+        ? l`${this.contentTemplate()}
+        <w3m-tooltip></w3m-tooltip> `
+        : this.open
+          ? l`
           <wui-flex @click=${this.onOverlayClick.bind(this)} data-testid="w3m-modal-overlay">
             ${this.contentTemplate()}
           </wui-flex>
           <w3m-tooltip></w3m-tooltip>
-        `:null}contentTemplate(){return l` <wui-card
+        `
+          : null
+    )
+  }
+  contentTemplate() {
+    return l` <wui-card
       shake="${this.shake}"
       data-embedded="${Y(this.enableEmbedded)}"
       role="alertdialog"
@@ -457,7 +1050,33 @@ import{N as g,X as j,O as v,Q as l,ai as _,a6 as oe,ar as ie,a5 as c,a1 as w,af 
       <w3m-router></w3m-router>
       <w3m-snackbar></w3m-snackbar>
       <w3m-alertbar></w3m-alertbar>
-    </wui-card>`}async onOverlayClick(e){e.target===e.currentTarget&&await this.handleClose()}async handleClose(){c.state.view==="UnsupportedChain"||await z.isSIWXCloseDisabled()?h.shake():h.close()}initializeTheming(){const{themeVariables:e,themeMode:t}=se.state,i=de.getColorTheme(t);re(e,i)}onClose(){this.open=!1,this.classList.remove("open"),this.onScrollUnlock(),$.hide(),this.onRemoveKeyboardListener()}onOpen(){this.open=!0,this.classList.add("open"),this.onScrollLock(),this.onAddKeyboardListener()}onScrollLock(){const e=document.createElement("style");e.dataset.w3m=F,e.textContent=`
+    </wui-card>`
+  }
+  async onOverlayClick(e) {
+    e.target === e.currentTarget && (await this.handleClose())
+  }
+  async handleClose() {
+    c.state.view === 'UnsupportedChain' || (await z.isSIWXCloseDisabled()) ? h.shake() : h.close()
+  }
+  initializeTheming() {
+    const { themeVariables: e, themeMode: t } = se.state,
+      i = de.getColorTheme(t)
+    re(e, i)
+  }
+  onClose() {
+    ;(this.open = !1),
+      this.classList.remove('open'),
+      this.onScrollUnlock(),
+      $.hide(),
+      this.onRemoveKeyboardListener()
+  }
+  onOpen() {
+    ;(this.open = !0), this.classList.add('open'), this.onScrollLock(), this.onAddKeyboardListener()
+  }
+  onScrollLock() {
+    const e = document.createElement('style')
+    ;(e.dataset.w3m = F),
+      (e.textContent = `
       body {
         touch-action: none;
         overflow: hidden;
@@ -466,4 +1085,72 @@ import{N as g,X as j,O as v,Q as l,ai as _,a6 as oe,ar as ie,a5 as c,a1 as w,af 
       w3m-modal {
         pointer-events: auto;
       }
-    `,document.head.appendChild(e)}onScrollUnlock(){const e=document.head.querySelector(`style[data-w3m="${F}"]`);e&&e.remove()}onAddKeyboardListener(){var t;this.abortController=new AbortController;const e=(t=this.shadowRoot)==null?void 0:t.querySelector("wui-card");e==null||e.focus(),window.addEventListener("keydown",i=>{if(i.key==="Escape")this.handleClose();else if(i.key==="Tab"){const{tagName:a}=i.target;a&&!a.includes("W3M-")&&!a.includes("WUI-")&&(e==null||e.focus())}},this.abortController)}onRemoveKeyboardListener(){var e;(e=this.abortController)==null||e.abort(),this.abortController=void 0}async onNewAddress(e){const t=w.state.isSwitchingNamespace,i=ce.getPlainAddress(e);!i&&!t?h.close():t&&i&&c.goBack(),await z.initializeIfEnabled(),this.caipAddress=e,w.setIsSwitchingNamespace(!1)}onNewNetwork(e){var V,X;const t=this.caipNetwork,i=(V=t==null?void 0:t.caipNetworkId)==null?void 0:V.toString(),a=t==null?void 0:t.chainNamespace,o=(X=e==null?void 0:e.caipNetworkId)==null?void 0:X.toString(),n=e==null?void 0:e.chainNamespace,r=i!==o,C=r&&!(a!==n),W=(t==null?void 0:t.name)===le.UNSUPPORTED_NETWORK_NAME,E=c.state.view==="ConnectingExternal",O=!this.caipAddress,ee=c.state.view==="UnsupportedChain",te=h.state.open;let I=!1;te&&!E&&(O?r&&(I=!0):(ee||C&&!W)&&(I=!0)),I&&c.state.view!=="SIWXSignMessage"&&c.goBack(),this.caipNetwork=e}prefetch(){this.hasPrefetched||(R.prefetch(),R.fetchWalletsByPage({page:1}),this.hasPrefetched=!0)}};b.styles=xe;S([p({type:Boolean})],b.prototype,"enableEmbedded",void 0);S([d()],b.prototype,"open",void 0);S([d()],b.prototype,"caipAddress",void 0);S([d()],b.prototype,"caipNetwork",void 0);S([d()],b.prototype,"shake",void 0);S([d()],b.prototype,"filterByNamespace",void 0);b=S([y("w3m-modal")],b);export{b as W3mModal};
+    `),
+      document.head.appendChild(e)
+  }
+  onScrollUnlock() {
+    const e = document.head.querySelector(`style[data-w3m="${F}"]`)
+    e && e.remove()
+  }
+  onAddKeyboardListener() {
+    var t
+    this.abortController = new AbortController()
+    const e = (t = this.shadowRoot) == null ? void 0 : t.querySelector('wui-card')
+    e == null || e.focus(),
+      window.addEventListener(
+        'keydown',
+        i => {
+          if (i.key === 'Escape') this.handleClose()
+          else if (i.key === 'Tab') {
+            const { tagName: a } = i.target
+            a && !a.includes('W3M-') && !a.includes('WUI-') && (e == null || e.focus())
+          }
+        },
+        this.abortController
+      )
+  }
+  onRemoveKeyboardListener() {
+    var e
+    ;(e = this.abortController) == null || e.abort(), (this.abortController = void 0)
+  }
+  async onNewAddress(e) {
+    const t = w.state.isSwitchingNamespace,
+      i = ce.getPlainAddress(e)
+    !i && !t ? h.close() : t && i && c.goBack(),
+      await z.initializeIfEnabled(),
+      (this.caipAddress = e),
+      w.setIsSwitchingNamespace(!1)
+  }
+  onNewNetwork(e) {
+    var V, X
+    const t = this.caipNetwork,
+      i = (V = t == null ? void 0 : t.caipNetworkId) == null ? void 0 : V.toString(),
+      a = t == null ? void 0 : t.chainNamespace,
+      o = (X = e == null ? void 0 : e.caipNetworkId) == null ? void 0 : X.toString(),
+      n = e == null ? void 0 : e.chainNamespace,
+      r = i !== o,
+      C = r && !(a !== n),
+      W = (t == null ? void 0 : t.name) === le.UNSUPPORTED_NETWORK_NAME,
+      E = c.state.view === 'ConnectingExternal',
+      O = !this.caipAddress,
+      ee = c.state.view === 'UnsupportedChain',
+      te = h.state.open
+    let I = !1
+    te && !E && (O ? r && (I = !0) : (ee || (C && !W)) && (I = !0)),
+      I && c.state.view !== 'SIWXSignMessage' && c.goBack(),
+      (this.caipNetwork = e)
+  }
+  prefetch() {
+    this.hasPrefetched ||
+      (R.prefetch(), R.fetchWalletsByPage({ page: 1 }), (this.hasPrefetched = !0))
+  }
+}
+b.styles = xe
+S([p({ type: Boolean })], b.prototype, 'enableEmbedded', void 0)
+S([d()], b.prototype, 'open', void 0)
+S([d()], b.prototype, 'caipAddress', void 0)
+S([d()], b.prototype, 'caipNetwork', void 0)
+S([d()], b.prototype, 'shake', void 0)
+S([d()], b.prototype, 'filterByNamespace', void 0)
+b = S([y('w3m-modal')], b)
+export { b as W3mModal }

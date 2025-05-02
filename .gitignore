@@ -18,6 +18,7 @@ tsconfig.tsbuildinfo
 .cache-synpress
 .parcel-cache
 .coverage
+.cursor
 .envrc*
 file.txt
 .env*.local

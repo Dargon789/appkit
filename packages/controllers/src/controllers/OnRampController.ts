@@ -5,10 +5,12 @@ import { ConstantsUtil } from '@reown/appkit-common'
 
 import { MELD_PUBLIC_KEY, ONRAMP_PROVIDERS } from '../utils/ConstantsUtil.js'
 import type { PaymentCurrency, PurchaseCurrency } from '../utils/TypeUtil.js'
+import { withErrorBoundary } from '../utils/withErrorBoundary.js'
 import { AccountController } from './AccountController.js'
 import { ApiController } from './ApiController.js'
 import { BlockchainApiController } from './BlockchainApiController.js'
 import { ChainController } from './ChainController.js'
+import { OptionsController } from './OptionsController.js'
 
 // -- Types --------------------------------------------- //
 export type OnRampProviderOption = 'coinbase' | 'moonpay' | 'stripe' | 'paypal' | 'meld'
@@ -87,7 +89,7 @@ const defaultState = {
 const state = proxy<OnRampControllerState>(defaultState)
 
 // -- Controller ---------------------------------------- //
-export const OnRampController = {
+const controller = {
   state,
 
   subscribe(callback: (newState: OnRampControllerState) => void) {
@@ -107,9 +109,11 @@ export const OnRampController = {
       url.searchParams.append('publicKey', MELD_PUBLIC_KEY)
       url.searchParams.append('destinationCurrencyCode', currency)
       url.searchParams.append('walletAddress', address)
-      provider.url = url.toString()
+      url.searchParams.append('externalCustomerId', OptionsController.state.projectId)
+      state.selectedProvider = { ...provider, url: url.toString() }
+    } else {
+      state.selectedProvider = provider
     }
-    state.selectedProvider = provider
   },
 
   setPurchaseCurrency(currency: PurchaseCurrency) {
@@ -121,11 +125,11 @@ export const OnRampController = {
   },
 
   setPurchaseAmount(amount: number) {
-    this.state.purchaseAmount = amount
+    OnRampController.state.purchaseAmount = amount
   },
 
   setPaymentAmount(amount: number) {
-    this.state.paymentAmount = amount
+    OnRampController.state.paymentAmount = amount
   },
 
   async getAvailableCurrencies() {
@@ -176,3 +180,6 @@ export const OnRampController = {
     state.quotesLoading = false
   }
 }
+
+// Export the controller wrapped with our error boundary
+export const OnRampController = withErrorBoundary(controller)

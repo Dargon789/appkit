@@ -1,1 +1,37 @@
-[{"name":"vc.builder","duration":38086106,"timestamp":23121910891,"id":"ec043405-72f5-4175-89f9-ba047c96ad54","parentId":"533d7ca6-1443-4e97-8c61-f7206d9a4cea","tags":{"name":"@vercel/static-build"},"startTime":1745348481879},{"name":"vc.builder.diagnostics","duration":92,"timestamp":23159997263,"id":"3fdc2ccd-8ab8-47fe-9305-ca8a98d46ee0","parentId":"ec043405-72f5-4175-89f9-ba047c96ad54","tags":{},"startTime":1745348519966},{"name":"vc.doBuild","duration":39077512,"timestamp":23121153772,"id":"533d7ca6-1443-4e97-8c61-f7206d9a4cea","parentId":"c1eb8a74-02f7-4b3c-8092-72ae8bc53a40","tags":{},"startTime":1745348481122},{"name":"vc","duration":39106006,"timestamp":23121125311,"id":"c1eb8a74-02f7-4b3c-8092-72ae8bc53a40","tags":{},"startTime":1745348481094}]
+[
+  {
+    "name": "vc.builder",
+    "duration": 38086106,
+    "timestamp": 23121910891,
+    "id": "ec043405-72f5-4175-89f9-ba047c96ad54",
+    "parentId": "533d7ca6-1443-4e97-8c61-f7206d9a4cea",
+    "tags": { "name": "@vercel/static-build" },
+    "startTime": 1745348481879
+  },
+  {
+    "name": "vc.builder.diagnostics",
+    "duration": 92,
+    "timestamp": 23159997263,
+    "id": "3fdc2ccd-8ab8-47fe-9305-ca8a98d46ee0",
+    "parentId": "ec043405-72f5-4175-89f9-ba047c96ad54",
+    "tags": {},
+    "startTime": 1745348519966
+  },
+  {
+    "name": "vc.doBuild",
+    "duration": 39077512,
+    "timestamp": 23121153772,
+    "id": "533d7ca6-1443-4e97-8c61-f7206d9a4cea",
+    "parentId": "c1eb8a74-02f7-4b3c-8092-72ae8bc53a40",
+    "tags": {},
+    "startTime": 1745348481122
+  },
+  {
+    "name": "vc",
+    "duration": 39106006,
+    "timestamp": 23121125311,
+    "id": "c1eb8a74-02f7-4b3c-8092-72ae8bc53a40",
+    "tags": {},
+    "startTime": 1745348481094
+  }
+]

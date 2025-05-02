@@ -1,4 +1,10 @@
-import{N as w,X as g,a6 as h,O as v,Q as l}from"./cxC4FtgZ.js";import{n as a,c as x,e as m,o as c}from"./D1u8rsYX.js";import{e as b,n as f}from"./DFaAtWOZ.js";const y=w`
+import { n as a, o as c, e as m, c as x } from './D1u8rsYX.js'
+import { e as b, n as f } from './DFaAtWOZ.js'
+import { X as g, a6 as h, Q as l, O as v, N as w } from './cxC4FtgZ.js'
+
+import { n as a, c as x, e as m, o as c } from './D1u8rsYX.js'
+import { e as b, n as f } from './DFaAtWOZ.js'
+const y = w`
   :host {
     position: relative;
     width: 100%;
@@ -181,7 +187,32 @@ import{N as w,X as g,a6 as h,O as v,Q as l}from"./cxC4FtgZ.js";import{n as a,c a
   ::slotted(wui-icon) {
     right: 0px;
   }
-`;var e=function(s,t,o,r){var p=arguments.length,n=p<3?t:r===null?r=Object.getOwnPropertyDescriptor(t,o):r,u;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")n=Reflect.decorate(s,t,o,r);else for(var d=s.length-1;d>=0;d--)(u=s[d])&&(n=(p<3?u(n):p>3?u(t,o,n):u(t,o))||n);return p>3&&n&&Object.defineProperty(t,o,n),n};let i=class extends v{constructor(){super(...arguments),this.inputElementRef=b(),this.size="md",this.disabled=!1,this.placeholder="",this.type="text",this.value=""}render(){const t=`wui-padding-right-${this.inputRightPadding}`,r={[`wui-size-${this.size}`]:!0,[t]:!!this.inputRightPadding};return l`${this.templateIcon()}
+`
+var e = function (s, t, o, r) {
+  var p = arguments.length,
+    n = p < 3 ? t : r === null ? (r = Object.getOwnPropertyDescriptor(t, o)) : r,
+    u
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    n = Reflect.decorate(s, t, o, r)
+  else
+    for (var d = s.length - 1; d >= 0; d--)
+      (u = s[d]) && (n = (p < 3 ? u(n) : p > 3 ? u(t, o, n) : u(t, o)) || n)
+  return p > 3 && n && Object.defineProperty(t, o, n), n
+}
+let i = class extends v {
+  constructor() {
+    super(...arguments),
+      (this.inputElementRef = b()),
+      (this.size = 'md'),
+      (this.disabled = !1),
+      (this.placeholder = ''),
+      (this.type = 'text'),
+      (this.value = '')
+  }
+  render() {
+    const t = `wui-padding-right-${this.inputRightPadding}`,
+      r = { [`wui-size-${this.size}`]: !0, [t]: !!this.inputRightPadding }
+    return l`${this.templateIcon()}
       <input
         data-testid="wui-input-text"
         ${f(this.inputElementRef)}
@@ -191,12 +222,40 @@ import{N as w,X as g,a6 as h,O as v,Q as l}from"./cxC4FtgZ.js";import{n as a,c a
         ?disabled=${this.disabled}
         placeholder=${this.placeholder}
         @input=${this.dispatchInputChangeEvent.bind(this)}
-        .value=${this.value||""}
+        .value=${this.value || ''}
         tabindex=${c(this.tabIdx)}
       />
-      <slot></slot>`}templateIcon(){return this.icon?l`<wui-icon
+      <slot></slot>`
+  }
+  templateIcon() {
+    return this.icon
+      ? l`<wui-icon
         data-input=${this.size}
         size=${this.size}
         color="inherit"
         name=${this.icon}
-      ></wui-icon>`:null}dispatchInputChangeEvent(){var t;this.dispatchEvent(new CustomEvent("inputChange",{detail:(t=this.inputElementRef.value)==null?void 0:t.value,bubbles:!0,composed:!0}))}};i.styles=[g,h,y];e([a()],i.prototype,"size",void 0);e([a()],i.prototype,"icon",void 0);e([a({type:Boolean})],i.prototype,"disabled",void 0);e([a()],i.prototype,"placeholder",void 0);e([a()],i.prototype,"type",void 0);e([a()],i.prototype,"keyHint",void 0);e([a()],i.prototype,"value",void 0);e([a()],i.prototype,"inputRightPadding",void 0);e([a()],i.prototype,"tabIdx",void 0);i=e([x("wui-input-text")],i);
+      ></wui-icon>`
+      : null
+  }
+  dispatchInputChangeEvent() {
+    var t
+    this.dispatchEvent(
+      new CustomEvent('inputChange', {
+        detail: (t = this.inputElementRef.value) == null ? void 0 : t.value,
+        bubbles: !0,
+        composed: !0
+      })
+    )
+  }
+}
+i.styles = [g, h, y]
+e([a()], i.prototype, 'size', void 0)
+e([a()], i.prototype, 'icon', void 0)
+e([a({ type: Boolean })], i.prototype, 'disabled', void 0)
+e([a()], i.prototype, 'placeholder', void 0)
+e([a()], i.prototype, 'type', void 0)
+e([a()], i.prototype, 'keyHint', void 0)
+e([a()], i.prototype, 'value', void 0)
+e([a()], i.prototype, 'inputRightPadding', void 0)
+e([a()], i.prototype, 'tabIdx', void 0)
+i = e([x('wui-input-text')], i)

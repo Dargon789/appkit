@@ -1,4 +1,8 @@
-import{N as v,X as b,a6 as f,ar as m,O as g,Q as h}from"./cxC4FtgZ.js";import{n as l,c as w}from"./D1u8rsYX.js";const x=v`
+import { n as l, c as w } from './D1u8rsYX.js'
+import { X as b, a6 as f, O as g, Q as h, ar as m, N as v } from './cxC4FtgZ.js'
+
+import { n as l, c as w } from './D1u8rsYX.js'
+const x = v`
   button {
     border-radius: var(--local-border-radius);
     color: var(--wui-color-fg-100);
@@ -22,14 +26,49 @@ import{N as v,X as b,a6 as f,ar as m,O as g,Q as h}from"./cxC4FtgZ.js";import{n 
   button:disabled {
     background-color: transparent;
   }
-`;var d=function(i,o,t,e){var a=arguments.length,r=a<3?o:e===null?e=Object.getOwnPropertyDescriptor(o,t):e,n;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")r=Reflect.decorate(i,o,t,e);else for(var s=i.length-1;s>=0;s--)(n=i[s])&&(r=(a<3?n(r):a>3?n(o,t,r):n(o,t))||r);return a>3&&r&&Object.defineProperty(o,t,r),r};let c=class extends g{constructor(){super(...arguments),this.size="md",this.disabled=!1,this.icon="copy",this.iconColor="inherit"}render(){const o=this.size==="lg"?"--wui-border-radius-xs":"--wui-border-radius-xxs",t=this.size==="lg"?"--wui-spacing-1xs":"--wui-spacing-2xs";return this.style.cssText=`
+`
+var d = function (i, o, t, e) {
+  var a = arguments.length,
+    r = a < 3 ? o : e === null ? (e = Object.getOwnPropertyDescriptor(o, t)) : e,
+    n
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    r = Reflect.decorate(i, o, t, e)
+  else
+    for (var s = i.length - 1; s >= 0; s--)
+      (n = i[s]) && (r = (a < 3 ? n(r) : a > 3 ? n(o, t, r) : n(o, t)) || r)
+  return a > 3 && r && Object.defineProperty(o, t, r), r
+}
+let c = class extends g {
+  constructor() {
+    super(...arguments),
+      (this.size = 'md'),
+      (this.disabled = !1),
+      (this.icon = 'copy'),
+      (this.iconColor = 'inherit')
+  }
+  render() {
+    const o = this.size === 'lg' ? '--wui-border-radius-xs' : '--wui-border-radius-xxs',
+      t = this.size === 'lg' ? '--wui-spacing-1xs' : '--wui-spacing-2xs'
+    return (
+      (this.style.cssText = `
     --local-border-radius: var(${o});
     --local-padding: var(${t});
-`,h`
+`),
+      h`
       <button ?disabled=${this.disabled}>
         <wui-icon color=${this.iconColor} size=${this.size} name=${this.icon}></wui-icon>
       </button>
-    `}};c.styles=[b,f,m,x];d([l()],c.prototype,"size",void 0);d([l({type:Boolean})],c.prototype,"disabled",void 0);d([l()],c.prototype,"icon",void 0);d([l()],c.prototype,"iconColor",void 0);c=d([w("wui-icon-link")],c);const y=v`
+    `
+    )
+  }
+}
+c.styles = [b, f, m, x]
+d([l()], c.prototype, 'size', void 0)
+d([l({ type: Boolean })], c.prototype, 'disabled', void 0)
+d([l()], c.prototype, 'icon', void 0)
+d([l()], c.prototype, 'iconColor', void 0)
+c = d([w('wui-icon-link')], c)
+const y = v`
   :host {
     display: flex;
     justify-content: center;
@@ -74,8 +113,33 @@ import{N as v,X as b,a6 as f,ar as m,O as g,Q as h}from"./cxC4FtgZ.js";import{n 
   :host([data-size='lg']) > wui-text {
     transform: translateY(2%);
   }
-`;var p=function(i,o,t,e){var a=arguments.length,r=a<3?o:e===null?e=Object.getOwnPropertyDescriptor(o,t):e,n;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")r=Reflect.decorate(i,o,t,e);else for(var s=i.length-1;s>=0;s--)(n=i[s])&&(r=(a<3?n(r):a>3?n(o,t,r):n(o,t))||r);return a>3&&r&&Object.defineProperty(o,t,r),r};let u=class extends g{constructor(){super(...arguments),this.variant="main",this.size="lg"}render(){this.dataset.variant=this.variant,this.dataset.size=this.size;const o=this.size==="md"?"mini-700":"micro-700";return h`
+`
+var p = function (i, o, t, e) {
+  var a = arguments.length,
+    r = a < 3 ? o : e === null ? (e = Object.getOwnPropertyDescriptor(o, t)) : e,
+    n
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    r = Reflect.decorate(i, o, t, e)
+  else
+    for (var s = i.length - 1; s >= 0; s--)
+      (n = i[s]) && (r = (a < 3 ? n(r) : a > 3 ? n(o, t, r) : n(o, t)) || r)
+  return a > 3 && r && Object.defineProperty(o, t, r), r
+}
+let u = class extends g {
+  constructor() {
+    super(...arguments), (this.variant = 'main'), (this.size = 'lg')
+  }
+  render() {
+    ;(this.dataset.variant = this.variant), (this.dataset.size = this.size)
+    const o = this.size === 'md' ? 'mini-700' : 'micro-700'
+    return h`
       <wui-text data-variant=${this.variant} variant=${o} color="inherit">
         <slot></slot>
       </wui-text>
-    `}};u.styles=[b,y];p([l()],u.prototype,"variant",void 0);p([l()],u.prototype,"size",void 0);u=p([w("wui-tag")],u);
+    `
+  }
+}
+u.styles = [b, y]
+p([l()], u.prototype, 'variant', void 0)
+p([l()], u.prototype, 'size', void 0)
+u = p([w('wui-tag')], u)

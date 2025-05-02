@@ -1,4 +1,167 @@
-import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al as ae,N as R,O as y,Q as c,ap as j,aq as C,a9 as D,P as _,af as ce,a2 as ee,a3 as te,a5 as E,a0 as F,W as V,a8 as le,a4 as M,T as ue}from"./cxC4FtgZ.js";import{n as p,c as g,o as h,r as d}from"./D1u8rsYX.js";import{D as de,T as pe}from"./Ci7UvA_a.js";import"./CmZgvnX6.js";import"./D5z3hTdP.js";import"./DsbIaR_i.js";import"./D_pt2Wo-.js";import{O as Y}from"./FCK0KV_d.js";import"./Byf3mnWf.js";import"./DFaAtWOZ.js";import"./JuF9HxfP.js";import"./Cm82hlkb.js";const L={id:"2b92315d-eab7-5bef-84fa-089a131333f5",name:"USD Coin",symbol:"USDC",networks:[{name:"ethereum-mainnet",display_name:"Ethereum",chain_id:"1",contract_address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"},{name:"polygon-mainnet",display_name:"Polygon",chain_id:"137",contract_address:"0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"}]},H={id:"USD",payment_method_limits:[{id:"card",min:"10.00",max:"7500.00"},{id:"ach_bank_account",min:"10.00",max:"25000.00"}]},me={providers:Z,selectedProvider:null,error:null,purchaseCurrency:L,paymentCurrency:H,purchaseCurrencies:[L],paymentCurrencies:[],quotesLoading:!1},l=ie(me),u={state:l,subscribe(s){return ae(l,()=>s(l))},subscribeKey(s,e){return oe(l,s,e)},setSelectedProvider(s){if(s&&s.name==="meld"){const e=A.state.activeChain===se.CHAIN.SOLANA?"SOL":"USDC",t=$.state.address??"",i=new URL(s.url);i.searchParams.append("publicKey",ne),i.searchParams.append("destinationCurrencyCode",e),i.searchParams.append("walletAddress",t),s.url=i.toString()}l.selectedProvider=s},setPurchaseCurrency(s){l.purchaseCurrency=s},setPaymentCurrency(s){l.paymentCurrency=s},setPurchaseAmount(s){this.state.purchaseAmount=s},setPaymentAmount(s){this.state.paymentAmount=s},async getAvailableCurrencies(){const s=await K.getOnrampOptions();l.purchaseCurrencies=s.purchaseCurrencies,l.paymentCurrencies=s.paymentCurrencies,l.paymentCurrency=s.paymentCurrencies[0]||H,l.purchaseCurrency=s.purchaseCurrencies[0]||L,await q.fetchCurrencyImages(s.paymentCurrencies.map(e=>e.id)),await q.fetchTokenImages(s.purchaseCurrencies.map(e=>e.symbol))},async getQuote(){var s,e;l.quotesLoading=!0;try{const t=await K.getOnrampQuote({purchaseCurrency:l.purchaseCurrency,paymentCurrency:l.paymentCurrency,amount:((s=l.paymentAmount)==null?void 0:s.toString())||"0",network:(e=l.purchaseCurrency)==null?void 0:e.symbol});return l.quotesLoading=!1,l.purchaseAmount=Number(t==null?void 0:t.purchaseAmount.amount),t}catch(t){return l.error=t.message,l.quotesLoading=!1,null}finally{l.quotesLoading=!1}},resetState(){l.providers=Z,l.selectedProvider=null,l.error=null,l.purchaseCurrency=L,l.paymentCurrency=H,l.purchaseCurrencies=[L],l.paymentCurrencies=[],l.paymentAmount=void 0,l.purchaseAmount=void 0,l.quotesLoading=!1}},he=R`
+import './Byf3mnWf.js'
+import { D as de, T as pe } from './Ci7UvA_a.js'
+import './Cm82hlkb.js'
+import './CmZgvnX6.js'
+import { r as d, c as g, o as h, n as p } from './D1u8rsYX.js'
+import './D5z3hTdP.js'
+import './DFaAtWOZ.js'
+import './D_pt2Wo-.js'
+import './DsbIaR_i.js'
+import { O as Y } from './FCK0KV_d.js'
+import './JuF9HxfP.js'
+import {
+  $,
+  a1 as A,
+  aq as C,
+  a9 as D,
+  a5 as E,
+  a0 as F,
+  ag as K,
+  a4 as M,
+  N as R,
+  W as V,
+  am as Z,
+  P as _,
+  al as ae,
+  Q as c,
+  af as ce,
+  a2 as ee,
+  ah as ie,
+  ap as j,
+  a8 as le,
+  ao as ne,
+  ak as oe,
+  an as q,
+  Y as se,
+  a3 as te,
+  T as ue,
+  O as y
+} from './cxC4FtgZ.js'
+
+import { n as p, c as g, o as h, r as d } from './D1u8rsYX.js'
+import { D as de, T as pe } from './Ci7UvA_a.js'
+import './CmZgvnX6.js'
+import './D5z3hTdP.js'
+import './DsbIaR_i.js'
+import './D_pt2Wo-.js'
+import { O as Y } from './FCK0KV_d.js'
+import './Byf3mnWf.js'
+import './DFaAtWOZ.js'
+import './JuF9HxfP.js'
+import './Cm82hlkb.js'
+const L = {
+    id: '2b92315d-eab7-5bef-84fa-089a131333f5',
+    name: 'USD Coin',
+    symbol: 'USDC',
+    networks: [
+      {
+        name: 'ethereum-mainnet',
+        display_name: 'Ethereum',
+        chain_id: '1',
+        contract_address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
+      },
+      {
+        name: 'polygon-mainnet',
+        display_name: 'Polygon',
+        chain_id: '137',
+        contract_address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'
+      }
+    ]
+  },
+  H = {
+    id: 'USD',
+    payment_method_limits: [
+      { id: 'card', min: '10.00', max: '7500.00' },
+      { id: 'ach_bank_account', min: '10.00', max: '25000.00' }
+    ]
+  },
+  me = {
+    providers: Z,
+    selectedProvider: null,
+    error: null,
+    purchaseCurrency: L,
+    paymentCurrency: H,
+    purchaseCurrencies: [L],
+    paymentCurrencies: [],
+    quotesLoading: !1
+  },
+  l = ie(me),
+  u = {
+    state: l,
+    subscribe(s) {
+      return ae(l, () => s(l))
+    },
+    subscribeKey(s, e) {
+      return oe(l, s, e)
+    },
+    setSelectedProvider(s) {
+      if (s && s.name === 'meld') {
+        const e = A.state.activeChain === se.CHAIN.SOLANA ? 'SOL' : 'USDC',
+          t = $.state.address ?? '',
+          i = new URL(s.url)
+        i.searchParams.append('publicKey', ne),
+          i.searchParams.append('destinationCurrencyCode', e),
+          i.searchParams.append('walletAddress', t),
+          (s.url = i.toString())
+      }
+      l.selectedProvider = s
+    },
+    setPurchaseCurrency(s) {
+      l.purchaseCurrency = s
+    },
+    setPaymentCurrency(s) {
+      l.paymentCurrency = s
+    },
+    setPurchaseAmount(s) {
+      this.state.purchaseAmount = s
+    },
+    setPaymentAmount(s) {
+      this.state.paymentAmount = s
+    },
+    async getAvailableCurrencies() {
+      const s = await K.getOnrampOptions()
+      ;(l.purchaseCurrencies = s.purchaseCurrencies),
+        (l.paymentCurrencies = s.paymentCurrencies),
+        (l.paymentCurrency = s.paymentCurrencies[0] || H),
+        (l.purchaseCurrency = s.purchaseCurrencies[0] || L),
+        await q.fetchCurrencyImages(s.paymentCurrencies.map(e => e.id)),
+        await q.fetchTokenImages(s.purchaseCurrencies.map(e => e.symbol))
+    },
+    async getQuote() {
+      var s, e
+      l.quotesLoading = !0
+      try {
+        const t = await K.getOnrampQuote({
+          purchaseCurrency: l.purchaseCurrency,
+          paymentCurrency: l.paymentCurrency,
+          amount: ((s = l.paymentAmount) == null ? void 0 : s.toString()) || '0',
+          network: (e = l.purchaseCurrency) == null ? void 0 : e.symbol
+        })
+        return (
+          (l.quotesLoading = !1),
+          (l.purchaseAmount = Number(t == null ? void 0 : t.purchaseAmount.amount)),
+          t
+        )
+      } catch (t) {
+        return (l.error = t.message), (l.quotesLoading = !1), null
+      } finally {
+        l.quotesLoading = !1
+      }
+    },
+    resetState() {
+      ;(l.providers = Z),
+        (l.selectedProvider = null),
+        (l.error = null),
+        (l.purchaseCurrency = L),
+        (l.paymentCurrency = H),
+        (l.purchaseCurrencies = [L]),
+        (l.paymentCurrencies = []),
+        (l.paymentAmount = void 0),
+        (l.purchaseAmount = void 0),
+        (l.quotesLoading = !1)
+    }
+  },
+  he = R`
   :host {
     width: 100%;
   }
@@ -51,7 +214,38 @@ import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al a
     bottom: 0;
     transform: translate(20%, 20%);
   }
-`;var w=function(s,e,t,i){var n=arguments.length,r=n<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,o;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")r=Reflect.decorate(s,e,t,i);else for(var a=s.length-1;a>=0;a--)(o=s[a])&&(r=(n<3?o(r):n>3?o(e,t,r):o(e,t))||r);return n>3&&r&&Object.defineProperty(e,t,r),r};let m=class extends y{constructor(){super(...arguments),this.disabled=!1,this.color="inherit",this.label="Bought",this.purchaseValue="",this.purchaseCurrency="",this.date="",this.completed=!1,this.inProgress=!1,this.failed=!1,this.onClick=null,this.symbol=""}firstUpdated(){this.icon||this.fetchTokenImage()}render(){return c`
+`
+var w = function (s, e, t, i) {
+  var n = arguments.length,
+    r = n < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    o
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    r = Reflect.decorate(s, e, t, i)
+  else
+    for (var a = s.length - 1; a >= 0; a--)
+      (o = s[a]) && (r = (n < 3 ? o(r) : n > 3 ? o(e, t, r) : o(e, t)) || r)
+  return n > 3 && r && Object.defineProperty(e, t, r), r
+}
+let m = class extends y {
+  constructor() {
+    super(...arguments),
+      (this.disabled = !1),
+      (this.color = 'inherit'),
+      (this.label = 'Bought'),
+      (this.purchaseValue = ''),
+      (this.purchaseCurrency = ''),
+      (this.date = ''),
+      (this.completed = !1),
+      (this.inProgress = !1),
+      (this.failed = !1),
+      (this.onClick = null),
+      (this.symbol = '')
+  }
+  firstUpdated() {
+    this.icon || this.fetchTokenImage()
+  }
+  render() {
+    return c`
       <wui-flex>
         ${this.imageTemplate()}
         <wui-flex flexDirection="column" gap="4xs" flexGrow="1">
@@ -63,25 +257,62 @@ import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al a
             + ${this.purchaseValue} ${this.purchaseCurrency}
           </wui-text>
         </wui-flex>
-        ${this.inProgress?c`<wui-loading-spinner color="fg-200" size="md"></wui-loading-spinner>`:c`<wui-text variant="micro-700" color="fg-300"><span>${this.date}</span></wui-text>`}
+        ${this.inProgress ? c`<wui-loading-spinner color="fg-200" size="md"></wui-loading-spinner>` : c`<wui-text variant="micro-700" color="fg-300"><span>${this.date}</span></wui-text>`}
       </wui-flex>
-    `}async fetchTokenImage(){await q._fetchTokenImage(this.purchaseCurrency)}statusIconTemplate(){return this.inProgress?null:this.completed?this.boughtIconTemplate():this.errorIconTemplate()}errorIconTemplate(){return c`<wui-icon-box
+    `
+  }
+  async fetchTokenImage() {
+    await q._fetchTokenImage(this.purchaseCurrency)
+  }
+  statusIconTemplate() {
+    return this.inProgress
+      ? null
+      : this.completed
+        ? this.boughtIconTemplate()
+        : this.errorIconTemplate()
+  }
+  errorIconTemplate() {
+    return c`<wui-icon-box
       size="xxs"
       iconColor="error-100"
       backgroundColor="error-100"
       background="opaque"
       icon="close"
       borderColor="wui-color-bg-125"
-    ></wui-icon-box>`}imageTemplate(){const e=this.icon||`https://avatar.vercel.sh/andrew.svg?size=50&text=${this.symbol}`;return c`<wui-flex class="purchase-image-container">
+    ></wui-icon-box>`
+  }
+  imageTemplate() {
+    const e = this.icon || `https://avatar.vercel.sh/andrew.svg?size=50&text=${this.symbol}`
+    return c`<wui-flex class="purchase-image-container">
       <wui-image src=${e}></wui-image>
-    </wui-flex>`}boughtIconTemplate(){return c`<wui-icon-box
+    </wui-flex>`
+  }
+  boughtIconTemplate() {
+    return c`<wui-icon-box
       size="xxs"
       iconColor="success-100"
       backgroundColor="success-100"
       background="opaque"
       icon="arrowBottom"
       borderColor="wui-color-bg-125"
-    ></wui-icon-box>`}};m.styles=[he];w([p({type:Boolean})],m.prototype,"disabled",void 0);w([p()],m.prototype,"color",void 0);w([p()],m.prototype,"label",void 0);w([p()],m.prototype,"purchaseValue",void 0);w([p()],m.prototype,"purchaseCurrency",void 0);w([p()],m.prototype,"date",void 0);w([p({type:Boolean})],m.prototype,"completed",void 0);w([p({type:Boolean})],m.prototype,"inProgress",void 0);w([p({type:Boolean})],m.prototype,"failed",void 0);w([p()],m.prototype,"onClick",void 0);w([p()],m.prototype,"symbol",void 0);w([p()],m.prototype,"icon",void 0);m=w([g("w3m-onramp-activity-item")],m);const fe=R`
+    ></wui-icon-box>`
+  }
+}
+m.styles = [he]
+w([p({ type: Boolean })], m.prototype, 'disabled', void 0)
+w([p()], m.prototype, 'color', void 0)
+w([p()], m.prototype, 'label', void 0)
+w([p()], m.prototype, 'purchaseValue', void 0)
+w([p()], m.prototype, 'purchaseCurrency', void 0)
+w([p()], m.prototype, 'date', void 0)
+w([p({ type: Boolean })], m.prototype, 'completed', void 0)
+w([p({ type: Boolean })], m.prototype, 'inProgress', void 0)
+w([p({ type: Boolean })], m.prototype, 'failed', void 0)
+w([p()], m.prototype, 'onClick', void 0)
+w([p()], m.prototype, 'symbol', void 0)
+w([p()], m.prototype, 'icon', void 0)
+m = w([g('w3m-onramp-activity-item')], m)
+const fe = R`
   :host > wui-flex {
     height: 500px;
     overflow-y: auto;
@@ -105,28 +336,99 @@ import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al a
   wui-transaction-list-item-loader {
     width: 100%;
   }
-`;var B=function(s,e,t,i){var n=arguments.length,r=n<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,o;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")r=Reflect.decorate(s,e,t,i);else for(var a=s.length-1;a>=0;a--)(o=s[a])&&(r=(n<3?o(r):n>3?o(e,t,r):o(e,t))||r);return n>3&&r&&Object.defineProperty(e,t,r),r};const we=7;let O=class extends y{constructor(){super(),this.unsubscribe=[],this.selectedOnRampProvider=u.state.selectedProvider,this.loading=!1,this.coinbaseTransactions=j.state.coinbaseTransactions,this.tokenImages=C.state.tokenImages,this.unsubscribe.push(u.subscribeKey("selectedProvider",e=>{this.selectedOnRampProvider=e}),C.subscribeKey("tokenImages",e=>this.tokenImages=e),()=>{clearTimeout(this.refetchTimeout)},j.subscribe(e=>{this.coinbaseTransactions={...e.coinbaseTransactions}})),j.clearCursor(),this.fetchTransactions()}render(){return c`
-      <wui-flex flexDirection="column" .padding=${["0","s","s","s"]} gap="xs">
-        ${this.loading?this.templateLoading():this.templateTransactionsByYear()}
+`
+var B = function (s, e, t, i) {
+  var n = arguments.length,
+    r = n < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    o
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    r = Reflect.decorate(s, e, t, i)
+  else
+    for (var a = s.length - 1; a >= 0; a--)
+      (o = s[a]) && (r = (n < 3 ? o(r) : n > 3 ? o(e, t, r) : o(e, t)) || r)
+  return n > 3 && r && Object.defineProperty(e, t, r), r
+}
+const we = 7
+let O = class extends y {
+  constructor() {
+    super(),
+      (this.unsubscribe = []),
+      (this.selectedOnRampProvider = u.state.selectedProvider),
+      (this.loading = !1),
+      (this.coinbaseTransactions = j.state.coinbaseTransactions),
+      (this.tokenImages = C.state.tokenImages),
+      this.unsubscribe.push(
+        u.subscribeKey('selectedProvider', e => {
+          this.selectedOnRampProvider = e
+        }),
+        C.subscribeKey('tokenImages', e => (this.tokenImages = e)),
+        () => {
+          clearTimeout(this.refetchTimeout)
+        },
+        j.subscribe(e => {
+          this.coinbaseTransactions = { ...e.coinbaseTransactions }
+        })
+      ),
+      j.clearCursor(),
+      this.fetchTransactions()
+  }
+  render() {
+    return c`
+      <wui-flex flexDirection="column" .padding=${['0', 's', 's', 's']} gap="xs">
+        ${this.loading ? this.templateLoading() : this.templateTransactionsByYear()}
       </wui-flex>
-    `}templateTransactions(e){return e==null?void 0:e.map(t=>{var a,N,X;const i=de.formatDate((a=t==null?void 0:t.metadata)==null?void 0:a.minedAt),n=t.transfers[0],r=n==null?void 0:n.fungible_info;if(!r)return null;const o=((N=r==null?void 0:r.icon)==null?void 0:N.url)||((X=this.tokenImages)==null?void 0:X[r.symbol||""]);return c`
+    `
+  }
+  templateTransactions(e) {
+    return e == null
+      ? void 0
+      : e.map(t => {
+          var a, N, X
+          const i = de.formatDate(
+              (a = t == null ? void 0 : t.metadata) == null ? void 0 : a.minedAt
+            ),
+            n = t.transfers[0],
+            r = n == null ? void 0 : n.fungible_info
+          if (!r) return null
+          const o =
+            ((N = r == null ? void 0 : r.icon) == null ? void 0 : N.url) ||
+            ((X = this.tokenImages) == null ? void 0 : X[r.symbol || ''])
+          return c`
         <w3m-onramp-activity-item
           label="Bought"
-          .completed=${t.metadata.status==="ONRAMP_TRANSACTION_STATUS_SUCCESS"}
-          .inProgress=${t.metadata.status==="ONRAMP_TRANSACTION_STATUS_IN_PROGRESS"}
-          .failed=${t.metadata.status==="ONRAMP_TRANSACTION_STATUS_FAILED"}
+          .completed=${t.metadata.status === 'ONRAMP_TRANSACTION_STATUS_SUCCESS'}
+          .inProgress=${t.metadata.status === 'ONRAMP_TRANSACTION_STATUS_IN_PROGRESS'}
+          .failed=${t.metadata.status === 'ONRAMP_TRANSACTION_STATUS_FAILED'}
           purchaseCurrency=${h(r.symbol)}
           purchaseValue=${n.quantity.numeric}
           date=${i}
           icon=${h(o)}
           symbol=${h(r.symbol)}
         ></w3m-onramp-activity-item>
-      `})}templateTransactionsByYear(){return Object.keys(this.coinbaseTransactions).sort().reverse().map(t=>{const i=parseInt(t,10);return new Array(12).fill(null).map((r,o)=>o).reverse().map(r=>{var N;const o=pe.getTransactionGroupTitle(i,r),a=(N=this.coinbaseTransactions[i])==null?void 0:N[r];return a?c`
+      `
+        })
+  }
+  templateTransactionsByYear() {
+    return Object.keys(this.coinbaseTransactions)
+      .sort()
+      .reverse()
+      .map(t => {
+        const i = parseInt(t, 10)
+        return new Array(12)
+          .fill(null)
+          .map((r, o) => o)
+          .reverse()
+          .map(r => {
+            var N
+            const o = pe.getTransactionGroupTitle(i, r),
+              a = (N = this.coinbaseTransactions[i]) == null ? void 0 : N[r]
+            return a
+              ? c`
           <wui-flex flexDirection="column">
             <wui-flex
               alignItems="center"
               flexDirection="row"
-              .padding=${["xs","s","s","s"]}
+              .padding=${['xs', 's', 's', 's']}
             >
               <wui-text variant="paragraph-500" color="fg-200">${o}</wui-text>
             </wui-flex>
@@ -134,7 +436,53 @@ import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al a
               ${this.templateTransactions(a)}
             </wui-flex>
           </wui-flex>
-        `:null})})}async fetchTransactions(){await this.fetchCoinbaseTransactions()}async fetchCoinbaseTransactions(){const e=$.state.address,t=D.state.projectId;if(!e)throw new Error("No address found");if(!t)throw new Error("No projectId found");this.loading=!0,await j.fetchTransactions(e,"coinbase"),this.loading=!1,this.refetchLoadingTransactions()}refetchLoadingTransactions(){var n;const e=new Date;if((((n=this.coinbaseTransactions[e.getFullYear()])==null?void 0:n[e.getMonth()])||[]).filter(r=>r.metadata.status==="ONRAMP_TRANSACTION_STATUS_IN_PROGRESS").length===0){clearTimeout(this.refetchTimeout);return}this.refetchTimeout=setTimeout(async()=>{const r=$.state.address;await j.fetchTransactions(r,"coinbase"),this.refetchLoadingTransactions()},3e3)}templateLoading(){return Array(we).fill(c` <wui-transaction-list-item-loader></wui-transaction-list-item-loader> `).map(e=>e)}};O.styles=fe;B([d()],O.prototype,"selectedOnRampProvider",void 0);B([d()],O.prototype,"loading",void 0);B([d()],O.prototype,"coinbaseTransactions",void 0);B([d()],O.prototype,"tokenImages",void 0);O=B([g("w3m-onramp-activity-view")],O);const ye=R`
+        `
+              : null
+          })
+      })
+  }
+  async fetchTransactions() {
+    await this.fetchCoinbaseTransactions()
+  }
+  async fetchCoinbaseTransactions() {
+    const e = $.state.address,
+      t = D.state.projectId
+    if (!e) throw new Error('No address found')
+    if (!t) throw new Error('No projectId found')
+    ;(this.loading = !0),
+      await j.fetchTransactions(e, 'coinbase'),
+      (this.loading = !1),
+      this.refetchLoadingTransactions()
+  }
+  refetchLoadingTransactions() {
+    var n
+    const e = new Date()
+    if (
+      (
+        ((n = this.coinbaseTransactions[e.getFullYear()]) == null ? void 0 : n[e.getMonth()]) || []
+      ).filter(r => r.metadata.status === 'ONRAMP_TRANSACTION_STATUS_IN_PROGRESS').length === 0
+    ) {
+      clearTimeout(this.refetchTimeout)
+      return
+    }
+    this.refetchTimeout = setTimeout(async () => {
+      const r = $.state.address
+      await j.fetchTransactions(r, 'coinbase'), this.refetchLoadingTransactions()
+    }, 3e3)
+  }
+  templateLoading() {
+    return Array(we)
+      .fill(c` <wui-transaction-list-item-loader></wui-transaction-list-item-loader> `)
+      .map(e => e)
+  }
+}
+O.styles = fe
+B([d()], O.prototype, 'selectedOnRampProvider', void 0)
+B([d()], O.prototype, 'loading', void 0)
+B([d()], O.prototype, 'coinbaseTransactions', void 0)
+B([d()], O.prototype, 'tokenImages', void 0)
+O = B([g('w3m-onramp-activity-view')], O)
+const ye = R`
   :host > wui-grid {
     max-height: 360px;
     overflow: auto;
@@ -154,27 +502,83 @@ import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al a
     pointer-events: none;
     user-select: none;
   }
-`;var W=function(s,e,t,i){var n=arguments.length,r=n<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,o;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")r=Reflect.decorate(s,e,t,i);else for(var a=s.length-1;a>=0;a--)(o=s[a])&&(r=(n<3?o(r):n>3?o(e,t,r):o(e,t))||r);return n>3&&r&&Object.defineProperty(e,t,r),r};let k=class extends y{constructor(){super(),this.unsubscribe=[],this.selectedCurrency=u.state.paymentCurrency,this.currencies=u.state.paymentCurrencies,this.currencyImages=C.state.currencyImages,this.checked=Y.state.isLegalCheckboxChecked,this.unsubscribe.push(u.subscribe(e=>{this.selectedCurrency=e.paymentCurrency,this.currencies=e.paymentCurrencies}),C.subscribeKey("currencyImages",e=>this.currencyImages=e),Y.subscribeKey("isLegalCheckboxChecked",e=>{this.checked=e}))}disconnectedCallback(){this.unsubscribe.forEach(e=>e())}render(){var a;const{termsConditionsUrl:e,privacyPolicyUrl:t}=D.state,i=(a=D.state.features)==null?void 0:a.legalCheckbox,o=!!(e||t)&&!!i&&!this.checked;return c`
+`
+var W = function (s, e, t, i) {
+  var n = arguments.length,
+    r = n < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    o
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    r = Reflect.decorate(s, e, t, i)
+  else
+    for (var a = s.length - 1; a >= 0; a--)
+      (o = s[a]) && (r = (n < 3 ? o(r) : n > 3 ? o(e, t, r) : o(e, t)) || r)
+  return n > 3 && r && Object.defineProperty(e, t, r), r
+}
+let k = class extends y {
+  constructor() {
+    super(),
+      (this.unsubscribe = []),
+      (this.selectedCurrency = u.state.paymentCurrency),
+      (this.currencies = u.state.paymentCurrencies),
+      (this.currencyImages = C.state.currencyImages),
+      (this.checked = Y.state.isLegalCheckboxChecked),
+      this.unsubscribe.push(
+        u.subscribe(e => {
+          ;(this.selectedCurrency = e.paymentCurrency), (this.currencies = e.paymentCurrencies)
+        }),
+        C.subscribeKey('currencyImages', e => (this.currencyImages = e)),
+        Y.subscribeKey('isLegalCheckboxChecked', e => {
+          this.checked = e
+        })
+      )
+  }
+  disconnectedCallback() {
+    this.unsubscribe.forEach(e => e())
+  }
+  render() {
+    var a
+    const { termsConditionsUrl: e, privacyPolicyUrl: t } = D.state,
+      i = (a = D.state.features) == null ? void 0 : a.legalCheckbox,
+      o = !!(e || t) && !!i && !this.checked
+    return c`
       <w3m-legal-checkbox></w3m-legal-checkbox>
       <wui-flex
         flexDirection="column"
-        .padding=${["0","s","s","s"]}
+        .padding=${['0', 's', 's', 's']}
         gap="xs"
-        class=${h(o?"disabled":void 0)}
+        class=${h(o ? 'disabled' : void 0)}
       >
         ${this.currenciesTemplate(o)}
       </wui-flex>
       <w3m-legal-footer></w3m-legal-footer>
-    `}currenciesTemplate(e=!1){return this.currencies.map(t=>{var i;return c`
+    `
+  }
+  currenciesTemplate(e = !1) {
+    return this.currencies.map(t => {
+      var i
+      return c`
         <wui-list-item
-          imageSrc=${h((i=this.currencyImages)==null?void 0:i[t.id])}
-          @click=${()=>this.selectCurrency(t)}
+          imageSrc=${h((i = this.currencyImages) == null ? void 0 : i[t.id])}
+          @click=${() => this.selectCurrency(t)}
           variant="image"
-          tabIdx=${h(e?-1:void 0)}
+          tabIdx=${h(e ? -1 : void 0)}
         >
           <wui-text variant="paragraph-500" color="fg-100">${t.id}</wui-text>
         </wui-list-item>
-      `})}selectCurrency(e){e&&(u.setPaymentCurrency(e),_.close())}};k.styles=ye;W([d()],k.prototype,"selectedCurrency",void 0);W([d()],k.prototype,"currencies",void 0);W([d()],k.prototype,"currencyImages",void 0);W([d()],k.prototype,"checked",void 0);k=W([g("w3m-onramp-fiat-select-view")],k);const ge=R`
+      `
+    })
+  }
+  selectCurrency(e) {
+    e && (u.setPaymentCurrency(e), _.close())
+  }
+}
+k.styles = ye
+W([d()], k.prototype, 'selectedCurrency', void 0)
+W([d()], k.prototype, 'currencies', void 0)
+W([d()], k.prototype, 'currencyImages', void 0)
+W([d()], k.prototype, 'checked', void 0)
+k = W([g('w3m-onramp-fiat-select-view')], k)
+const ge = R`
   button {
     padding: var(--wui-spacing-s);
     border-radius: var(--wui-border-radius-xs);
@@ -231,7 +635,30 @@ import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al a
       0 0 0 3px var(--wui-color-gray-glass-005),
       0 0 0 3px var(--wui-color-modal-bg);
   }
-`;var P=function(s,e,t,i){var n=arguments.length,r=n<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,o;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")r=Reflect.decorate(s,e,t,i);else for(var a=s.length-1;a>=0;a--)(o=s[a])&&(r=(n<3?o(r):n>3?o(e,t,r):o(e,t))||r);return n>3&&r&&Object.defineProperty(e,t,r),r};let v=class extends y{constructor(){super(...arguments),this.disabled=!1,this.color="inherit",this.label="",this.feeRange="",this.loading=!1,this.onClick=null}render(){return c`
+`
+var P = function (s, e, t, i) {
+  var n = arguments.length,
+    r = n < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    o
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    r = Reflect.decorate(s, e, t, i)
+  else
+    for (var a = s.length - 1; a >= 0; a--)
+      (o = s[a]) && (r = (n < 3 ? o(r) : n > 3 ? o(e, t, r) : o(e, t)) || r)
+  return n > 3 && r && Object.defineProperty(e, t, r), r
+}
+let v = class extends y {
+  constructor() {
+    super(...arguments),
+      (this.disabled = !1),
+      (this.color = 'inherit'),
+      (this.label = ''),
+      (this.feeRange = ''),
+      (this.loading = !1),
+      (this.onClick = null)
+  }
+  render() {
+    return c`
       <button ?disabled=${this.disabled} @click=${this.onClick} ontouchstart>
         <wui-visual name=${h(this.name)} class="provider-image"></wui-visual>
         <wui-flex flexDirection="column" gap="4xs">
@@ -248,17 +675,50 @@ import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al a
             ${this.networksTemplate()}
           </wui-flex>
         </wui-flex>
-        ${this.loading?c`<wui-loading-spinner color="fg-200" size="md"></wui-loading-spinner>`:c`<wui-icon name="chevronRight" color="fg-200" size="sm"></wui-icon>`}
+        ${this.loading ? c`<wui-loading-spinner color="fg-200" size="md"></wui-loading-spinner>` : c`<wui-icon name="chevronRight" color="fg-200" size="sm"></wui-icon>`}
       </button>
-    `}networksTemplate(){var i;const e=A.getAllRequestedCaipNetworks(),t=(i=e==null?void 0:e.filter(n=>{var r;return(r=n==null?void 0:n.assets)==null?void 0:r.imageId}))==null?void 0:i.slice(0,5);return c`
+    `
+  }
+  networksTemplate() {
+    var i
+    const e = A.getAllRequestedCaipNetworks(),
+      t =
+        (i =
+          e == null
+            ? void 0
+            : e.filter(n => {
+                var r
+                return (r = n == null ? void 0 : n.assets) == null ? void 0 : r.imageId
+              })) == null
+          ? void 0
+          : i.slice(0, 5)
+    return c`
       <wui-flex class="networks">
-        ${t==null?void 0:t.map(n=>c`
+        ${
+          t == null
+            ? void 0
+            : t.map(
+                n => c`
             <wui-flex class="network-icon">
               <wui-image src=${h(ce.getNetworkImage(n))}></wui-image>
             </wui-flex>
-          `)}
+          `
+              )
+        }
       </wui-flex>
-    `}};v.styles=[ge];P([p({type:Boolean})],v.prototype,"disabled",void 0);P([p()],v.prototype,"color",void 0);P([p()],v.prototype,"name",void 0);P([p()],v.prototype,"label",void 0);P([p()],v.prototype,"feeRange",void 0);P([p({type:Boolean})],v.prototype,"loading",void 0);P([p()],v.prototype,"onClick",void 0);v=P([g("w3m-onramp-provider-item")],v);const be=R`
+    `
+  }
+}
+v.styles = [ge]
+P([p({ type: Boolean })], v.prototype, 'disabled', void 0)
+P([p()], v.prototype, 'color', void 0)
+P([p()], v.prototype, 'name', void 0)
+P([p()], v.prototype, 'label', void 0)
+P([p()], v.prototype, 'feeRange', void 0)
+P([p({ type: Boolean })], v.prototype, 'loading', void 0)
+P([p()], v.prototype, 'onClick', void 0)
+v = P([g('w3m-onramp-provider-item')], v)
+const be = R`
   wui-flex {
     border-top: 1px solid var(--wui-color-gray-glass-005);
   }
@@ -272,9 +732,26 @@ import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al a
     justify-content: center;
     gap: var(--wui-spacing-3xs);
   }
-`;var ve=function(s,e,t,i){var n=arguments.length,r=n<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,o;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")r=Reflect.decorate(s,e,t,i);else for(var a=s.length-1;a>=0;a--)(o=s[a])&&(r=(n<3?o(r):n>3?o(e,t,r):o(e,t))||r);return n>3&&r&&Object.defineProperty(e,t,r),r};let G=class extends y{render(){const{termsConditionsUrl:e,privacyPolicyUrl:t}=D.state;return!e&&!t?null:c`
+`
+var ve = function (s, e, t, i) {
+  var n = arguments.length,
+    r = n < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    o
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    r = Reflect.decorate(s, e, t, i)
+  else
+    for (var a = s.length - 1; a >= 0; a--)
+      (o = s[a]) && (r = (n < 3 ? o(r) : n > 3 ? o(e, t, r) : o(e, t)) || r)
+  return n > 3 && r && Object.defineProperty(e, t, r), r
+}
+let G = class extends y {
+  render() {
+    const { termsConditionsUrl: e, privacyPolicyUrl: t } = D.state
+    return !e && !t
+      ? null
+      : c`
       <wui-flex
-        .padding=${["m","s","s","s"]}
+        .padding=${['m', 's', 's', 's']}
         flexDirection="column"
         alignItems="center"
         justifyContent="center"
@@ -287,23 +764,124 @@ import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al a
 
         ${this.howDoesItWorkTemplate()}
       </wui-flex>
-    `}howDoesItWorkTemplate(){return c` <wui-link @click=${this.onWhatIsBuy.bind(this)}>
+    `
+  }
+  howDoesItWorkTemplate() {
+    return c` <wui-link @click=${this.onWhatIsBuy.bind(this)}>
       <wui-icon size="xs" color="accent-100" slot="iconLeft" name="helpCircle"></wui-icon>
       How does it work?
-    </wui-link>`}onWhatIsBuy(){var t;const e=A.state.activeChain;ee.sendEvent({type:"track",event:"SELECT_WHAT_IS_A_BUY",properties:{isSmartAccount:((t=$.state.preferredAccountTypes)==null?void 0:t[e])===te.ACCOUNT_TYPES.SMART_ACCOUNT}}),E.push("WhatIsABuy")}};G.styles=[be];G=ve([g("w3m-onramp-providers-footer")],G);var re=function(s,e,t,i){var n=arguments.length,r=n<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,o;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")r=Reflect.decorate(s,e,t,i);else for(var a=s.length-1;a>=0;a--)(o=s[a])&&(r=(n<3?o(r):n>3?o(e,t,r):o(e,t))||r);return n>3&&r&&Object.defineProperty(e,t,r),r};let Q=class extends y{constructor(){super(),this.unsubscribe=[],this.providers=u.state.providers,this.unsubscribe.push(u.subscribeKey("providers",e=>{this.providers=e}))}firstUpdated(){const e=this.providers.map(async t=>t.name==="coinbase"?await this.getCoinbaseOnRampURL():Promise.resolve(t==null?void 0:t.url));Promise.all(e).then(t=>{this.providers=this.providers.map((i,n)=>({...i,url:t[n]||""}))})}render(){return c`
-      <wui-flex flexDirection="column" .padding=${["0","s","s","s"]} gap="xs">
+    </wui-link>`
+  }
+  onWhatIsBuy() {
+    var t
+    const e = A.state.activeChain
+    ee.sendEvent({
+      type: 'track',
+      event: 'SELECT_WHAT_IS_A_BUY',
+      properties: {
+        isSmartAccount:
+          ((t = $.state.preferredAccountTypes) == null ? void 0 : t[e]) ===
+          te.ACCOUNT_TYPES.SMART_ACCOUNT
+      }
+    }),
+      E.push('WhatIsABuy')
+  }
+}
+G.styles = [be]
+G = ve([g('w3m-onramp-providers-footer')], G)
+var re = function (s, e, t, i) {
+  var n = arguments.length,
+    r = n < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    o
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    r = Reflect.decorate(s, e, t, i)
+  else
+    for (var a = s.length - 1; a >= 0; a--)
+      (o = s[a]) && (r = (n < 3 ? o(r) : n > 3 ? o(e, t, r) : o(e, t)) || r)
+  return n > 3 && r && Object.defineProperty(e, t, r), r
+}
+let Q = class extends y {
+  constructor() {
+    super(),
+      (this.unsubscribe = []),
+      (this.providers = u.state.providers),
+      this.unsubscribe.push(
+        u.subscribeKey('providers', e => {
+          this.providers = e
+        })
+      )
+  }
+  firstUpdated() {
+    const e = this.providers.map(async t =>
+      t.name === 'coinbase'
+        ? await this.getCoinbaseOnRampURL()
+        : Promise.resolve(t == null ? void 0 : t.url)
+    )
+    Promise.all(e).then(t => {
+      this.providers = this.providers.map((i, n) => ({ ...i, url: t[n] || '' }))
+    })
+  }
+  render() {
+    return c`
+      <wui-flex flexDirection="column" .padding=${['0', 's', 's', 's']} gap="xs">
         ${this.onRampProvidersTemplate()}
       </wui-flex>
       <w3m-onramp-providers-footer></w3m-onramp-providers-footer>
-    `}onRampProvidersTemplate(){return this.providers.filter(e=>e.supportedChains.includes(A.state.activeChain??"eip155")).map(e=>c`
+    `
+  }
+  onRampProvidersTemplate() {
+    return this.providers
+      .filter(e => e.supportedChains.includes(A.state.activeChain ?? 'eip155'))
+      .map(
+        e => c`
           <w3m-onramp-provider-item
             label=${e.label}
             name=${e.name}
             feeRange=${e.feeRange}
-            @click=${()=>{this.onClickProvider(e)}}
+            @click=${() => {
+              this.onClickProvider(e)
+            }}
             ?disabled=${!e.url}
           ></w3m-onramp-provider-item>
-        `)}onClickProvider(e){var i;const t=A.state.activeChain;u.setSelectedProvider(e),E.push("BuyInProgress"),F.openHref(e.url,"popupWindow","width=600,height=800,scrollbars=yes"),ee.sendEvent({type:"track",event:"SELECT_BUY_PROVIDER",properties:{provider:e.name,isSmartAccount:((i=$.state.preferredAccountTypes)==null?void 0:i[t])===te.ACCOUNT_TYPES.SMART_ACCOUNT}})}async getCoinbaseOnRampURL(){const e=$.state.address,t=A.state.activeCaipNetwork;if(!e)throw new Error("No address found");if(!(t!=null&&t.name))throw new Error("No network found");const i=V.WC_COINBASE_PAY_SDK_CHAIN_NAME_MAP[t.name]??V.WC_COINBASE_PAY_SDK_FALLBACK_CHAIN,n=u.state.purchaseCurrency,r=n?[n.symbol]:u.state.purchaseCurrencies.map(o=>o.symbol);return await K.generateOnRampURL({defaultNetwork:i,destinationWallets:[{address:e,blockchains:V.WC_COINBASE_PAY_SDK_CHAINS,assets:r}],partnerUserId:e,purchaseAmount:u.state.purchaseAmount})}};re([d()],Q.prototype,"providers",void 0);Q=re([g("w3m-onramp-providers-view")],Q);const xe=R`
+        `
+      )
+  }
+  onClickProvider(e) {
+    var i
+    const t = A.state.activeChain
+    u.setSelectedProvider(e),
+      E.push('BuyInProgress'),
+      F.openHref(e.url, 'popupWindow', 'width=600,height=800,scrollbars=yes'),
+      ee.sendEvent({
+        type: 'track',
+        event: 'SELECT_BUY_PROVIDER',
+        properties: {
+          provider: e.name,
+          isSmartAccount:
+            ((i = $.state.preferredAccountTypes) == null ? void 0 : i[t]) ===
+            te.ACCOUNT_TYPES.SMART_ACCOUNT
+        }
+      })
+  }
+  async getCoinbaseOnRampURL() {
+    const e = $.state.address,
+      t = A.state.activeCaipNetwork
+    if (!e) throw new Error('No address found')
+    if (!(t != null && t.name)) throw new Error('No network found')
+    const i = V.WC_COINBASE_PAY_SDK_CHAIN_NAME_MAP[t.name] ?? V.WC_COINBASE_PAY_SDK_FALLBACK_CHAIN,
+      n = u.state.purchaseCurrency,
+      r = n ? [n.symbol] : u.state.purchaseCurrencies.map(o => o.symbol)
+    return await K.generateOnRampURL({
+      defaultNetwork: i,
+      destinationWallets: [{ address: e, blockchains: V.WC_COINBASE_PAY_SDK_CHAINS, assets: r }],
+      partnerUserId: e,
+      purchaseAmount: u.state.purchaseAmount
+    })
+  }
+}
+re([d()], Q.prototype, 'providers', void 0)
+Q = re([g('w3m-onramp-providers-view')], Q)
+const xe = R`
   :host > wui-grid {
     max-height: 360px;
     overflow: auto;
@@ -323,30 +901,86 @@ import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al a
     pointer-events: none;
     user-select: none;
   }
-`;var z=function(s,e,t,i){var n=arguments.length,r=n<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,o;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")r=Reflect.decorate(s,e,t,i);else for(var a=s.length-1;a>=0;a--)(o=s[a])&&(r=(n<3?o(r):n>3?o(e,t,r):o(e,t))||r);return n>3&&r&&Object.defineProperty(e,t,r),r};let S=class extends y{constructor(){super(),this.unsubscribe=[],this.selectedCurrency=u.state.purchaseCurrencies,this.tokens=u.state.purchaseCurrencies,this.tokenImages=C.state.tokenImages,this.checked=Y.state.isLegalCheckboxChecked,this.unsubscribe.push(u.subscribe(e=>{this.selectedCurrency=e.purchaseCurrencies,this.tokens=e.purchaseCurrencies}),C.subscribeKey("tokenImages",e=>this.tokenImages=e),Y.subscribeKey("isLegalCheckboxChecked",e=>{this.checked=e}))}disconnectedCallback(){this.unsubscribe.forEach(e=>e())}render(){var a;const{termsConditionsUrl:e,privacyPolicyUrl:t}=D.state,i=(a=D.state.features)==null?void 0:a.legalCheckbox,o=!!(e||t)&&!!i&&!this.checked;return c`
+`
+var z = function (s, e, t, i) {
+  var n = arguments.length,
+    r = n < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    o
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    r = Reflect.decorate(s, e, t, i)
+  else
+    for (var a = s.length - 1; a >= 0; a--)
+      (o = s[a]) && (r = (n < 3 ? o(r) : n > 3 ? o(e, t, r) : o(e, t)) || r)
+  return n > 3 && r && Object.defineProperty(e, t, r), r
+}
+let S = class extends y {
+  constructor() {
+    super(),
+      (this.unsubscribe = []),
+      (this.selectedCurrency = u.state.purchaseCurrencies),
+      (this.tokens = u.state.purchaseCurrencies),
+      (this.tokenImages = C.state.tokenImages),
+      (this.checked = Y.state.isLegalCheckboxChecked),
+      this.unsubscribe.push(
+        u.subscribe(e => {
+          ;(this.selectedCurrency = e.purchaseCurrencies), (this.tokens = e.purchaseCurrencies)
+        }),
+        C.subscribeKey('tokenImages', e => (this.tokenImages = e)),
+        Y.subscribeKey('isLegalCheckboxChecked', e => {
+          this.checked = e
+        })
+      )
+  }
+  disconnectedCallback() {
+    this.unsubscribe.forEach(e => e())
+  }
+  render() {
+    var a
+    const { termsConditionsUrl: e, privacyPolicyUrl: t } = D.state,
+      i = (a = D.state.features) == null ? void 0 : a.legalCheckbox,
+      o = !!(e || t) && !!i && !this.checked
+    return c`
       <w3m-legal-checkbox></w3m-legal-checkbox>
       <wui-flex
         flexDirection="column"
-        .padding=${["0","s","s","s"]}
+        .padding=${['0', 's', 's', 's']}
         gap="xs"
-        class=${h(o?"disabled":void 0)}
+        class=${h(o ? 'disabled' : void 0)}
       >
         ${this.currenciesTemplate(o)}
       </wui-flex>
       <w3m-legal-footer></w3m-legal-footer>
-    `}currenciesTemplate(e=!1){return this.tokens.map(t=>{var i;return c`
+    `
+  }
+  currenciesTemplate(e = !1) {
+    return this.tokens.map(t => {
+      var i
+      return c`
         <wui-list-item
-          imageSrc=${h((i=this.tokenImages)==null?void 0:i[t.symbol])}
-          @click=${()=>this.selectToken(t)}
+          imageSrc=${h((i = this.tokenImages) == null ? void 0 : i[t.symbol])}
+          @click=${() => this.selectToken(t)}
           variant="image"
-          tabIdx=${h(e?-1:void 0)}
+          tabIdx=${h(e ? -1 : void 0)}
         >
           <wui-flex gap="3xs" alignItems="center">
             <wui-text variant="paragraph-500" color="fg-100">${t.name}</wui-text>
             <wui-text variant="small-400" color="fg-200">${t.symbol}</wui-text>
           </wui-flex>
         </wui-list-item>
-      `})}selectToken(e){e&&(u.setPurchaseCurrency(e),_.close())}};S.styles=xe;z([d()],S.prototype,"selectedCurrency",void 0);z([d()],S.prototype,"tokens",void 0);z([d()],S.prototype,"tokenImages",void 0);z([d()],S.prototype,"checked",void 0);S=z([g("w3m-onramp-token-select-view")],S);const Ce=R`
+      `
+    })
+  }
+  selectToken(e) {
+    e && (u.setPurchaseCurrency(e), _.close())
+  }
+}
+S.styles = xe
+z([d()], S.prototype, 'selectedCurrency', void 0)
+z([d()], S.prototype, 'tokens', void 0)
+z([d()], S.prototype, 'tokenImages', void 0)
+z([d()], S.prototype, 'checked', void 0)
+S = z([g('w3m-onramp-token-select-view')], S)
+const Ce = R`
   @keyframes shake {
     0% {
       transform: translateX(0);
@@ -430,24 +1064,69 @@ import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al a
   wui-link {
     padding: var(--wui-spacing-4xs) var(--wui-spacing-xxs);
   }
-`;var b=function(s,e,t,i){var n=arguments.length,r=n<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,o;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")r=Reflect.decorate(s,e,t,i);else for(var a=s.length-1;a>=0;a--)(o=s[a])&&(r=(n<3?o(r):n>3?o(e,t,r):o(e,t))||r);return n>3&&r&&Object.defineProperty(e,t,r),r};let f=class extends y{constructor(){super(),this.unsubscribe=[],this.selectedOnRampProvider=u.state.selectedProvider,this.uri=le.state.wcUri,this.ready=!1,this.showRetry=!1,this.buffering=!1,this.error=!1,this.startTime=null,this.isMobile=!1,this.onRetry=void 0,this.unsubscribe.push(u.subscribeKey("selectedProvider",e=>{this.selectedOnRampProvider=e})),this.watchTransactions()}disconnectedCallback(){this.intervalId&&clearInterval(this.intervalId)}render(){var i,n;let e="Continue in external window";this.error?e="Buy failed":this.selectedOnRampProvider&&(e=`Buy in ${(i=this.selectedOnRampProvider)==null?void 0:i.label}`);const t=this.error?"Buy can be declined from your side or due to and error on the provider app":"We’ll notify you once your Buy is processed";return c`
+`
+var b = function (s, e, t, i) {
+  var n = arguments.length,
+    r = n < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    o
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    r = Reflect.decorate(s, e, t, i)
+  else
+    for (var a = s.length - 1; a >= 0; a--)
+      (o = s[a]) && (r = (n < 3 ? o(r) : n > 3 ? o(e, t, r) : o(e, t)) || r)
+  return n > 3 && r && Object.defineProperty(e, t, r), r
+}
+let f = class extends y {
+  constructor() {
+    super(),
+      (this.unsubscribe = []),
+      (this.selectedOnRampProvider = u.state.selectedProvider),
+      (this.uri = le.state.wcUri),
+      (this.ready = !1),
+      (this.showRetry = !1),
+      (this.buffering = !1),
+      (this.error = !1),
+      (this.startTime = null),
+      (this.isMobile = !1),
+      (this.onRetry = void 0),
+      this.unsubscribe.push(
+        u.subscribeKey('selectedProvider', e => {
+          this.selectedOnRampProvider = e
+        })
+      ),
+      this.watchTransactions()
+  }
+  disconnectedCallback() {
+    this.intervalId && clearInterval(this.intervalId)
+  }
+  render() {
+    var i, n
+    let e = 'Continue in external window'
+    this.error
+      ? (e = 'Buy failed')
+      : this.selectedOnRampProvider &&
+        (e = `Buy in ${(i = this.selectedOnRampProvider) == null ? void 0 : i.label}`)
+    const t = this.error
+      ? 'Buy can be declined from your side or due to and error on the provider app'
+      : 'We’ll notify you once your Buy is processed'
+    return c`
       <wui-flex
         data-error=${h(this.error)}
         data-retry=${this.showRetry}
         flexDirection="column"
         alignItems="center"
-        .padding=${["3xl","xl","xl","xl"]}
+        .padding=${['3xl', 'xl', 'xl', 'xl']}
         gap="xl"
       >
         <wui-flex justifyContent="center" alignItems="center">
           <wui-visual
-            name=${h((n=this.selectedOnRampProvider)==null?void 0:n.name)}
+            name=${h((n = this.selectedOnRampProvider) == null ? void 0 : n.name)}
             size="lg"
             class="provider-image"
           >
           </wui-visual>
 
-          ${this.error?null:this.loaderTemplate()}
+          ${this.error ? null : this.loaderTemplate()}
 
           <wui-icon-box
             backgroundColor="error-100"
@@ -461,28 +1140,117 @@ import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al a
         </wui-flex>
 
         <wui-flex flexDirection="column" alignItems="center" gap="xs">
-          <wui-text variant="paragraph-500" color=${this.error?"error-100":"fg-100"}>
+          <wui-text variant="paragraph-500" color=${this.error ? 'error-100' : 'fg-100'}>
             ${e}
           </wui-text>
           <wui-text align="center" variant="small-500" color="fg-200">${t}</wui-text>
         </wui-flex>
 
-        ${this.error?this.tryAgainTemplate():null}
+        ${this.error ? this.tryAgainTemplate() : null}
       </wui-flex>
 
-      <wui-flex .padding=${["0","xl","xl","xl"]} justifyContent="center">
+      <wui-flex .padding=${['0', 'xl', 'xl', 'xl']} justifyContent="center">
         <wui-link @click=${this.onCopyUri} color="fg-200">
           <wui-icon size="xs" color="fg-200" slot="iconLeft" name="copy"></wui-icon>
           Copy link
         </wui-link>
       </wui-flex>
-    `}watchTransactions(){if(this.selectedOnRampProvider)switch(this.selectedOnRampProvider.name){case"coinbase":this.startTime=Date.now(),this.initializeCoinbaseTransactions();break}}async initializeCoinbaseTransactions(){await this.watchCoinbaseTransactions(),this.intervalId=setInterval(()=>this.watchCoinbaseTransactions(),4e3)}async watchCoinbaseTransactions(){try{const e=$.state.address;if(!e)throw new Error("No address found");(await K.fetchTransactions({account:e,onramp:"coinbase"})).data.filter(n=>new Date(n.metadata.minedAt)>new Date(this.startTime)||n.metadata.status==="ONRAMP_TRANSACTION_STATUS_IN_PROGRESS").length?(clearInterval(this.intervalId),E.replace("OnRampActivity")):this.startTime&&Date.now()-this.startTime>=18e4&&(clearInterval(this.intervalId),this.error=!0)}catch(e){M.showError(e)}}onTryAgain(){this.selectedOnRampProvider&&(this.error=!1,F.openHref(this.selectedOnRampProvider.url,"popupWindow","width=600,height=800,scrollbars=yes"))}tryAgainTemplate(){var e;return(e=this.selectedOnRampProvider)!=null&&e.url?c`<wui-button size="md" variant="accent" @click=${this.onTryAgain.bind(this)}>
+    `
+  }
+  watchTransactions() {
+    if (this.selectedOnRampProvider)
+      switch (this.selectedOnRampProvider.name) {
+        case 'coinbase':
+          ;(this.startTime = Date.now()), this.initializeCoinbaseTransactions()
+          break
+      }
+  }
+  async initializeCoinbaseTransactions() {
+    await this.watchCoinbaseTransactions(),
+      (this.intervalId = setInterval(() => this.watchCoinbaseTransactions(), 4e3))
+  }
+  async watchCoinbaseTransactions() {
+    try {
+      const e = $.state.address
+      if (!e) throw new Error('No address found')
+      ;(await K.fetchTransactions({ account: e, onramp: 'coinbase' })).data.filter(
+        n =>
+          new Date(n.metadata.minedAt) > new Date(this.startTime) ||
+          n.metadata.status === 'ONRAMP_TRANSACTION_STATUS_IN_PROGRESS'
+      ).length
+        ? (clearInterval(this.intervalId), E.replace('OnRampActivity'))
+        : this.startTime &&
+          Date.now() - this.startTime >= 18e4 &&
+          (clearInterval(this.intervalId), (this.error = !0))
+    } catch (e) {
+      M.showError(e)
+    }
+  }
+  onTryAgain() {
+    this.selectedOnRampProvider &&
+      ((this.error = !1),
+      F.openHref(
+        this.selectedOnRampProvider.url,
+        'popupWindow',
+        'width=600,height=800,scrollbars=yes'
+      ))
+  }
+  tryAgainTemplate() {
+    var e
+    return (e = this.selectedOnRampProvider) != null && e.url
+      ? c`<wui-button size="md" variant="accent" @click=${this.onTryAgain.bind(this)}>
       <wui-icon color="inherit" slot="iconLeft" name="refresh"></wui-icon>
       Try again
-    </wui-button>`:null}loaderTemplate(){const e=ue.state.themeVariables["--w3m-border-radius-master"],t=e?parseInt(e.replace("px",""),10):4;return c`<wui-loading-thumbnail radius=${t*9}></wui-loading-thumbnail>`}onCopyUri(){var e;if(!((e=this.selectedOnRampProvider)!=null&&e.url)){M.showError("No link found"),E.goBack();return}try{F.copyToClopboard(this.selectedOnRampProvider.url),M.showSuccess("Link copied")}catch{M.showError("Failed to copy")}}};f.styles=Ce;b([d()],f.prototype,"intervalId",void 0);b([d()],f.prototype,"selectedOnRampProvider",void 0);b([d()],f.prototype,"uri",void 0);b([d()],f.prototype,"ready",void 0);b([d()],f.prototype,"showRetry",void 0);b([d()],f.prototype,"buffering",void 0);b([d()],f.prototype,"error",void 0);b([d()],f.prototype,"startTime",void 0);b([p({type:Boolean})],f.prototype,"isMobile",void 0);b([p()],f.prototype,"onRetry",void 0);f=b([g("w3m-buy-in-progress-view")],f);var Te=function(s,e,t,i){var n=arguments.length,r=n<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,o;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")r=Reflect.decorate(s,e,t,i);else for(var a=s.length-1;a>=0;a--)(o=s[a])&&(r=(n<3?o(r):n>3?o(e,t,r):o(e,t))||r);return n>3&&r&&Object.defineProperty(e,t,r),r};let J=class extends y{render(){return c`
+    </wui-button>`
+      : null
+  }
+  loaderTemplate() {
+    const e = ue.state.themeVariables['--w3m-border-radius-master'],
+      t = e ? parseInt(e.replace('px', ''), 10) : 4
+    return c`<wui-loading-thumbnail radius=${t * 9}></wui-loading-thumbnail>`
+  }
+  onCopyUri() {
+    var e
+    if (!((e = this.selectedOnRampProvider) != null && e.url)) {
+      M.showError('No link found'), E.goBack()
+      return
+    }
+    try {
+      F.copyToClopboard(this.selectedOnRampProvider.url), M.showSuccess('Link copied')
+    } catch {
+      M.showError('Failed to copy')
+    }
+  }
+}
+f.styles = Ce
+b([d()], f.prototype, 'intervalId', void 0)
+b([d()], f.prototype, 'selectedOnRampProvider', void 0)
+b([d()], f.prototype, 'uri', void 0)
+b([d()], f.prototype, 'ready', void 0)
+b([d()], f.prototype, 'showRetry', void 0)
+b([d()], f.prototype, 'buffering', void 0)
+b([d()], f.prototype, 'error', void 0)
+b([d()], f.prototype, 'startTime', void 0)
+b([p({ type: Boolean })], f.prototype, 'isMobile', void 0)
+b([p()], f.prototype, 'onRetry', void 0)
+f = b([g('w3m-buy-in-progress-view')], f)
+var Te = function (s, e, t, i) {
+  var n = arguments.length,
+    r = n < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    o
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    r = Reflect.decorate(s, e, t, i)
+  else
+    for (var a = s.length - 1; a >= 0; a--)
+      (o = s[a]) && (r = (n < 3 ? o(r) : n > 3 ? o(e, t, r) : o(e, t)) || r)
+  return n > 3 && r && Object.defineProperty(e, t, r), r
+}
+let J = class extends y {
+  render() {
+    return c`
       <wui-flex
         flexDirection="column"
-        .padding=${["xxl","3xl","xl","3xl"]}
+        .padding=${['xxl', '3xl', 'xl', '3xl']}
         alignItems="center"
         gap="xl"
       >
@@ -501,7 +1269,11 @@ import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al a
           Buy
         </wui-button>
       </wui-flex>
-    `}};J=Te([g("w3m-what-is-a-buy-view")],J);const Re=R`
+    `
+  }
+}
+J = Te([g('w3m-what-is-a-buy-view')], J)
+const Re = R`
   :host {
     width: 100%;
   }
@@ -533,18 +1305,90 @@ import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al a
     width: 24px;
     border-radius: 50%;
   }
-`;var U=function(s,e,t,i){var n=arguments.length,r=n<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,o;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")r=Reflect.decorate(s,e,t,i);else for(var a=s.length-1;a>=0;a--)(o=s[a])&&(r=(n<3?o(r):n>3?o(e,t,r):o(e,t))||r);return n>3&&r&&Object.defineProperty(e,t,r),r};let T=class extends y{constructor(){var e;super(),this.unsubscribe=[],this.type="Token",this.value=0,this.currencies=[],this.selectedCurrency=(e=this.currencies)==null?void 0:e[0],this.currencyImages=C.state.currencyImages,this.tokenImages=C.state.tokenImages,this.unsubscribe.push(u.subscribeKey("purchaseCurrency",t=>{!t||this.type==="Fiat"||(this.selectedCurrency=this.formatPurchaseCurrency(t))}),u.subscribeKey("paymentCurrency",t=>{!t||this.type==="Token"||(this.selectedCurrency=this.formatPaymentCurrency(t))}),u.subscribe(t=>{this.type==="Fiat"?this.currencies=t.purchaseCurrencies.map(this.formatPurchaseCurrency):this.currencies=t.paymentCurrencies.map(this.formatPaymentCurrency)}),C.subscribe(t=>{this.currencyImages={...t.currencyImages},this.tokenImages={...t.tokenImages}}))}firstUpdated(){u.getAvailableCurrencies()}disconnectedCallback(){this.unsubscribe.forEach(e=>e())}render(){var i;const e=((i=this.selectedCurrency)==null?void 0:i.symbol)||"",t=this.currencyImages[e]||this.tokenImages[e];return c`<wui-input-text type="number" size="lg" value=${this.value}>
-      ${this.selectedCurrency?c` <wui-flex
+`
+var U = function (s, e, t, i) {
+  var n = arguments.length,
+    r = n < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    o
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    r = Reflect.decorate(s, e, t, i)
+  else
+    for (var a = s.length - 1; a >= 0; a--)
+      (o = s[a]) && (r = (n < 3 ? o(r) : n > 3 ? o(e, t, r) : o(e, t)) || r)
+  return n > 3 && r && Object.defineProperty(e, t, r), r
+}
+let T = class extends y {
+  constructor() {
+    var e
+    super(),
+      (this.unsubscribe = []),
+      (this.type = 'Token'),
+      (this.value = 0),
+      (this.currencies = []),
+      (this.selectedCurrency = (e = this.currencies) == null ? void 0 : e[0]),
+      (this.currencyImages = C.state.currencyImages),
+      (this.tokenImages = C.state.tokenImages),
+      this.unsubscribe.push(
+        u.subscribeKey('purchaseCurrency', t => {
+          !t || this.type === 'Fiat' || (this.selectedCurrency = this.formatPurchaseCurrency(t))
+        }),
+        u.subscribeKey('paymentCurrency', t => {
+          !t || this.type === 'Token' || (this.selectedCurrency = this.formatPaymentCurrency(t))
+        }),
+        u.subscribe(t => {
+          this.type === 'Fiat'
+            ? (this.currencies = t.purchaseCurrencies.map(this.formatPurchaseCurrency))
+            : (this.currencies = t.paymentCurrencies.map(this.formatPaymentCurrency))
+        }),
+        C.subscribe(t => {
+          ;(this.currencyImages = { ...t.currencyImages }),
+            (this.tokenImages = { ...t.tokenImages })
+        })
+      )
+  }
+  firstUpdated() {
+    u.getAvailableCurrencies()
+  }
+  disconnectedCallback() {
+    this.unsubscribe.forEach(e => e())
+  }
+  render() {
+    var i
+    const e = ((i = this.selectedCurrency) == null ? void 0 : i.symbol) || '',
+      t = this.currencyImages[e] || this.tokenImages[e]
+    return c`<wui-input-text type="number" size="lg" value=${this.value}>
+      ${
+        this.selectedCurrency
+          ? c` <wui-flex
             class="currency-container"
             justifyContent="space-between"
             alignItems="center"
             gap="xxs"
-            @click=${()=>_.open({view:`OnRamp${this.type}Select`})}
+            @click=${() => _.open({ view: `OnRamp${this.type}Select` })}
           >
             <wui-image src=${h(t)}></wui-image>
             <wui-text color="fg-100">${this.selectedCurrency.symbol}</wui-text>
-          </wui-flex>`:c`<wui-loading-spinner></wui-loading-spinner>`}
-    </wui-input-text>`}formatPaymentCurrency(e){return{name:e.id,symbol:e.id}}formatPurchaseCurrency(e){return{name:e.name,symbol:e.symbol}}};T.styles=Re;U([p({type:String})],T.prototype,"type",void 0);U([p({type:Number})],T.prototype,"value",void 0);U([d()],T.prototype,"currencies",void 0);U([d()],T.prototype,"selectedCurrency",void 0);U([d()],T.prototype,"currencyImages",void 0);U([d()],T.prototype,"tokenImages",void 0);T=U([g("w3m-onramp-input")],T);const Ae=R`
+          </wui-flex>`
+          : c`<wui-loading-spinner></wui-loading-spinner>`
+      }
+    </wui-input-text>`
+  }
+  formatPaymentCurrency(e) {
+    return { name: e.id, symbol: e.id }
+  }
+  formatPurchaseCurrency(e) {
+    return { name: e.name, symbol: e.symbol }
+  }
+}
+T.styles = Re
+U([p({ type: String })], T.prototype, 'type', void 0)
+U([p({ type: Number })], T.prototype, 'value', void 0)
+U([d()], T.prototype, 'currencies', void 0)
+U([d()], T.prototype, 'selectedCurrency', void 0)
+U([d()], T.prototype, 'currencyImages', void 0)
+U([d()], T.prototype, 'tokenImages', void 0)
+T = U([g('w3m-onramp-input')], T)
+const Ae = R`
   :host > wui-flex {
     width: 100%;
     max-width: 360px;
@@ -558,33 +1402,82 @@ import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al a
   .amounts-container {
     width: 100%;
   }
-`;var I=function(s,e,t,i){var n=arguments.length,r=n<3?e:i===null?i=Object.getOwnPropertyDescriptor(e,t):i,o;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")r=Reflect.decorate(s,e,t,i);else for(var a=s.length-1;a>=0;a--)(o=s[a])&&(r=(n<3?o(r):n>3?o(e,t,r):o(e,t))||r);return n>3&&r&&Object.defineProperty(e,t,r),r};const Pe={USD:"$",EUR:"€",GBP:"£"},Ie=[100,250,500,1e3];let x=class extends y{constructor(){super(),this.unsubscribe=[],this.disabled=!1,this.caipAddress=A.state.activeCaipAddress,this.loading=_.state.loading,this.paymentCurrency=u.state.paymentCurrency,this.paymentAmount=u.state.paymentAmount,this.purchaseAmount=u.state.purchaseAmount,this.quoteLoading=u.state.quotesLoading,this.unsubscribe.push(A.subscribeKey("activeCaipAddress",e=>this.caipAddress=e),_.subscribeKey("loading",e=>{this.loading=e}),u.subscribe(e=>{this.paymentCurrency=e.paymentCurrency,this.paymentAmount=e.paymentAmount,this.purchaseAmount=e.purchaseAmount,this.quoteLoading=e.quotesLoading}))}disconnectedCallback(){this.unsubscribe.forEach(e=>e())}render(){return c`
+`
+var I = function (s, e, t, i) {
+  var n = arguments.length,
+    r = n < 3 ? e : i === null ? (i = Object.getOwnPropertyDescriptor(e, t)) : i,
+    o
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    r = Reflect.decorate(s, e, t, i)
+  else
+    for (var a = s.length - 1; a >= 0; a--)
+      (o = s[a]) && (r = (n < 3 ? o(r) : n > 3 ? o(e, t, r) : o(e, t)) || r)
+  return n > 3 && r && Object.defineProperty(e, t, r), r
+}
+const Pe = { USD: '$', EUR: '€', GBP: '£' },
+  Ie = [100, 250, 500, 1e3]
+let x = class extends y {
+  constructor() {
+    super(),
+      (this.unsubscribe = []),
+      (this.disabled = !1),
+      (this.caipAddress = A.state.activeCaipAddress),
+      (this.loading = _.state.loading),
+      (this.paymentCurrency = u.state.paymentCurrency),
+      (this.paymentAmount = u.state.paymentAmount),
+      (this.purchaseAmount = u.state.purchaseAmount),
+      (this.quoteLoading = u.state.quotesLoading),
+      this.unsubscribe.push(
+        A.subscribeKey('activeCaipAddress', e => (this.caipAddress = e)),
+        _.subscribeKey('loading', e => {
+          this.loading = e
+        }),
+        u.subscribe(e => {
+          ;(this.paymentCurrency = e.paymentCurrency),
+            (this.paymentAmount = e.paymentAmount),
+            (this.purchaseAmount = e.purchaseAmount),
+            (this.quoteLoading = e.quotesLoading)
+        })
+      )
+  }
+  disconnectedCallback() {
+    this.unsubscribe.forEach(e => e())
+  }
+  render() {
+    return c`
       <wui-flex flexDirection="column" justifyContent="center" alignItems="center">
         <wui-flex flexDirection="column" alignItems="center" gap="xs">
           <w3m-onramp-input
             type="Fiat"
             @inputChange=${this.onPaymentAmountChange.bind(this)}
-            .value=${this.paymentAmount||0}
+            .value=${this.paymentAmount || 0}
           ></w3m-onramp-input>
           <w3m-onramp-input
             type="Token"
-            .value=${this.purchaseAmount||0}
+            .value=${this.purchaseAmount || 0}
             .loading=${this.quoteLoading}
           ></w3m-onramp-input>
           <wui-flex justifyContent="space-evenly" class="amounts-container" gap="xs">
-            ${Ie.map(e=>{var t;return c`<wui-button
-                  variant=${this.paymentAmount===e?"accent":"neutral"}
+            ${Ie.map(e => {
+              var t
+              return c`<wui-button
+                  variant=${this.paymentAmount === e ? 'accent' : 'neutral'}
                   size="md"
                   textVariant="paragraph-600"
                   fullWidth
-                  @click=${()=>this.selectPresetAmount(e)}
-                  >${`${Pe[((t=this.paymentCurrency)==null?void 0:t.id)||"USD"]} ${e}`}</wui-button
-                >`})}
+                  @click=${() => this.selectPresetAmount(e)}
+                  >${`${Pe[((t = this.paymentCurrency) == null ? void 0 : t.id) || 'USD']} ${e}`}</wui-button
+                >`
+            })}
           </wui-flex>
           ${this.templateButton()}
         </wui-flex>
       </wui-flex>
-    `}templateButton(){return this.caipAddress?c`<wui-button
+    `
+  }
+  templateButton() {
+    return this.caipAddress
+      ? c`<wui-button
           @click=${this.getQuotes.bind(this)}
           variant="main"
           fullWidth
@@ -592,7 +1485,8 @@ import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al a
           borderRadius="xs"
         >
           Get quotes
-        </wui-button>`:c`<wui-button
+        </wui-button>`
+      : c`<wui-button
           @click=${this.openModal.bind(this)}
           variant="accent"
           fullWidth
@@ -600,4 +1494,36 @@ import{ah as ie,am as Z,ag as K,an as q,a1 as A,Y as se,$,ao as ne,ak as oe,al a
           borderRadius="xs"
         >
           Connect wallet
-        </wui-button>`}getQuotes(){this.loading||_.open({view:"OnRampProviders"})}openModal(){_.open({view:"Connect"})}async onPaymentAmountChange(e){u.setPaymentAmount(Number(e.detail)),await u.getQuote()}async selectPresetAmount(e){u.setPaymentAmount(e),await u.getQuote()}};x.styles=Ae;I([p({type:Boolean})],x.prototype,"disabled",void 0);I([d()],x.prototype,"caipAddress",void 0);I([d()],x.prototype,"loading",void 0);I([d()],x.prototype,"paymentCurrency",void 0);I([d()],x.prototype,"paymentAmount",void 0);I([d()],x.prototype,"purchaseAmount",void 0);I([d()],x.prototype,"quoteLoading",void 0);x=I([g("w3m-onramp-widget")],x);export{f as W3mBuyInProgressView,O as W3mOnRampActivityView,Q as W3mOnRampProvidersView,k as W3mOnrampFiatSelectView,S as W3mOnrampTokensView,x as W3mOnrampWidget,J as W3mWhatIsABuyView};
+        </wui-button>`
+  }
+  getQuotes() {
+    this.loading || _.open({ view: 'OnRampProviders' })
+  }
+  openModal() {
+    _.open({ view: 'Connect' })
+  }
+  async onPaymentAmountChange(e) {
+    u.setPaymentAmount(Number(e.detail)), await u.getQuote()
+  }
+  async selectPresetAmount(e) {
+    u.setPaymentAmount(e), await u.getQuote()
+  }
+}
+x.styles = Ae
+I([p({ type: Boolean })], x.prototype, 'disabled', void 0)
+I([d()], x.prototype, 'caipAddress', void 0)
+I([d()], x.prototype, 'loading', void 0)
+I([d()], x.prototype, 'paymentCurrency', void 0)
+I([d()], x.prototype, 'paymentAmount', void 0)
+I([d()], x.prototype, 'purchaseAmount', void 0)
+I([d()], x.prototype, 'quoteLoading', void 0)
+x = I([g('w3m-onramp-widget')], x)
+export {
+  f as W3mBuyInProgressView,
+  O as W3mOnRampActivityView,
+  Q as W3mOnRampProvidersView,
+  k as W3mOnrampFiatSelectView,
+  S as W3mOnrampTokensView,
+  x as W3mOnrampWidget,
+  J as W3mWhatIsABuyView
+}
