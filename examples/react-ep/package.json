@@ -10,13 +10,13 @@
     "@reown/appkit": "workspace:*",
     "@walletconnect/ethereum-provider": "2.18.0-canary-ak-8",
     "ethers": "6.13.5",
-    "react": "19.1.0",
+    "react": "19.0.0",
     "react-dom": "19.0.0"
   },
   "devDependencies": {
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
     "@vitejs/plugin-react": "4.2.1",
-    "vite": "6.1.6"
+    "vite": "5.4.19"
   }
 }

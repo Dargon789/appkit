@@ -48,7 +48,6 @@ const mockSendControllerState = {
   token: mockToken,
   sendTokenAmount: 5,
   receiverAddress: '0x456',
-  gasPriceInUSD: 2.5,
   loading: false,
   tokenBalances: [mockToken]
 }
@@ -204,7 +203,6 @@ describe('W3mWalletSendPreviewView', () => {
 
     const detailsElement = element.shadowRoot?.querySelector('w3m-wallet-send-details')
     expect(detailsElement).to.exist
-    expect(detailsElement?.networkFee).to.equal(2.5)
     expect(detailsElement?.receiverAddress).to.equal('0x456')
     expect(detailsElement?.caipNetwork).to.deep.equal(mockNetwork)
   })
