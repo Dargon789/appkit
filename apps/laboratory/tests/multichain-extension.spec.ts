@@ -156,3 +156,32 @@ extensionTest('it should be disconnected after page refresh', async () => {
   await modalPage.page.reload()
   await modalValidator.expectDisconnected()
 })
+
+extensionTest(
+  'it should connect with extension on Solana, switch to different chain with auth connector, switch back to Solana and persist extension state',
+  async () => {
+    await modalPage.connectToExtensionMultichain('solana')
+    await modalValidator.expectConnected()
+    const solanaAddress = (await modalPage.page.getByTestId('w3m-address').textContent()) as string
+
+    await modalPage.switchNetwork('Ethereum', true)
+    await modalPage.switchActiveChain()
+
+    const mailsacApiKey = process.env['MAILSAC_API_KEY']
+    if (!mailsacApiKey) {
+      throw new Error('MAILSAC_API_KEY is not set')
+    }
+
+    const email = new Email(mailsacApiKey)
+    await modalPage.emailFlow({
+      emailAddress: await email.getEmailAddressToUse(),
+      context: modalPage.page.context(),
+      mailsacApiKey,
+      clickConnectButton: false
+    })
+    await modalValidator.expectConnected()
+    await modalPage.switchNetwork('Solana', true)
+    await modalValidator.expectConnected()
+    await modalValidator.expectAddress(solanaAddress)
+  }
+)
