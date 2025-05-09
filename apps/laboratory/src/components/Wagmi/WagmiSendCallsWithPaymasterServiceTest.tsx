@@ -160,8 +160,10 @@ function AvailableTestContent() {
       calls: [TEST_TX],
       capabilities: {
         paymasterService: {
-          url: paymasterServiceUrl,
-          context
+          1: {
+            url: paymasterServiceUrl,
+            context
+          }
         }
       }
     })
