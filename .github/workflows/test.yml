@@ -1,6 +1,20 @@
 name: Tests
 permissions:
   contents: read
+  actions: write  # Explicitly grant the required permissions
+
+jobs:
+  setup:
+    name: Find Changes
+    runs-on: ubuntu-latest
+    steps:
+      # ... other steps
+      - uses: patrickedqvist/wait-for-vercel-preview@bfdff514ff78a669f2536e9f4dd4ef5813a704a2
+        id: waitForTarball
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}  # Ensure this is correctly set
+          max_timeout: 360
+          check_interval: 5
 
 on:
   pull_request:
