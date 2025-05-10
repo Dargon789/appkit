@@ -39,6 +39,7 @@ import type {
 import {
   AccountController,
   AlertController,
+  ApiController,
   AssetUtil,
   BlockchainApiController,
   ChainController,
@@ -70,7 +71,7 @@ import type { ProviderStoreUtilState } from '@reown/appkit-utils'
 
 import type { AdapterBlueprint } from '../adapters/index.js'
 import { UniversalAdapter } from '../universal-adapter/client.js'
-import { WcHelpersUtil } from '../utils/index.js'
+import { WcConstantsUtil, WcHelpersUtil } from '../utils/index.js'
 import type { AppKitOptions } from '../utils/index.js'
 
 export type Adapters = Record<ChainNamespace, AdapterBlueprint>
@@ -155,6 +156,31 @@ export abstract class AppKitBaseClient {
     PublicStateController.set({ initialized: true })
 
     await this.syncExistingConnection()
+    // Check allowed origins only if email or social features are enabled
+    if (
+      OptionsController.state.features?.email ||
+      (Array.isArray(OptionsController.state.features?.socials) &&
+        OptionsController.state.features?.socials.length > 0)
+    ) {
+      await this.checkAllowedOrigins()
+    }
+  }
+
+  private async checkAllowedOrigins() {
+    const allowedOrigins = await ApiController.fetchAllowedOrigins()
+    if (allowedOrigins && CoreHelperUtil.isClient()) {
+      const currentOrigin = window.location.origin
+      const isOriginAllowed = WcHelpersUtil.isOriginAllowed(
+        currentOrigin,
+        allowedOrigins,
+        WcConstantsUtil.DEFAULT_ALLOWED_ANCESTORS
+      )
+      if (!isOriginAllowed) {
+        AlertController.open(ErrorUtil.ALERT_ERRORS.INVALID_APP_CONFIGURATION, 'error')
+      }
+    } else {
+      AlertController.open(ErrorUtil.ALERT_ERRORS.PROJECT_ID_NOT_CONFIGURED, 'error')
+    }
   }
 
   private sendInitializeEvent(options: AppKitOptionsWithSdk) {
@@ -368,7 +394,7 @@ export abstract class AppKitBaseClient {
         })
         await this.syncWalletConnectAccount()
       },
-      connectExternal: async ({ id, info, type, provider, chain, caipNetwork }) => {
+      connectExternal: async ({ id, info, type, provider, chain, caipNetwork, socialUri }) => {
         const activeChain = ChainController.state.activeChain as ChainNamespace
         const chainToUse = chain || activeChain
         const adapter = this.getAdapter(chainToUse)
@@ -393,6 +419,7 @@ export abstract class AppKitBaseClient {
           info,
           type,
           provider,
+          socialUri,
           chainId: caipNetwork?.id || fallbackCaipNetwork?.id,
           rpcUrl:
             caipNetwork?.rpcUrls?.default?.http?.[0] ||
@@ -547,6 +574,14 @@ export abstract class AppKitBaseClient {
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
 
         return (await adapter?.walletGetAssets(params)) ?? {}
+      },
+      updateBalance: (namespace: ChainNamespace) => {
+        const caipNetwork = this.getCaipNetwork(namespace)
+        if (!caipNetwork || !AccountController.state.address) {
+          return
+        }
+
+        this.updateNativeBalance(AccountController.state.address, caipNetwork?.id, namespace)
       }
     }
 
@@ -635,7 +670,6 @@ export abstract class AppKitBaseClient {
 
     return this.chainNamespaces.reduce<Adapters>((adapters, namespace) => {
       const blueprint = blueprints?.find(b => b.namespace === namespace)
-
       if (blueprint) {
         blueprint.construct({
           namespace,
@@ -716,6 +750,10 @@ export abstract class AppKitBaseClient {
     })
 
     adapter.on('disconnect', this.disconnect.bind(this, chainNamespace))
+
+    adapter.on('connections', connections => {
+      this.setConnections(connections, chainNamespace)
+    })
 
     adapter.on('pendingTransactions', () => {
       const address = AccountController.state.address
@@ -1156,7 +1194,11 @@ export abstract class AppKitBaseClient {
         tokens: this.options.tokens
       })
       this.setBalance(balance.balance, balance.symbol, namespace)
+
+      return balance
     }
+
+    return undefined
   }
 
   // -- Universal Provider ---------------------------------------------------
@@ -1451,6 +1493,13 @@ export abstract class AppKitBaseClient {
   public setConnectors: (typeof ConnectorController)['setConnectors'] = connectors => {
     const allConnectors = [...ConnectorController.state.allConnectors, ...connectors]
     ConnectorController.setConnectors(allConnectors)
+  }
+
+  public setConnections: (typeof ConnectionController)['setConnections'] = (
+    connections,
+    chainNamespace
+  ) => {
+    ConnectionController.setConnections(connections, chainNamespace)
   }
 
   public fetchIdentity: (typeof BlockchainApiController)['fetchIdentity'] = request =>

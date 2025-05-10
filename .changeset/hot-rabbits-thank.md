@@ -1,10 +1,10 @@
 ---
-'@reown/appkit-adapter-wagmi': patch
 '@reown/appkit': patch
 '@reown/appkit-adapter-bitcoin': patch
 '@reown/appkit-adapter-ethers': patch
 '@reown/appkit-adapter-ethers5': patch
 '@reown/appkit-adapter-solana': patch
+'@reown/appkit-adapter-wagmi': patch
 '@reown/appkit-utils': patch
 '@reown/appkit-cdn': patch
 '@reown/appkit-cli': patch
@@ -22,4 +22,4 @@
 '@reown/appkit-wallet-button': patch
 ---
 
-Fixed an issue where the "Get Started" button appeared in the connect view when both email and socials were disabled
+This PR fixes an issue where the auth connector would override the previous account state when switching network (switching on auth connector in stead of using the already existing account state (with different provider)
