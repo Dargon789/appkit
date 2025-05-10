@@ -1,30 +1,24 @@
 ---
-"@examples/html-ak-basic-sign-client": patch
-"@examples/html-ak-basic-up": patch
-"@examples/html-ak-basic": patch
-"@examples/html-bitcoin": patch
-"@examples/html-ep": patch
-"@examples/html-ethers": patch
-"@examples/html-solana": patch
-"@examples/html-wagmi-cdn": patch
-"@examples/html-wagmi-solana-bitcoin": patch
-"@examples/html-wagmi-wallet-button": patch
-"@examples/html-wagmi": patch
-"@examples/react-ak-basic-sign-client": patch
-"@examples/react-ak-basic-up": patch
-"@examples/react-ak-basic": patch
-"@examples/react-ep": patch
-"@examples/react-ethers": patch
-"@examples/react-ethers5": patch
-"@examples/react-solana": patch
-"@examples/react-wagmi": patch
-"@examples/sveltekit-4-wagmi": patch
-"@examples/sveltekit-ethers": patch
-"@examples/sveltekit-wagmi": patch
-"@examples/vue-ak-basic-sign-client": patch
-"@examples/vue-ak-basic-up": patch
-"@examples/vue-ak-basic": patch
-"@examples/vue-ep": patch
+'@reown/appkit-controllers': patch
+'@reown/appkit-scaffold-ui': patch
+'@reown/appkit-adapter-bitcoin': patch
+'@reown/appkit-adapter-ethers': patch
+'@reown/appkit-adapter-ethers5': patch
+'@reown/appkit-adapter-solana': patch
+'@reown/appkit-adapter-wagmi': patch
+'@reown/appkit': patch
+'@reown/appkit-utils': patch
+'@reown/appkit-cdn': patch
+'@reown/appkit-cli': patch
+'@reown/appkit-common': patch
+'@reown/appkit-core': patch
+'@reown/appkit-experimental': patch
+'@reown/appkit-polyfills': patch
+'@reown/appkit-siwe': patch
+'@reown/appkit-siwx': patch
+'@reown/appkit-ui': patch
+'@reown/appkit-wallet': patch
+'@reown/appkit-wallet-button': patch
 ---
 
-compare merge
+Fixes issue where sending an asset from a non-embedded wallet resulted in blank send view'

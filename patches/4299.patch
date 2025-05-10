@@ -1,0 +1,219 @@
+From a42a5da51cd3b4cf91a85ed4274eaa90bc0707ba Mon Sep 17 00:00:00 2001
+From: MK <mago.khamidov@gmail.com>
+Date: Fri, 2 May 2025 17:54:11 +0100
+Subject: [PATCH 1/3] fix: wc mobile connection and vue
+
+---
+ examples/vue-wagmi-solana/src/App.vue         | 20 +---------
+ examples/vue-wagmi-solana/src/config.ts       | 38 +++++++++++++++++--
+ .../src/controllers/ConnectionController.ts   |  1 +
+ .../controllers/ConnectionController.test.ts  | 17 +++++++++
+ 4 files changed, 54 insertions(+), 22 deletions(-)
+
+diff --git a/examples/vue-wagmi-solana/src/App.vue b/examples/vue-wagmi-solana/src/App.vue
+index 9ae8a9b7d6..1da819f22e 100644
+--- a/examples/vue-wagmi-solana/src/App.vue
++++ b/examples/vue-wagmi-solana/src/App.vue
+@@ -25,29 +25,11 @@
+ </template>
+ 
+ <script>
+-import { createAppKit, useAppKitTheme } from '@reown/appkit/vue'
++import { useAppKitTheme } from '@reown/appkit/vue'
+ 
+ import ActionButtonList from './components/ActionButton.vue'
+ import Footer from './components/Footer.vue'
+ import InfoList from './components/InfoList.vue'
+-import { networks, projectId, solanaWeb3JsAdapter, wagmiAdapter } from './config'
+-
+-// Initialize AppKit
+-createAppKit({
+-  adapters: [wagmiAdapter, solanaWeb3JsAdapter],
+-  networks,
+-  projectId,
+-  themeMode: 'light',
+-  features: {
+-    analytics: true
+-  },
+-  metadata: {
+-    name: 'AppKit Vue Example',
+-    description: 'AppKit Vue Example',
+-    url: 'https://reown.com/appkit',
+-    icons: ['https://avatars.githubusercontent.com/u/179229932?s=200&v=4']
+-  }
+-})
+ 
+ export default {
+   name: 'App',
+diff --git a/examples/vue-wagmi-solana/src/config.ts b/examples/vue-wagmi-solana/src/config.ts
+index 9b3096666e..2bcf31839b 100644
+--- a/examples/vue-wagmi-solana/src/config.ts
++++ b/examples/vue-wagmi-solana/src/config.ts
+@@ -7,7 +7,15 @@ import {
+ 
+ import { SolanaAdapter } from '@reown/appkit-adapter-solana'
+ import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
+-import { base, mainnet, polygon, solana, solanaDevnet } from '@reown/appkit/networks'
++import {
++  type AppKitNetwork,
++  base,
++  mainnet,
++  polygon,
++  solana,
++  solanaDevnet
++} from '@reown/appkit/networks'
++import { createAppKit } from '@reown/appkit/vue'
+ 
+ export const projectId = import.meta.env.VITE_PROJECT_ID || 'b56e18d47c72ab683b10814fe9495694' // this is a public projectId only to use on localhost
+ 
+@@ -15,7 +23,13 @@ if (!projectId) {
+   throw new Error('VITE_PROJECT_ID is not set')
+ }
+ 
+-export const networks = [mainnet, polygon, base, solana, solanaDevnet]
++export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [
++  mainnet,
++  polygon,
++  base,
++  solana,
++  solanaDevnet
++]
+ 
+ export const solanaWeb3JsAdapter = new SolanaAdapter({
+   wallets: [
+@@ -28,5 +42,23 @@ export const solanaWeb3JsAdapter = new SolanaAdapter({
+ 
+ export const wagmiAdapter = new WagmiAdapter({
+   networks,
+-  projectId
++  projectId,
++  ssr: true
++})
++
++// Initialize AppKit
++export const modal = createAppKit({
++  adapters: [wagmiAdapter, solanaWeb3JsAdapter],
++  networks,
++  projectId,
++  themeMode: 'light',
++  features: {
++    analytics: false
++  },
++  metadata: {
++    name: 'AppKit Vue Example',
++    description: 'AppKit Vue Example',
++    url: 'https://reown.com/appkit',
++    icons: ['https://avatars.githubusercontent.com/u/179229932?s=200&v=4']
++  }
+ })
+diff --git a/packages/controllers/src/controllers/ConnectionController.ts b/packages/controllers/src/controllers/ConnectionController.ts
+index 7b8cc09479..e3153a7792 100644
+--- a/packages/controllers/src/controllers/ConnectionController.ts
++++ b/packages/controllers/src/controllers/ConnectionController.ts
+@@ -233,6 +233,7 @@ export const ConnectionController = {
+   resetUri() {
+     state.wcUri = undefined
+     state.wcPairingExpiry = undefined
++    wcConnectionPromise = undefined
+   },
+ 
+   finalizeWcConnection() {
+diff --git a/packages/controllers/tests/controllers/ConnectionController.test.ts b/packages/controllers/tests/controllers/ConnectionController.test.ts
+index f011f1031d..a4fd7bef9f 100644
+--- a/packages/controllers/tests/controllers/ConnectionController.test.ts
++++ b/packages/controllers/tests/controllers/ConnectionController.test.ts
+@@ -18,6 +18,7 @@ import {
+   ConnectionController,
+   ConnectorController,
+   ConstantsUtil,
++  CoreHelperUtil,
+   ModalController,
+   SIWXUtil
+ } from '../../exports/index.js'
+@@ -317,4 +318,20 @@ describe('ConnectionController', () => {
+       cosmos: 'cosmos-connector'
+     })
+   })
++
++  it('should handle connectWalletConnect correctly on telegram or safari on ios', async () => {
++    const connectWalletConnectSpy = vi.spyOn(client, 'connectWalletConnect')
++
++    vi.spyOn(CoreHelperUtil, 'isPairingExpired').mockReturnValue(true)
++    vi.spyOn(CoreHelperUtil, 'isTelegram').mockReturnValue(true)
++    vi.spyOn(CoreHelperUtil, 'isSafari').mockReturnValue(true)
++    vi.spyOn(CoreHelperUtil, 'isIos').mockReturnValue(true)
++
++    expect(ConnectionController.state.status).toEqual('disconnected')
++
++    await ConnectionController.connectWalletConnect()
++
++    expect(connectWalletConnectSpy).toHaveBeenCalledTimes(1)
++    expect(ConnectionController.state.status).toEqual('connected')
++  })
+ })
+
+From 4f246f8f27bd7c6ed3f9f57ef9dabc4fc6ba5fb3 Mon Sep 17 00:00:00 2001
+From: MK <mago.khamidov@gmail.com>
+Date: Fri, 2 May 2025 17:55:32 +0100
+Subject: [PATCH 2/3] chore: changeset
+
+---
+ .changeset/plain-houses-pull.md | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+ create mode 100644 .changeset/plain-houses-pull.md
+
+diff --git a/.changeset/plain-houses-pull.md b/.changeset/plain-houses-pull.md
+new file mode 100644
+index 0000000000..f9a74d75be
+--- /dev/null
++++ b/.changeset/plain-houses-pull.md
+@@ -0,0 +1,25 @@
++---
++'@reown/appkit-controllers': patch
++'@reown/appkit-adapter-bitcoin': patch
++'@reown/appkit-adapter-ethers': patch
++'@reown/appkit-adapter-ethers5': patch
++'@reown/appkit-adapter-solana': patch
++'@reown/appkit-adapter-wagmi': patch
++'@reown/appkit': patch
++'@reown/appkit-utils': patch
++'@reown/appkit-cdn': patch
++'@reown/appkit-cli': patch
++'@reown/appkit-common': patch
++'@reown/appkit-core': patch
++'@reown/appkit-experimental': patch
++'@reown/appkit-pay': patch
++'@reown/appkit-polyfills': patch
++'@reown/appkit-scaffold-ui': patch
++'@reown/appkit-siwe': patch
++'@reown/appkit-siwx': patch
++'@reown/appkit-ui': patch
++'@reown/appkit-wallet': patch
++'@reown/appkit-wallet-button': patch
++---
++
++Fixed an issue where deep links on mobile were not working properly
+
+From 5e97e641cceb54724a11babba6fb6f23fb5fd234 Mon Sep 17 00:00:00 2001
+From: MK <mago.khamidov@gmail.com>
+Date: Fri, 2 May 2025 17:57:36 +0100
+Subject: [PATCH 3/3] chore: tweak
+
+---
+ .../controllers/tests/controllers/ConnectionController.test.ts  | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/packages/controllers/tests/controllers/ConnectionController.test.ts b/packages/controllers/tests/controllers/ConnectionController.test.ts
+index a4fd7bef9f..11faf54f7e 100644
+--- a/packages/controllers/tests/controllers/ConnectionController.test.ts
++++ b/packages/controllers/tests/controllers/ConnectionController.test.ts
+@@ -328,9 +328,7 @@ describe('ConnectionController', () => {
+     vi.spyOn(CoreHelperUtil, 'isIos').mockReturnValue(true)
+ 
+     expect(ConnectionController.state.status).toEqual('disconnected')
+-
+     await ConnectionController.connectWalletConnect()
+-
+     expect(connectWalletConnectSpy).toHaveBeenCalledTimes(1)
+     expect(ConnectionController.state.status).toEqual('connected')
+   })

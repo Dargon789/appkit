@@ -22,15 +22,21 @@ on:
       - main
 
 permissions:
-  pull-requests: write
+  contents: read
+  actions: write  # Explicitly grant the required permissions
 
-concurrency:
-  # Support push/pr as event types with different behaviors each:
-  # 1. push: queue up builds
-  # 2. pr: only allow one run per PR
-  group: ${{ github.workflow }}-${{ github.event.type }}${{ github.event.pull_request.number }}
-  # If there is already a workflow running for the same pull request, cancel it
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  setup:
+    name: Find Changes
+    runs-on: ubuntu-latest
+    steps:
+      # ... other steps
+      - uses: patrickedqvist/wait-for-vercel-preview@bfdff514ff78a669f2536e9f4dd4ef5813a704a2
+        id: waitForTarball
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}  # Ensure this is correctly set
+          max_timeout: 360
+          check_interval: 5
 
 jobs:
   setup_and_build:
