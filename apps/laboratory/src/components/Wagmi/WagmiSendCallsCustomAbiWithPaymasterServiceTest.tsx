@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button, Input, Select, Stack, Text, Tooltip } from '@chakra-ui/react'
 import { type Abi, encodeFunctionData, parseEther } from 'viem'
 import { useAccount, useSwitchChain } from 'wagmi'
-import { useSendCalls } from 'wagmi'
+import { useSendCalls } from 'wagmi/experimental'
 
 import { useAppKitAccount } from '@reown/appkit/react'
 
@@ -104,7 +104,7 @@ function AvailableTestContent() {
       }
     }
 
-    return contexts[paymasterProvider || ''] as Record<string, unknown>
+    return contexts[paymasterProvider || '']
   }, [paymasterProvider])
 
   function onPaymasterUrlChange(url: string) {
@@ -122,7 +122,7 @@ function AvailableTestContent() {
         setLoading(false)
         toast({
           title: 'SendCalls Success',
-          description: hash.id,
+          description: hash,
           type: 'success'
         })
       },
@@ -197,10 +197,8 @@ function AvailableTestContent() {
       calls: [testTransaction],
       capabilities: {
         paymasterService: {
-          1: {
-            url: paymasterServiceUrl,
-            context
-          }
+          url: paymasterServiceUrl,
+          context
         }
       }
     })

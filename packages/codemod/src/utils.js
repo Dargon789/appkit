@@ -87,10 +87,9 @@ export async function updatePackageVersion(packageJson, pkg, packageJsonPath) {
       packageJson.peerDependencies?.[pkg] ||
       packageJson.optionalDependencies?.[pkg] ||
       packageJson.devDependencies?.[pkg]
-    const majorVersion = currentVersion.split('.')[0]
 
     const latest = await Promise.race([
-      latestVersion(pkg, { version: majorVersion }),
+      latestVersion(pkg),
       new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 10000))
     ])
 
