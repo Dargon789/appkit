@@ -30,8 +30,6 @@ export class W3mWalletSendPreviewView extends LitElement {
 
   @state() private receiverProfileImageUrl = SendController.state.receiverProfileImageUrl
 
-  @state() private gasPriceInUSD = SendController.state.gasPriceInUSD
-
   @state() private caipNetwork = ChainController.state.activeCaipNetwork
 
   public constructor() {
@@ -42,7 +40,6 @@ export class W3mWalletSendPreviewView extends LitElement {
           this.token = val.token
           this.sendTokenAmount = val.sendTokenAmount
           this.receiverAddress = val.receiverAddress
-          this.gasPriceInUSD = val.gasPriceInUSD
           this.receiverProfileName = val.receiverProfileName
           this.receiverProfileImageUrl = val.receiverProfileImageUrl
         }),
@@ -100,7 +97,6 @@ export class W3mWalletSendPreviewView extends LitElement {
         <w3m-wallet-send-details
           .caipNetwork=${this.caipNetwork}
           .receiverAddress=${this.receiverAddress}
-          .networkFee=${this.gasPriceInUSD}
         ></w3m-wallet-send-details>
         <wui-flex justifyContent="center" gap="xxs" .padding=${['s', '0', '0', '0'] as const}>
           <wui-icon size="sm" color="fg-200" name="warningCircle"></wui-icon>
