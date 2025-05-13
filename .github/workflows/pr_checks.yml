@@ -49,7 +49,7 @@ jobs:
           cache: 'pnpm'
 
       - name: install
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       # Cache Turborepo's build outputs (.turbo directory).
       # This speeds up the 'pnpm build' step significantly if inputs haven't changed.
