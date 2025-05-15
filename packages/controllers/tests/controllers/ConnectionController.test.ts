@@ -217,8 +217,7 @@ describe('ConnectionController', () => {
       eip155: 'eip155-connector',
       solana: 'solana-connector',
       polkadot: 'polkadot-connector',
-      bip122: 'bip122-connector',
-      cosmos: 'cosmos-connector'
+      bip122: 'bip122-connector'
     }
     const setLoadingSpy = vi.spyOn(ModalController, 'setLoading')
     const clearSessionsSpy = vi.spyOn(SIWXUtil, 'clearSessions')
@@ -234,8 +233,7 @@ describe('ConnectionController', () => {
       eip155: 'eip155-connector',
       solana: undefined,
       polkadot: 'polkadot-connector',
-      bip122: 'bip122-connector',
-      cosmos: 'cosmos-connector'
+      bip122: 'bip122-connector'
     })
   })
 
@@ -250,8 +248,7 @@ describe('ConnectionController', () => {
       eip155: CommonConstantsUtil.CONNECTOR_ID.WALLET_CONNECT,
       solana: 'solana-connector',
       polkadot: 'polkadot-connector',
-      bip122: CommonConstantsUtil.CONNECTOR_ID.WALLET_CONNECT,
-      cosmos: 'cosmos-connector'
+      bip122: CommonConstantsUtil.CONNECTOR_ID.WALLET_CONNECT
     }
     ChainController.state.chains.set('eip155', {
       accountState: {
@@ -272,8 +269,7 @@ describe('ConnectionController', () => {
       eip155: undefined,
       solana: 'solana-connector',
       polkadot: 'polkadot-connector',
-      bip122: undefined,
-      cosmos: 'cosmos-connector'
+      bip122: undefined
     })
   })
 
@@ -288,8 +284,7 @@ describe('ConnectionController', () => {
       eip155: CommonConstantsUtil.CONNECTOR_ID.AUTH,
       solana: CommonConstantsUtil.CONNECTOR_ID.AUTH,
       polkadot: 'polkadot-connector',
-      bip122: 'bip122-connector',
-      cosmos: 'cosmos-connector'
+      bip122: 'bip122-connector'
     }
     ChainController.state.chains.set('eip155', {
       accountState: {
@@ -316,8 +311,7 @@ describe('ConnectionController', () => {
       eip155: undefined,
       solana: undefined,
       polkadot: 'polkadot-connector',
-      bip122: 'bip122-connector',
-      cosmos: 'cosmos-connector'
+      bip122: 'bip122-connector'
     })
   })
 
