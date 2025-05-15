@@ -66,12 +66,12 @@ button {
 
 button:hover {
   background-color: black;
-    color: white;
+  color: white;
 }
 
 button:active {
   background-color: #333; /* Dark gray on click */
-    color: white;
+  color: white;
 }
 
 h1 {
@@ -88,7 +88,6 @@ pre {
   word-break: break-all;
 }
 
-
 .link-button {
   background-color: black;
   color: white;
@@ -98,16 +97,16 @@ pre {
 }
 
 .link-button:hover {
-  background-color: #333;  /* Darken the background on hover */
+  background-color: #333; /* Darken the background on hover */
 }
 
 .link-button:hover {
-  background-color: white;  /* Change background to white on hover */
-  color: black;  /* Change text color to black on hover */
+  background-color: white; /* Change background to white on hover */
+  color: black; /* Change text color to black on hover */
 }
 
 .advice {
   text-align: 'center';
-   margin-bottom: 10px;
-   line-height: 25px;
+  margin-bottom: 10px;
+  line-height: 25px;
 }

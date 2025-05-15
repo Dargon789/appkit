@@ -1,4 +1,69 @@
-import{$ as d,a1 as w,a2 as _,a5 as p,R as v,a4 as m,a0 as c,ac as $,N as y,X as b,O as x,Q as h,a6 as E}from"./cxC4FtgZ.js";import{n as u,c as C,o as O}from"./D1u8rsYX.js";function R(){try{return c.returnOpenHref("","popupWindow","width=600,height=800,scrollbars=yes")}catch{throw new Error("Could not open social popup")}}async function j(){p.push("ConnectingFarcaster");const t=v.getAuthConnector();if(t&&!d.state.farcasterUrl)try{const{url:o}=await t.provider.getFarcasterUri();d.setFarcasterUrl(o,w.state.activeChain)}catch(o){p.goBack(),m.showError(o)}}async function T(t){p.push("ConnectingSocial");const o=v.getAuthConnector();let e=null;try{const i=setTimeout(()=>{throw new Error("Social login timed out. Please try again.")},45e3);if(o&&t){if(c.isTelegram()||(e=R()),e)d.setSocialWindow(e,w.state.activeChain);else if(!c.isTelegram())throw new Error("Could not create social popup");const{uri:n}=await o.provider.getSocialRedirectUri({provider:t});if(!n)throw e==null||e.close(),new Error("Could not fetch the social redirect uri");if(e&&(e.location.href=n),c.isTelegram()){$.setTelegramSocialProvider(t);const r=c.formatTelegramSocialLoginUrl(n);c.openHref(r,"_top")}clearTimeout(i)}}catch(i){e==null||e.close(),m.showError(i==null?void 0:i.message)}}async function F(t){d.setSocialProvider(t,w.state.activeChain),_.sendEvent({type:"track",event:"SOCIAL_LOGIN_STARTED",properties:{provider:t}}),t==="farcaster"?await j():await T(t)}const L=y`
+import { c as C, o as O, n as u } from './D1u8rsYX.js'
+import {
+  ac as $,
+  a6 as E,
+  a2 as _,
+  X as b,
+  a0 as c,
+  $ as d,
+  Q as h,
+  a4 as m,
+  a5 as p,
+  R as v,
+  a1 as w,
+  O as x,
+  N as y
+} from './cxC4FtgZ.js'
+
+import { n as u, c as C, o as O } from './D1u8rsYX.js'
+function R() {
+  try {
+    return c.returnOpenHref('', 'popupWindow', 'width=600,height=800,scrollbars=yes')
+  } catch {
+    throw new Error('Could not open social popup')
+  }
+}
+async function j() {
+  p.push('ConnectingFarcaster')
+  const t = v.getAuthConnector()
+  if (t && !d.state.farcasterUrl)
+    try {
+      const { url: o } = await t.provider.getFarcasterUri()
+      d.setFarcasterUrl(o, w.state.activeChain)
+    } catch (o) {
+      p.goBack(), m.showError(o)
+    }
+}
+async function T(t) {
+  p.push('ConnectingSocial')
+  const o = v.getAuthConnector()
+  let e = null
+  try {
+    const i = setTimeout(() => {
+      throw new Error('Social login timed out. Please try again.')
+    }, 45e3)
+    if (o && t) {
+      if ((c.isTelegram() || (e = R()), e)) d.setSocialWindow(e, w.state.activeChain)
+      else if (!c.isTelegram()) throw new Error('Could not create social popup')
+      const { uri: n } = await o.provider.getSocialRedirectUri({ provider: t })
+      if (!n) throw (e == null || e.close(), new Error('Could not fetch the social redirect uri'))
+      if ((e && (e.location.href = n), c.isTelegram())) {
+        $.setTelegramSocialProvider(t)
+        const r = c.formatTelegramSocialLoginUrl(n)
+        c.openHref(r, '_top')
+      }
+      clearTimeout(i)
+    }
+  } catch (i) {
+    e == null || e.close(), m.showError(i == null ? void 0 : i.message)
+  }
+}
+async function F(t) {
+  d.setSocialProvider(t, w.state.activeChain),
+    _.sendEvent({ type: 'track', event: 'SOCIAL_LOGIN_STARTED', properties: { provider: t } }),
+    t === 'farcaster' ? await j() : await T(t)
+}
+const L = y`
   :host {
     display: flex;
     justify-content: center;
@@ -14,7 +79,30 @@ import{$ as d,a1 as w,a2 as _,a5 as p,R as v,a4 as m,a0 as c,ac as $,N as y,X as
     width: 100%;
     height: 100%;
   }
-`;var S=function(t,o,e,i){var n=arguments.length,r=n<3?o:i===null?i=Object.getOwnPropertyDescriptor(o,e):i,a;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")r=Reflect.decorate(t,o,e,i);else for(var s=t.length-1;s>=0;s--)(a=t[s])&&(r=(n<3?a(r):n>3?a(o,e,r):a(o,e))||r);return n>3&&r&&Object.defineProperty(o,e,r),r};let f=class extends x{constructor(){super(...arguments),this.logo="google"}render(){return h`<wui-icon color="inherit" size="inherit" name=${this.logo}></wui-icon> `}};f.styles=[b,L];S([u()],f.prototype,"logo",void 0);f=S([C("wui-logo")],f);const U=y`
+`
+var S = function (t, o, e, i) {
+  var n = arguments.length,
+    r = n < 3 ? o : i === null ? (i = Object.getOwnPropertyDescriptor(o, e)) : i,
+    a
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    r = Reflect.decorate(t, o, e, i)
+  else
+    for (var s = t.length - 1; s >= 0; s--)
+      (a = t[s]) && (r = (n < 3 ? a(r) : n > 3 ? a(o, e, r) : a(o, e)) || r)
+  return n > 3 && r && Object.defineProperty(o, e, r), r
+}
+let f = class extends x {
+  constructor() {
+    super(...arguments), (this.logo = 'google')
+  }
+  render() {
+    return h`<wui-icon color="inherit" size="inherit" name=${this.logo}></wui-icon> `
+  }
+}
+f.styles = [b, L]
+S([u()], f.prototype, 'logo', void 0)
+f = S([C('wui-logo')], f)
+const U = y`
   button {
     column-gap: var(--wui-spacing-s);
     padding: 7px var(--wui-spacing-l) 7px var(--wui-spacing-xs);
@@ -49,7 +137,28 @@ import{$ as d,a1 as w,a2 as _,a5 as p,R as v,a4 as m,a0 as c,ac as $,N as y,X as
     background-color: var(--wui-color-gray-glass-015);
     color: var(--wui-color-gray-glass-015);
   }
-`;var g=function(t,o,e,i){var n=arguments.length,r=n<3?o:i===null?i=Object.getOwnPropertyDescriptor(o,e):i,a;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")r=Reflect.decorate(t,o,e,i);else for(var s=t.length-1;s>=0;s--)(a=t[s])&&(r=(n<3?a(r):n>3?a(o,e,r):a(o,e))||r);return n>3&&r&&Object.defineProperty(o,e,r),r};let l=class extends x{constructor(){super(...arguments),this.logo="google",this.name="Continue with google",this.align="left",this.disabled=!1}render(){return h`
+`
+var g = function (t, o, e, i) {
+  var n = arguments.length,
+    r = n < 3 ? o : i === null ? (i = Object.getOwnPropertyDescriptor(o, e)) : i,
+    a
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    r = Reflect.decorate(t, o, e, i)
+  else
+    for (var s = t.length - 1; s >= 0; s--)
+      (a = t[s]) && (r = (n < 3 ? a(r) : n > 3 ? a(o, e, r) : a(o, e)) || r)
+  return n > 3 && r && Object.defineProperty(o, e, r), r
+}
+let l = class extends x {
+  constructor() {
+    super(...arguments),
+      (this.logo = 'google'),
+      (this.name = 'Continue with google'),
+      (this.align = 'left'),
+      (this.disabled = !1)
+  }
+  render() {
+    return h`
       <button ?disabled=${this.disabled} tabindex=${O(this.tabIdx)}>
         <wui-logo logo=${this.logo}></wui-logo>
         <wui-text
@@ -61,4 +170,19 @@ import{$ as d,a1 as w,a2 as _,a5 as p,R as v,a4 as m,a0 as c,ac as $,N as y,X as
         >
         ${this.templatePlacement()}
       </button>
-    `}templatePlacement(){return this.align==="center"?h` <wui-logo class="invisible" logo=${this.logo}></wui-logo>`:null}};l.styles=[b,E,U];g([u()],l.prototype,"logo",void 0);g([u()],l.prototype,"name",void 0);g([u()],l.prototype,"align",void 0);g([u()],l.prototype,"tabIdx",void 0);g([u({type:Boolean})],l.prototype,"disabled",void 0);l=g([C("wui-list-social")],l);export{F as e};
+    `
+  }
+  templatePlacement() {
+    return this.align === 'center'
+      ? h` <wui-logo class="invisible" logo=${this.logo}></wui-logo>`
+      : null
+  }
+}
+l.styles = [b, E, U]
+g([u()], l.prototype, 'logo', void 0)
+g([u()], l.prototype, 'name', void 0)
+g([u()], l.prototype, 'align', void 0)
+g([u()], l.prototype, 'tabIdx', void 0)
+g([u({ type: Boolean })], l.prototype, 'disabled', void 0)
+l = g([C('wui-list-social')], l)
+export { F as e }

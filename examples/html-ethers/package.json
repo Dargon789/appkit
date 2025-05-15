@@ -9,9 +9,13 @@
   "dependencies": {
     "@reown/appkit-adapter-ethers": "workspace:*",
     "@reown/appkit": "workspace:*",
-    "ethers": "6.13.5"
+    "ethers": "6.14.0"
   },
   "devDependencies": {
+<<<<<<< HEAD
     "vite": "6.1.6"
+=======
+    "vite": "5.4.19"
+>>>>>>> ed640e5d2e53c62a94039d8b0ce90e56d2e905b4
   }
 }

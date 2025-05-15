@@ -1,4 +1,6 @@
-import{as as o}from"./cxC4FtgZ.js";const a=o`<svg fill="none" viewBox="0 0 14 6">
+import { as as o } from './cxC4FtgZ.js'
+
+const a = o`<svg fill="none" viewBox="0 0 14 6">
   <path style="fill: var(--wui-color-bg-150);" d="M0 1h14L9.21 5.12a3.31 3.31 0 0 1-4.49 0L0 1Z" />
   <path
     style="stroke: var(--wui-color-inverse-100);"
@@ -9,4 +11,5 @@ import{as as o}from"./cxC4FtgZ.js";const a=o`<svg fill="none" viewBox="0 0 14 6"
     style="fill: var(--wui-color-bg-150);"
     d="M1.25.71h11.5L9.21 3.88a3.31 3.31 0 0 1-4.49 0L1.25.71Z"
   />
-</svg> `;export{a as cursorTransparentSvg};
+</svg> `
+export { a as cursorTransparentSvg }

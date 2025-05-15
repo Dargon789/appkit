@@ -296,18 +296,17 @@ export const ApiController = {
     state.wallets = CoreHelperUtil.uniqueBy(
       [...state.wallets, ...ApiController._filterOutExtensions(data)],
       'id'
-    )
+    ).filter(w => w.chains?.some(chain => chains.includes(chain)))
+
     state.count = count > state.count ? count : state.count
     state.page = page
   },
 
   async initializeExcludedWallets({ ids }: { ids: string[] }) {
-    const chains = ChainController.getRequestedCaipNetworkIds().join(',')
     const params = {
       page: 1,
       entries: ids.length,
-      include: ids,
-      chains
+      include: ids
     }
     const { data } = await ApiController.fetchWallets(params)
 

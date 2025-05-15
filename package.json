@@ -57,7 +57,10 @@
     "publish:beta": "pnpm install; pnpm build; changeset publish --tag beta",
     "publish:canary": "pnpm install; pnpm build; changeset publish --tag canary",
     "prepare": "husky",
-    "cli": "node packages/cli/index.js"
+    "cli": "node packages/cli/index.js",
+    "codemod:upgrade": "node packages/codemod/src/index.js upgrade $*",
+    "codemod:upgrade:wc": "node packages/codemod/src/index.js upgrade @walletconnect/*",
+    "codemod:upgrade:wagmi": "node packages/codemod/src/index.js upgrade wagmi @wagmi/*"
   },
   "devDependencies": {
     "@changesets/assemble-release-plan": "6.0.6",
@@ -80,12 +83,17 @@
     "prettier": "3.5.3",
     "process": "0.11.10",
     "turbo": "2.0.6-canary.0",
+<<<<<<< HEAD
     "typescript": "5.7.3",
     "vite": "5.4.19",
+=======
+    "typescript": "5.8.3",
+    "vite": "5.4.12",
+>>>>>>> ed640e5d2e53c62a94039d8b0ce90e56d2e905b4
     "vite-plugin-node-polyfills": "0.23.0",
     "vitest": "2.1.9"
   },
-  "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39",
+  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977",
   "pnpm": {
     "overrides": {
       "@solana/web3.js": "1.98.0",
@@ -95,7 +103,13 @@
     },
     "patchedDependencies": {
       "@changesets/assemble-release-plan@6.0.6": "patches/@changesets__assemble-release-plan@6.0.6.patch"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@sveltejs/kit",
+      "esbuild",
+      "svelte-preprocess",
+      "vue-demi"
+    ]
   },
   "overrides": {
     "@solana/web3.js": "1.98.0",

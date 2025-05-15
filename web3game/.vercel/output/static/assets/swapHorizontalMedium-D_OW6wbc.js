@@ -1,4 +1,6 @@
-import{F as C}from"./index-DVkBgnkX.js";const e=C`<svg
+import { F as C } from './index-DVkBgnkX.js'
+
+const e = C`<svg
   width="14"
   height="14"
   viewBox="0 0 14 14"
@@ -13,4 +15,5 @@ import{F as C}from"./index-DVkBgnkX.js";const e=C`<svg
   />
 </svg>
 
-`;export{e as swapHorizontalMediumSvg};
+`
+export { e as swapHorizontalMediumSvg }
