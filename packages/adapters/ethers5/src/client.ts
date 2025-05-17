@@ -193,19 +193,6 @@ export class Ethers5Adapter extends AdapterBlueprint {
     }
   }
 
-  public async getEnsAddress(
-    params: AdapterBlueprint.GetEnsAddressParams
-  ): Promise<AdapterBlueprint.GetEnsAddressResult> {
-    const { name, caipNetwork } = params
-    if (caipNetwork) {
-      const result = await Ethers5Methods.getEnsAddress(name, caipNetwork)
-
-      return { address: result as string }
-    }
-
-    return { address: '' }
-  }
-
   public parseUnits(params: AdapterBlueprint.ParseUnitsParams): AdapterBlueprint.ParseUnitsResult {
     return Ethers5Methods.parseUnits(params.value, params.decimals)
   }
@@ -334,7 +321,8 @@ export class Ethers5Adapter extends AdapterBlueprint {
   public async connect({
     id,
     type,
-    chainId
+    chainId,
+    socialUri
   }: AdapterBlueprint.ConnectParams): Promise<AdapterBlueprint.ConnectResult> {
     const connector = this.connectors.find(c => c.id === id)
     const selectedProvider = connector?.provider as Provider
@@ -349,6 +337,7 @@ export class Ethers5Adapter extends AdapterBlueprint {
     if (type === 'AUTH') {
       const { address } = await (selectedProvider as unknown as W3mFrameProvider).connect({
         chainId,
+        socialUri,
         preferredAccountType: AccountController.state.preferredAccountTypes?.eip155
       })
 
@@ -530,20 +519,6 @@ export class Ethers5Adapter extends AdapterBlueprint {
     }
 
     return { balance: '0.00', symbol: 'ETH' }
-  }
-
-  public async getProfile(
-    params: AdapterBlueprint.GetProfileParams
-  ): Promise<AdapterBlueprint.GetProfileResult> {
-    if (params.chainId === 1) {
-      const ensProvider = new ethers.providers.InfuraProvider('mainnet')
-      const name = await ensProvider.lookupAddress(params.address)
-      const avatar = await ensProvider.getAvatar(params.address)
-
-      return { profileName: name || undefined, profileImage: avatar || undefined }
-    }
-
-    return { profileName: undefined, profileImage: undefined }
   }
 
   private providerHandlers: {
