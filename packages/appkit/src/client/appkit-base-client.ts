@@ -39,6 +39,7 @@ import type {
 import {
   AccountController,
   AlertController,
+  ApiController,
   AssetUtil,
   BlockchainApiController,
   ChainController,
@@ -70,7 +71,7 @@ import type { ProviderStoreUtilState } from '@reown/appkit-utils'
 
 import type { AdapterBlueprint } from '../adapters/index.js'
 import { UniversalAdapter } from '../universal-adapter/client.js'
-import { WcHelpersUtil } from '../utils/index.js'
+import { WcConstantsUtil, WcHelpersUtil } from '../utils/index.js'
 import type { AppKitOptions } from '../utils/index.js'
 
 export type Adapters = Record<ChainNamespace, AdapterBlueprint>
@@ -155,6 +156,31 @@ export abstract class AppKitBaseClient {
     PublicStateController.set({ initialized: true })
 
     await this.syncExistingConnection()
+    // Check allowed origins only if email or social features are enabled
+    if (
+      OptionsController.state.features?.email ||
+      (Array.isArray(OptionsController.state.features?.socials) &&
+        OptionsController.state.features?.socials.length > 0)
+    ) {
+      await this.checkAllowedOrigins()
+    }
+  }
+
+  private async checkAllowedOrigins() {
+    const allowedOrigins = await ApiController.fetchAllowedOrigins()
+    if (allowedOrigins && CoreHelperUtil.isClient()) {
+      const currentOrigin = window.location.origin
+      const isOriginAllowed = WcHelpersUtil.isOriginAllowed(
+        currentOrigin,
+        allowedOrigins,
+        WcConstantsUtil.DEFAULT_ALLOWED_ANCESTORS
+      )
+      if (!isOriginAllowed) {
+        AlertController.open(ErrorUtil.ALERT_ERRORS.INVALID_APP_CONFIGURATION, 'error')
+      }
+    } else {
+      AlertController.open(ErrorUtil.ALERT_ERRORS.PROJECT_ID_NOT_CONFIGURED, 'error')
+    }
   }
 
   private sendInitializeEvent(options: AppKitOptionsWithSdk) {
@@ -241,12 +267,13 @@ export abstract class AppKitBaseClient {
     OptionsController.setFeatures(options.features)
     OptionsController.setAllowUnsupportedChain(options.allowUnsupportedChain)
     OptionsController.setUniversalProviderConfigOverride(options.universalProviderConfigOverride)
+    OptionsController.setPreferUniversalLinks(options.experimental_preferUniversalLinks)
 
     // Save option in controller
     OptionsController.setDefaultAccountTypes(options.defaultAccountTypes)
 
     // Get stored account types
-    const storedAccountTypes = StorageUtil.getPreferredAccountTypes()
+    const storedAccountTypes = StorageUtil.getPreferredAccountTypes() || {}
     const defaultTypes = { ...OptionsController.state.defaultAccountTypes, ...storedAccountTypes }
 
     AccountController.setPreferredAccountTypes(defaultTypes)
@@ -367,7 +394,7 @@ export abstract class AppKitBaseClient {
         })
         await this.syncWalletConnectAccount()
       },
-      connectExternal: async ({ id, info, type, provider, chain, caipNetwork }) => {
+      connectExternal: async ({ id, info, type, provider, chain, caipNetwork, socialUri }) => {
         const activeChain = ChainController.state.activeChain as ChainNamespace
         const chainToUse = chain || activeChain
         const adapter = this.getAdapter(chainToUse)
@@ -392,6 +419,7 @@ export abstract class AppKitBaseClient {
           info,
           type,
           provider,
+          socialUri,
           chainId: caipNetwork?.id || fallbackCaipNetwork?.id,
           rpcUrl:
             caipNetwork?.rpcUrls?.default?.http?.[0] ||
@@ -404,7 +432,17 @@ export abstract class AppKitBaseClient {
 
         StorageUtil.addConnectedNamespace(chainToUse)
         this.syncProvider({ ...res, chainNamespace: chainToUse })
-        const { accounts } = await adapter.getAccounts({ namespace: chainToUse, id })
+        /*
+         * SyncAllAccounts already set the accounts in the state
+         * and its more efficient to use the stored accounts rather than fetching them again
+         */
+        const syncedAccounts = AccountController.state.allAccounts
+        const { accounts } =
+          syncedAccounts?.length > 0
+            ? // eslint-disable-next-line line-comment-position
+              // Using new array else the accounts will have the same reference and react will not re-render
+              { accounts: [...syncedAccounts] }
+            : await adapter.getAccounts({ namespace: chainToUse, id })
         this.setAllAccounts(accounts, chainToUse)
         this.setStatus('connected', chainToUse)
         this.syncConnectedWalletInfo(chainToUse)
@@ -489,27 +527,15 @@ export abstract class AppKitBaseClient {
         return 0n
       },
       getEnsAvatar: async () => {
-        const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
-        const result = await adapter?.getProfile({
+        await this.syncIdentity({
           address: AccountController.state.address as string,
-          chainId: Number(this.getCaipNetwork()?.id)
+          chainId: Number(this.getCaipNetwork()?.id),
+          chainNamespace: ChainController.state.activeChain as ChainNamespace
         })
 
-        return result?.profileImage || false
+        return AccountController.state.profileImage || false
       },
-      getEnsAddress: async (name: string) => {
-        const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
-        const caipNetwork = this.getCaipNetwork()
-        if (!caipNetwork) {
-          return false
-        }
-        const result = await adapter?.getEnsAddress({
-          name,
-          caipNetwork
-        })
-
-        return result?.address || false
-      },
+      getEnsAddress: async (name: string) => await WcHelpersUtil.resolveReownName(name),
       writeContract: async (args: WriteContractArgs) => {
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
         const caipNetwork = this.getCaipNetwork()
@@ -558,6 +584,14 @@ export abstract class AppKitBaseClient {
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
 
         return (await adapter?.walletGetAssets(params)) ?? {}
+      },
+      updateBalance: (namespace: ChainNamespace) => {
+        const caipNetwork = this.getCaipNetwork(namespace)
+        if (!caipNetwork || !AccountController.state.address) {
+          return
+        }
+
+        this.updateNativeBalance(AccountController.state.address, caipNetwork?.id, namespace)
       }
     }
 
@@ -646,7 +680,6 @@ export abstract class AppKitBaseClient {
 
     return this.chainNamespaces.reduce<Adapters>((adapters, namespace) => {
       const blueprint = blueprints?.find(b => b.namespace === namespace)
-
       if (blueprint) {
         blueprint.construct({
           namespace,
@@ -727,6 +760,10 @@ export abstract class AppKitBaseClient {
     })
 
     adapter.on('disconnect', this.disconnect.bind(this, chainNamespace))
+
+    adapter.on('connections', connections => {
+      this.setConnections(connections, chainNamespace)
+    })
 
     adapter.on('pendingTransactions', () => {
       const address = AccountController.state.address
@@ -1093,6 +1130,7 @@ export abstract class AppKitBaseClient {
   protected syncConnectedWalletInfo(chainNamespace: ChainNamespace) {
     const connectorId = ConnectorController.getConnectorId(chainNamespace)
     const providerType = ProviderUtil.getProviderId(chainNamespace)
+
     if (
       providerType === UtilConstantsUtil.CONNECTOR_TYPE_ANNOUNCED ||
       providerType === UtilConstantsUtil.CONNECTOR_TYPE_INJECTED
@@ -1128,8 +1166,6 @@ export abstract class AppKitBaseClient {
           { name: 'Coinbase Wallet', icon: this.getConnectorImage(connector) },
           chainNamespace
         )
-      } else {
-        this.setConnectedWalletInfo({ name: connectorId }, chainNamespace)
       }
     }
   }
@@ -1167,7 +1203,11 @@ export abstract class AppKitBaseClient {
         tokens: this.options.tokens
       })
       this.setBalance(balance.balance, balance.symbol, namespace)
+
+      return balance
     }
+
+    return undefined
   }
 
   // -- Universal Provider ---------------------------------------------------
@@ -1353,9 +1393,9 @@ export abstract class AppKitBaseClient {
         return namespaceCaipNetwork
       }
 
-      return ChainController.getRequestedCaipNetworks(chainNamespace).filter(
-        c => c.chainNamespace === chainNamespace
-      )?.[0]
+      const requestedCaipNetworks = ChainController.getRequestedCaipNetworks(chainNamespace)
+
+      return requestedCaipNetworks.filter(c => c.chainNamespace === chainNamespace)?.[0]
     }
 
     return ChainController.state.activeCaipNetwork || this.defaultCaipNetwork
@@ -1462,6 +1502,13 @@ export abstract class AppKitBaseClient {
   public setConnectors: (typeof ConnectorController)['setConnectors'] = connectors => {
     const allConnectors = [...ConnectorController.state.allConnectors, ...connectors]
     ConnectorController.setConnectors(allConnectors)
+  }
+
+  public setConnections: (typeof ConnectionController)['setConnections'] = (
+    connections,
+    chainNamespace
+  ) => {
+    ConnectionController.setConnections(connections, chainNamespace)
   }
 
   public fetchIdentity: (typeof BlockchainApiController)['fetchIdentity'] = request =>
@@ -1614,9 +1661,9 @@ export abstract class AppKitBaseClient {
                     ...accountState.user,
                     /*
                      * Getting the username from the chain controller works well for social logins,
-                     * but Farcaster uses a different connection flow and doesn’t emit the username via events.
+                     * but Farcaster uses a different connection flow and doesn't emit the username via events.
                      * Since the username is stored in local storage before the chain controller updates,
-                     * it’s safe to use the local storage value here.
+                     * it's safe to use the local storage value here.
                      */
                     username: StorageUtil.getConnectedSocialUsername()
                   }

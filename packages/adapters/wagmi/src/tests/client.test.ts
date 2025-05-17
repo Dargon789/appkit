@@ -4,12 +4,9 @@ import {
   getAccount,
   getBalance,
   getConnections,
-  getEnsAvatar,
-  getEnsName,
   http,
   signMessage,
   switchChain,
-  getEnsAddress as wagmiGetEnsAddress,
   sendTransaction as wagmiSendTransaction,
   writeContract as wagmiWriteContract,
   waitForTransactionReceipt,
@@ -49,12 +46,9 @@ vi.mock('@wagmi/core', async () => {
     getConnections: vi.fn(),
     switchChain: vi.fn(),
     getBalance: vi.fn(),
-    getEnsName: vi.fn(),
-    getEnsAvatar: vi.fn(),
     signMessage: vi.fn(),
     estimateGas: vi.fn(),
     sendTransaction: vi.fn(),
-    getEnsAddress: vi.fn(),
     writeContract: vi.fn(),
     waitForTransactionReceipt: vi.fn(),
     getAccount: vi.fn(),
@@ -79,6 +73,20 @@ const mockWagmiConfig = {
       id: 'test-connector',
       getProvider() {
         return Promise.resolve({ connect: vi.fn(), request: vi.fn() })
+      }
+    },
+    {
+      id: 'ID_AUTH',
+      getProvider() {
+        return Promise.resolve({
+          user: {
+            address: '0x123',
+            accounts: [
+              { address: '0x123', type: 'eoa' },
+              { address: '0x456', type: 'smartAccount' }
+            ]
+          }
+        })
       }
     }
   ],
@@ -412,31 +420,6 @@ describe('WagmiAdapter', () => {
     })
   })
 
-  describe('WagmiAdapter - getEnsAddress', () => {
-    it('should resolve ENS address successfully', async () => {
-      const mockAddress = '0x123'
-      vi.mocked(wagmiGetEnsAddress).mockResolvedValue(mockAddress)
-
-      const result = await adapter.getEnsAddress({
-        name: 'test.eth',
-        caipNetwork: mockCaipNetworks[0]
-      })
-
-      expect(result.address).toBe(mockAddress)
-    })
-
-    it('should return false for unresolvable ENS', async () => {
-      vi.mocked(wagmiGetEnsAddress).mockResolvedValue(null)
-
-      const result = await adapter.getEnsAddress({
-        name: 'nonexistent.eth',
-        caipNetwork: mockCaipNetworks[0]
-      })
-
-      expect(result.address).toBe(false)
-    })
-  })
-
   describe('WagmiAdapter - estimateGas', () => {
     it('should estimate gas successfully', async () => {
       const mockGas = BigInt(21000)
@@ -556,27 +539,7 @@ describe('WagmiAdapter', () => {
     })
   })
 
-  describe('WagmiAdapter - getProfile', () => {
-    it('should get profile successfully', async () => {
-      const mockEnsName = 'test.eth'
-      const mockAvatar = 'https://avatar.com/test.jpg'
-
-      vi.mocked(getEnsName).mockResolvedValue(mockEnsName)
-      vi.mocked(getEnsAvatar).mockResolvedValue(mockAvatar)
-
-      const result = await adapter.getProfile({
-        address: '0x123',
-        chainId: 1
-      })
-
-      expect(result).toEqual({
-        profileName: mockEnsName,
-        profileImage: mockAvatar
-      })
-    })
-  })
-
-  describe('WagmiAdapter - connect and disconnect', () => {
+  describe('WagmiAdapter - connect, syncConnection and disconnect', () => {
     it('should connect successfully', async () => {
       const result = await adapter.connect({
         id: 'test-connector',
@@ -586,6 +549,22 @@ describe('WagmiAdapter', () => {
       })
 
       expect(result.address).toBe('0x123')
+      expect(result.chainId).toBe(1)
+    })
+
+    it('should sync connection successfully', async () => {
+      vi.mocked(getConnections).mockReturnValue([
+        { connector: { id: 'test-connector', type: 'injected' }, accounts: ['0x123'], chainId: 1 }
+      ] as any)
+      const result = await adapter.syncConnection({
+        id: 'test-connector',
+        chainId: 1,
+        namespace: 'eip155',
+        rpcUrl: 'https://rpc.walletconnect.org'
+      })
+
+      expect(result.address).toBe('0x123')
+      expect(result.type).toBe('INJECTED')
       expect(result.chainId).toBe(1)
     })
 
@@ -865,7 +844,7 @@ describe('WagmiAdapter', () => {
 
       vi.spyOn(wagmiCore, 'watchPendingTransactions').mockReturnValue(unsubscribe)
 
-      new WagmiAdapter({
+      const adapter = new WagmiAdapter({
         networks: mockNetworks,
         projectId: mockProjectId,
         pendingTransactionsFilter: {
@@ -873,6 +852,8 @@ describe('WagmiAdapter', () => {
           pollingInterval: 500
         }
       })
+
+      adapter.construct({})
 
       // Set state to maximum limit so we know once we reach the limit it'll unsubscribe the watchPendingTransactions
       LimitterUtil.state.pendingTransactions = ConstantsUtil.LIMITS.PENDING_TRANSACTIONS
@@ -1050,6 +1031,42 @@ describe('WagmiAdapter', () => {
       adapter['setupWatchers']()
 
       expect(disconnectSpy).not.toHaveBeenCalled()
+    })
+
+    it('should return accounts successfully when using auth connector', async () => {
+      vi.spyOn(wagmiCore, 'createConfig').mockReturnValue({
+        connectors: mockWagmiConfig.connectors
+      } as any)
+
+      const adapter = new WagmiAdapter({
+        networks: mockNetworks,
+        projectId: mockProjectId,
+        pendingTransactionsFilter: {
+          enable: true,
+          pollingInterval: 5000
+        }
+      })
+
+      const accounts = await adapter.getAccounts({ id: 'ID_AUTH' })
+
+      expect(accounts).toEqual({
+        accounts: [
+          {
+            namespace: 'eip155',
+            address: '0x123',
+            type: 'eoa',
+            publicKey: undefined,
+            path: undefined
+          },
+          {
+            namespace: 'eip155',
+            address: '0x456',
+            type: 'smartAccount',
+            publicKey: undefined,
+            path: undefined
+          }
+        ]
+      })
     })
   })
 })

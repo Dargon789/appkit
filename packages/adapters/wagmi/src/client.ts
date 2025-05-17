@@ -8,8 +8,6 @@ import {
   getAccount,
   getBalance,
   getConnections,
-  getEnsAvatar,
-  getEnsName,
   injected,
   prepareTransactionRequest,
   reconnect,
@@ -17,7 +15,6 @@ import {
   switchChain,
   disconnect as wagmiDisconnect,
   estimateGas as wagmiEstimateGas,
-  getEnsAddress as wagmiGetEnsAddress,
   sendTransaction as wagmiSendTransaction,
   writeContract as wagmiWriteContract,
   waitForTransactionReceipt,
@@ -27,10 +24,9 @@ import {
 } from '@wagmi/core'
 import { type Chain } from '@wagmi/core/chains'
 import type UniversalProvider from '@walletconnect/universal-provider'
-import { type GetEnsAddressReturnType, type Hex, formatUnits, parseUnits } from 'viem'
-import { normalize } from 'viem/ens'
+import { type Hex, formatUnits, parseUnits } from 'viem'
 
-import { AppKit, type AppKitOptions, WcHelpersUtil } from '@reown/appkit'
+import { AppKit, type AppKitOptions } from '@reown/appkit'
 import type {
   AppKitNetwork,
   BaseNetwork,
@@ -38,11 +34,7 @@ import type {
   ChainNamespace,
   CustomRpcUrlMap
 } from '@reown/appkit-common'
-import {
-  ConstantsUtil as CommonConstantsUtil,
-  NetworkUtil,
-  isReownName
-} from '@reown/appkit-common'
+import { ConstantsUtil as CommonConstantsUtil, NetworkUtil } from '@reown/appkit-common'
 import { CoreHelperUtil, StorageUtil } from '@reown/appkit-controllers'
 import {
   type ConnectorType,
@@ -92,11 +84,10 @@ export class WagmiAdapter extends AdapterBlueprint {
       customRpcUrls: configParams.customRpcUrls
     }) as [CaipNetwork, ...CaipNetwork[]]
 
-    super({
-      projectId: configParams.projectId,
-      adapterType: CommonConstantsUtil.ADAPTER_TYPES.WAGMI,
-      namespace: CommonConstantsUtil.CHAIN.EVM
-    })
+    super()
+    this.namespace = CommonConstantsUtil.CHAIN.EVM
+    this.adapterType = CommonConstantsUtil.ADAPTER_TYPES.WAGMI
+    this.projectId = configParams.projectId
 
     this.pendingTransactionsFilter = {
       ...DEFAULT_PENDING_TRANSACTIONS_FILTER,
@@ -104,6 +95,9 @@ export class WagmiAdapter extends AdapterBlueprint {
     }
 
     this.createConfig({ ...configParams, networks })
+  }
+
+  override construct(_options: AdapterBlueprint.Params) {
     this.setupWatchers()
   }
 
@@ -117,9 +111,8 @@ export class WagmiAdapter extends AdapterBlueprint {
     }
 
     if (connector.id === CommonConstantsUtil.CONNECTOR_ID.AUTH) {
-      const provider = connector['provider'] as W3mFrameProvider
-
-      if (!provider.user) {
+      const provider = (await connector.getProvider()) as W3mFrameProvider | undefined
+      if (!provider?.user) {
         return { accounts: [] }
       }
 
@@ -362,36 +355,6 @@ export class WagmiAdapter extends AdapterBlueprint {
     return { hash: tx }
   }
 
-  public async getEnsAddress(
-    params: AdapterBlueprint.GetEnsAddressParams
-  ): Promise<AdapterBlueprint.GetEnsAddressResult> {
-    const { name, caipNetwork } = params
-
-    try {
-      if (!this.wagmiConfig) {
-        throw new Error(
-          'networkControllerClient:getApprovedCaipNetworksData - wagmiConfig is undefined'
-        )
-      }
-
-      let ensName: boolean | GetEnsAddressReturnType = false
-      let wcName: boolean | string = false
-      if (isReownName(name)) {
-        wcName = (await WcHelpersUtil.resolveReownName(name)) || false
-      }
-      if (caipNetwork.id === 1) {
-        ensName = await wagmiGetEnsAddress(this.wagmiConfig, {
-          name: normalize(name),
-          chainId: caipNetwork.id
-        })
-      }
-
-      return { address: (ensName as string) || (wcName as string) || false }
-    } catch {
-      return { address: false }
-    }
-  }
-
   public async estimateGas(
     params: AdapterBlueprint.EstimateGasTransactionArgs
   ): Promise<AdapterBlueprint.EstimateGasTransactionResult> {
@@ -485,7 +448,7 @@ export class WagmiAdapter extends AdapterBlueprint {
       chainId: Number(connection?.chainId),
       address: connection?.accounts[0] as string,
       provider,
-      type: connection?.connector.type as ConnectorType,
+      type: connection?.connector.type?.toUpperCase() as ConnectorType,
       id: connection?.connector.id as string
     }
   }
@@ -516,7 +479,7 @@ export class WagmiAdapter extends AdapterBlueprint {
   public async connect(
     params: AdapterBlueprint.ConnectParams
   ): Promise<AdapterBlueprint.ConnectResult> {
-    const { id, provider, type, info, chainId } = params
+    const { id, provider, type, info, chainId, socialUri } = params
     const connector = this.getWagmiConnector(id)
 
     if (!connector) {
@@ -544,7 +507,9 @@ export class WagmiAdapter extends AdapterBlueprint {
 
     const res = await connect(this.wagmiConfig, {
       connector,
-      chainId: chainId ? Number(chainId) : undefined
+      chainId: chainId ? Number(chainId) : undefined,
+      // @ts-expect-error socialUri is needed for auth connector but not in wagmi types
+      socialUri
     })
 
     return {
@@ -624,27 +589,6 @@ export class WagmiAdapter extends AdapterBlueprint {
     }
 
     return { balance: '', symbol: '' }
-  }
-
-  public async getProfile(
-    params: AdapterBlueprint.GetProfileParams
-  ): Promise<AdapterBlueprint.GetProfileResult> {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    const chainId = params.chainId as number
-    const profileName = await getEnsName(this.wagmiConfig, {
-      address: params.address as Hex,
-      chainId
-    })
-    if (profileName) {
-      const profileImage = await getEnsAvatar(this.wagmiConfig, {
-        name: profileName,
-        chainId
-      })
-
-      return { profileName, profileImage: profileImage ?? undefined }
-    }
-
-    return { profileName: undefined, profileImage: undefined }
   }
 
   public getWalletConnectProvider(): AdapterBlueprint.GetWalletConnectProviderResult {
