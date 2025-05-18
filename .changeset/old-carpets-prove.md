@@ -1,6 +1,5 @@
 ---
 '@reown/appkit-controllers': patch
-'@reown/appkit-scaffold-ui': patch
 '@reown/appkit-adapter-bitcoin': patch
 '@reown/appkit-adapter-ethers': patch
 '@reown/appkit-adapter-ethers5': patch
@@ -15,6 +14,7 @@
 '@reown/appkit-experimental': patch
 '@reown/appkit-pay': patch
 '@reown/appkit-polyfills': patch
+'@reown/appkit-scaffold-ui': patch
 '@reown/appkit-siwe': patch
 '@reown/appkit-siwx': patch
 '@reown/appkit-ui': patch
@@ -22,4 +22,4 @@
 '@reown/appkit-wallet-button': patch
 ---
 
-Fixes issue where wallets without a valid mobile_link were listed on mobile devices
+Removes chain parameter from the excluded wallets fetch request to not filter wallets by supported networks
