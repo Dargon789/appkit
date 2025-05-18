@@ -239,12 +239,13 @@ export abstract class AppKitBaseClient {
     OptionsController.setFeatures(options.features)
     OptionsController.setAllowUnsupportedChain(options.allowUnsupportedChain)
     OptionsController.setUniversalProviderConfigOverride(options.universalProviderConfigOverride)
+    OptionsController.setPreferUniversalLinks(options.experimental_preferUniversalLinks)
 
     // Save option in controller
     OptionsController.setDefaultAccountTypes(options.defaultAccountTypes)
 
     // Get stored account types
-    const storedAccountTypes = StorageUtil.getPreferredAccountTypes()
+    const storedAccountTypes = StorageUtil.getPreferredAccountTypes() || {}
     const defaultTypes = { ...OptionsController.state.defaultAccountTypes, ...storedAccountTypes }
 
     AccountController.setPreferredAccountTypes(defaultTypes)
@@ -402,7 +403,17 @@ export abstract class AppKitBaseClient {
 
         StorageUtil.addConnectedNamespace(chainToUse)
         this.syncProvider({ ...res, chainNamespace: chainToUse })
-        const { accounts } = await adapter.getAccounts({ namespace: chainToUse, id })
+        /*
+         * SyncAllAccounts already set the accounts in the state
+         * and its more efficient to use the stored accounts rather than fetching them again
+         */
+        const syncedAccounts = AccountController.state.allAccounts
+        const { accounts } =
+          syncedAccounts?.length > 0
+            ? // eslint-disable-next-line line-comment-position
+              // Using new array else the accounts will have the same reference and react will not re-render
+              { accounts: [...syncedAccounts] }
+            : await adapter.getAccounts({ namespace: chainToUse, id })
         this.setAllAccounts(accounts, chainToUse)
         this.setStatus('connected', chainToUse)
       },
@@ -1131,6 +1142,7 @@ export abstract class AppKitBaseClient {
   protected syncConnectedWalletInfo(chainNamespace: ChainNamespace) {
     const connectorId = ConnectorController.getConnectorId(chainNamespace)
     const providerType = ProviderUtil.getProviderId(chainNamespace)
+
     if (
       providerType === UtilConstantsUtil.CONNECTOR_TYPE_ANNOUNCED ||
       providerType === UtilConstantsUtil.CONNECTOR_TYPE_INJECTED
@@ -1166,8 +1178,6 @@ export abstract class AppKitBaseClient {
           { name: 'Coinbase Wallet', icon: this.getConnectorImage(connector) },
           chainNamespace
         )
-      } else {
-        this.setConnectedWalletInfo({ name: connectorId }, chainNamespace)
       }
     }
   }
@@ -1391,9 +1401,9 @@ export abstract class AppKitBaseClient {
         return namespaceCaipNetwork
       }
 
-      return ChainController.getRequestedCaipNetworks(chainNamespace).filter(
-        c => c.chainNamespace === chainNamespace
-      )?.[0]
+      const requestedCaipNetworks = ChainController.getRequestedCaipNetworks(chainNamespace)
+
+      return requestedCaipNetworks.filter(c => c.chainNamespace === chainNamespace)?.[0]
     }
 
     return ChainController.state.activeCaipNetwork || this.defaultCaipNetwork
