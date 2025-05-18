@@ -463,7 +463,7 @@ describe('WcHelpersUtil', () => {
     const allowedPatterns = [
       'https://explicit.com',
       'http://localhost:*',
-      'https://sub.*.example.net'
+      'https://sub.*\\.example\\.net'
     ]
 
     test('should allow exact match from allowedPatterns', () => {
