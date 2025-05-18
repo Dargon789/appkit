@@ -1,4 +1,10 @@
-import{N as v,X as b,a6 as g,O as h,Q as l}from"./cxC4FtgZ.js";import{n as r,c as w}from"./D1u8rsYX.js";import"./D5z3hTdP.js";const p=v`
+import { n as r, c as w } from './D1u8rsYX.js'
+import './D5z3hTdP.js'
+import { X as b, a6 as g, O as h, Q as l, N as v } from './cxC4FtgZ.js'
+
+import { n as r, c as w } from './D1u8rsYX.js'
+import './D5z3hTdP.js'
+const p = v`
   button {
     border: none;
     border-radius: var(--wui-border-radius-3xl);
@@ -117,14 +123,48 @@ import{N as v,X as b,a6 as g,O as h,Q as l}from"./cxC4FtgZ.js";import{n as r,c a
     box-shadow: inset 0 0 0 1px var(--wui-color-gray-glass-002);
     pointer-events: none;
   }
-`;var i=function(n,t,e,s){var c=arguments.length,o=c<3?t:s===null?s=Object.getOwnPropertyDescriptor(t,e):s,u;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")o=Reflect.decorate(n,t,e,s);else for(var d=n.length-1;d>=0;d--)(u=n[d])&&(o=(c<3?u(o):c>3?u(t,e,o):u(t,e))||o);return c>3&&o&&Object.defineProperty(t,e,o),o};let a=class extends h{constructor(){super(...arguments),this.variant="accent",this.imageSrc="",this.disabled=!1,this.icon="externalLink",this.size="md",this.text=""}render(){const t=this.size==="sm"?"small-600":"paragraph-600";return l`
+`
+var i = function (n, t, e, s) {
+  var c = arguments.length,
+    o = c < 3 ? t : s === null ? (s = Object.getOwnPropertyDescriptor(t, e)) : s,
+    u
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    o = Reflect.decorate(n, t, e, s)
+  else
+    for (var d = n.length - 1; d >= 0; d--)
+      (u = n[d]) && (o = (c < 3 ? u(o) : c > 3 ? u(t, e, o) : u(t, e)) || o)
+  return c > 3 && o && Object.defineProperty(t, e, o), o
+}
+let a = class extends h {
+  constructor() {
+    super(...arguments),
+      (this.variant = 'accent'),
+      (this.imageSrc = ''),
+      (this.disabled = !1),
+      (this.icon = 'externalLink'),
+      (this.size = 'md'),
+      (this.text = '')
+  }
+  render() {
+    const t = this.size === 'sm' ? 'small-600' : 'paragraph-600'
+    return l`
       <button
-        class=${this.disabled?"disabled":""}
+        class=${this.disabled ? 'disabled' : ''}
         data-variant=${this.variant}
         data-size=${this.size}
       >
-        ${this.imageSrc?l`<wui-image src=${this.imageSrc}></wui-image>`:null}
+        ${this.imageSrc ? l`<wui-image src=${this.imageSrc}></wui-image>` : null}
         <wui-text variant=${t} color="inherit"> ${this.text} </wui-text>
         <wui-icon name=${this.icon} color="inherit" size="inherit"></wui-icon>
       </button>
-    `}};a.styles=[b,g,p];i([r()],a.prototype,"variant",void 0);i([r()],a.prototype,"imageSrc",void 0);i([r({type:Boolean})],a.prototype,"disabled",void 0);i([r()],a.prototype,"icon",void 0);i([r()],a.prototype,"size",void 0);i([r()],a.prototype,"text",void 0);a=i([w("wui-chip-button")],a);
+    `
+  }
+}
+a.styles = [b, g, p]
+i([r()], a.prototype, 'variant', void 0)
+i([r()], a.prototype, 'imageSrc', void 0)
+i([r({ type: Boolean })], a.prototype, 'disabled', void 0)
+i([r()], a.prototype, 'icon', void 0)
+i([r()], a.prototype, 'size', void 0)
+i([r()], a.prototype, 'text', void 0)
+a = i([w('wui-chip-button')], a)

@@ -1,4 +1,6 @@
-import{as as a}from"./cxC4FtgZ.js";const o=a`<svg width="36" height="36" fill="none">
+import { as as a } from './cxC4FtgZ.js'
+
+const o = a`<svg width="36" height="36" fill="none">
   <path
     fill="#fff"
     fill-opacity=".05"
@@ -58,4 +60,5 @@ import{as as a}from"./cxC4FtgZ.js";const o=a`<svg width="36" height="36" fill="n
       <stop offset="1" stop-color="#34A853" />
     </linearGradient>
   </defs>
-</svg>`;export{o as chromeStoreSvg};
+</svg>`
+export { o as chromeStoreSvg }

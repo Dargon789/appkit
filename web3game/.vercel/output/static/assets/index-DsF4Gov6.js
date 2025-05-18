@@ -1,4 +1,10 @@
-import{i as h,b as f,f as y,r as g,x as u}from"./index-DVkBgnkX.js";import{n as c,c as x,U as w}from"./if-defined-DVOmkLu5.js";import"./index-QpqlfPgl.js";const k=h`
+import { n as c, U as w, c as x } from './if-defined-DVOmkLu5.js'
+import { b as f, r as g, i as h, x as u, f as y } from './index-DVkBgnkX.js'
+import './index-QpqlfPgl.js'
+
+import { n as c, c as x, U as w } from './if-defined-DVOmkLu5.js'
+import './index-QpqlfPgl.js'
+const k = h`
   button {
     padding: 6.5px var(--wui-spacing-l) 6.5px var(--wui-spacing-xs);
     display: flex;
@@ -22,20 +28,59 @@ import{i as h,b as f,f as y,r as g,x as u}from"./index-DVkBgnkX.js";import{n as 
   wui-image {
     border-radius: var(--wui-border-radius-3xl);
   }
-`;var m=function(r,o,t,a){var i=arguments.length,e=i<3?o:a===null?a=Object.getOwnPropertyDescriptor(o,t):a,l;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")e=Reflect.decorate(r,o,t,a);else for(var n=r.length-1;n>=0;n--)(l=r[n])&&(e=(i<3?l(e):i>3?l(o,t,e):l(o,t))||e);return i>3&&e&&Object.defineProperty(o,t,e),e};let s=class extends g{constructor(){super(...arguments),this.tokenName="",this.tokenImageUrl="",this.tokenValue=0,this.tokenAmount="0.0",this.tokenCurrency="",this.clickable=!1}render(){return u`
+`
+var m = function (r, o, t, a) {
+  var i = arguments.length,
+    e = i < 3 ? o : a === null ? (a = Object.getOwnPropertyDescriptor(o, t)) : a,
+    l
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    e = Reflect.decorate(r, o, t, a)
+  else
+    for (var n = r.length - 1; n >= 0; n--)
+      (l = r[n]) && (e = (i < 3 ? l(e) : i > 3 ? l(o, t, e) : l(o, t)) || e)
+  return i > 3 && e && Object.defineProperty(o, t, e), e
+}
+let s = class extends g {
+  constructor() {
+    super(...arguments),
+      (this.tokenName = ''),
+      (this.tokenImageUrl = ''),
+      (this.tokenValue = 0),
+      (this.tokenAmount = '0.0'),
+      (this.tokenCurrency = ''),
+      (this.clickable = !1)
+  }
+  render() {
+    return u`
       <button data-clickable=${String(this.clickable)}>
         <wui-flex gap="s" alignItems="center">
           ${this.visualTemplate()}
           <wui-flex flexDirection="column" justifyContent="spaceBetween">
             <wui-text variant="paragraph-500" color="fg-100">${this.tokenName}</wui-text>
             <wui-text variant="small-400" color="fg-200">
-              ${w.formatNumberToLocalString(this.tokenAmount,4)} ${this.tokenCurrency}
+              ${w.formatNumberToLocalString(this.tokenAmount, 4)} ${this.tokenCurrency}
             </wui-text>
           </wui-flex>
         </wui-flex>
         <wui-text variant="paragraph-500" color="fg-100">$${this.tokenValue.toFixed(2)}</wui-text>
       </button>
-    `}visualTemplate(){return this.tokenName&&this.tokenImageUrl?u`<wui-image alt=${this.tokenName} src=${this.tokenImageUrl}></wui-image>`:u`<wui-icon name="coinPlaceholder" color="fg-100"></wui-icon>`}};s.styles=[f,y,k];m([c()],s.prototype,"tokenName",void 0);m([c()],s.prototype,"tokenImageUrl",void 0);m([c({type:Number})],s.prototype,"tokenValue",void 0);m([c()],s.prototype,"tokenAmount",void 0);m([c()],s.prototype,"tokenCurrency",void 0);m([c({type:Boolean})],s.prototype,"clickable",void 0);s=m([x("wui-list-token")],s);const $=h`
+    `
+  }
+  visualTemplate() {
+    return this.tokenName && this.tokenImageUrl
+      ? u`<wui-image alt=${this.tokenName} src=${this.tokenImageUrl}></wui-image>`
+      : u`<wui-icon name="coinPlaceholder" color="fg-100"></wui-icon>`
+  }
+}
+s.styles = [f, y, k]
+m([c()], s.prototype, 'tokenName', void 0)
+m([c()], s.prototype, 'tokenImageUrl', void 0)
+m([c({ type: Number })], s.prototype, 'tokenValue', void 0)
+m([c()], s.prototype, 'tokenAmount', void 0)
+m([c()], s.prototype, 'tokenCurrency', void 0)
+m([c({ type: Boolean })], s.prototype, 'clickable', void 0)
+s = m([x('wui-list-token')], s)
+const $ = h`
   :host {
     position: relative;
     display: flex;
@@ -53,7 +98,35 @@ import{i as h,b as f,f as y,r as g,x as u}from"./index-DVkBgnkX.js";import{n as 
     transition: background-color var(--wui-duration-lg) var(--wui-ease-out-power-1);
     will-change: background-color;
   }
-`;var b=function(r,o,t,a){var i=arguments.length,e=i<3?o:a===null?a=Object.getOwnPropertyDescriptor(o,t):a,l;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")e=Reflect.decorate(r,o,t,a);else for(var n=r.length-1;n>=0;n--)(l=r[n])&&(e=(i<3?l(e):i>3?l(o,t,e):l(o,t))||e);return i>3&&e&&Object.defineProperty(o,t,e),e};let p=class extends g{constructor(){super(...arguments),this.text=""}render(){return u`${this.template()}`}template(){return this.text?u`<wui-text variant="small-500" color="fg-200">${this.text}</wui-text>`:null}};p.styles=[f,$];b([c()],p.prototype,"text",void 0);p=b([x("wui-separator")],p);const j=h`
+`
+var b = function (r, o, t, a) {
+  var i = arguments.length,
+    e = i < 3 ? o : a === null ? (a = Object.getOwnPropertyDescriptor(o, t)) : a,
+    l
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    e = Reflect.decorate(r, o, t, a)
+  else
+    for (var n = r.length - 1; n >= 0; n--)
+      (l = r[n]) && (e = (i < 3 ? l(e) : i > 3 ? l(o, t, e) : l(o, t)) || e)
+  return i > 3 && e && Object.defineProperty(o, t, e), e
+}
+let p = class extends g {
+  constructor() {
+    super(...arguments), (this.text = '')
+  }
+  render() {
+    return u`${this.template()}`
+  }
+  template() {
+    return this.text
+      ? u`<wui-text variant="small-500" color="fg-200">${this.text}</wui-text>`
+      : null
+  }
+}
+p.styles = [f, $]
+b([c()], p.prototype, 'text', void 0)
+p = b([x('wui-separator')], p)
+const j = h`
   :host {
     display: block;
     width: var(--local-width);
@@ -127,8 +200,56 @@ import{i as h,b as f,f as y,r as g,x as u}from"./index-DVkBgnkX.js";import{n as 
       #6ebdea 100%
     );
   }
-`;var v=function(r,o,t,a){var i=arguments.length,e=i<3?o:a===null?a=Object.getOwnPropertyDescriptor(o,t):a,l;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")e=Reflect.decorate(r,o,t,a);else for(var n=r.length-1;n>=0;n--)(l=r[n])&&(e=(i<3?l(e):i>3?l(o,t,e):l(o,t))||e);return i>3&&e&&Object.defineProperty(o,t,e),e};let d=class extends g{constructor(){super(...arguments),this.imageSrc=void 0,this.alt=void 0,this.address=void 0,this.size="xl"}render(){return this.style.cssText=`
+`
+var v = function (r, o, t, a) {
+  var i = arguments.length,
+    e = i < 3 ? o : a === null ? (a = Object.getOwnPropertyDescriptor(o, t)) : a,
+    l
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    e = Reflect.decorate(r, o, t, a)
+  else
+    for (var n = r.length - 1; n >= 0; n--)
+      (l = r[n]) && (e = (i < 3 ? l(e) : i > 3 ? l(o, t, e) : l(o, t)) || e)
+  return i > 3 && e && Object.defineProperty(o, t, e), e
+}
+let d = class extends g {
+  constructor() {
+    super(...arguments),
+      (this.imageSrc = void 0),
+      (this.alt = void 0),
+      (this.address = void 0),
+      (this.size = 'xl')
+  }
+  render() {
+    return (
+      (this.style.cssText = `
     --local-width: var(--wui-icon-box-size-${this.size});
     --local-height: var(--wui-icon-box-size-${this.size});
-    `,u`${this.visualTemplate()}`}visualTemplate(){if(this.imageSrc)return this.dataset.variant="image",u`<wui-image src=${this.imageSrc} alt=${this.alt??"avatar"}></wui-image>`;if(this.address){this.dataset.variant="generated";const o=w.generateAvatarColors(this.address);return this.style.cssText+=`
- ${o}`,null}return this.dataset.variant="default",null}};d.styles=[f,j];v([c()],d.prototype,"imageSrc",void 0);v([c()],d.prototype,"alt",void 0);v([c()],d.prototype,"address",void 0);v([c()],d.prototype,"size",void 0);d=v([x("wui-avatar")],d);
+    `),
+      u`${this.visualTemplate()}`
+    )
+  }
+  visualTemplate() {
+    if (this.imageSrc)
+      return (
+        (this.dataset.variant = 'image'),
+        u`<wui-image src=${this.imageSrc} alt=${this.alt ?? 'avatar'}></wui-image>`
+      )
+    if (this.address) {
+      this.dataset.variant = 'generated'
+      const o = w.generateAvatarColors(this.address)
+      return (
+        (this.style.cssText += `
+ ${o}`),
+        null
+      )
+    }
+    return (this.dataset.variant = 'default'), null
+  }
+}
+d.styles = [f, j]
+v([c()], d.prototype, 'imageSrc', void 0)
+v([c()], d.prototype, 'alt', void 0)
+v([c()], d.prototype, 'address', void 0)
+v([c()], d.prototype, 'size', void 0)
+d = v([x('wui-avatar')], d)

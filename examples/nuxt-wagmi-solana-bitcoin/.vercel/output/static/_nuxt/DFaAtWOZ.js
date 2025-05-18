@@ -1,8 +1,62 @@
-import{ax as h,N as b,X as p,a6 as w,O as f,Q as u}from"./cxC4FtgZ.js";import{a as x,f as y,n as i,c as m}from"./D1u8rsYX.js";import"./DsbIaR_i.js";/**
+import { n as i, c as m, a as x, f as y } from './D1u8rsYX.js'
+import './DsbIaR_i.js'
+import { N as b, O as f, ax as h, X as p, Q as u, a6 as w } from './cxC4FtgZ.js'
+
+import { a as x, f as y, n as i, c as m } from './D1u8rsYX.js'
+import './DsbIaR_i.js'
+/**
  * @license
  * Copyright 2020 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */const S=()=>new k;class k{}const v=new WeakMap,B=x(class extends y{render(t){return h}update(t,[a]){var n;const o=a!==this.Y;return o&&this.Y!==void 0&&this.rt(void 0),(o||this.lt!==this.ct)&&(this.Y=a,this.ht=(n=t.options)==null?void 0:n.host,this.rt(this.ct=t.element)),h}rt(t){if(this.isConnected||(t=void 0),typeof this.Y=="function"){const a=this.ht??globalThis;let o=v.get(a);o===void 0&&(o=new WeakMap,v.set(a,o)),o.get(this.Y)!==void 0&&this.Y.call(this.ht,void 0),o.set(this.Y,t),t!==void 0&&this.Y.call(this.ht,t)}else this.Y.value=t}get lt(){var t,a;return typeof this.Y=="function"?(t=v.get(this.ht??globalThis))==null?void 0:t.get(this.Y):(a=this.Y)==null?void 0:a.value}disconnected(){this.lt===this.ct&&this.rt(void 0)}reconnected(){this.rt(this.ct)}}),R=b`
+ */ const S = () => new k()
+class k {}
+const v = new WeakMap(),
+  B = x(
+    class extends y {
+      render(t) {
+        return h
+      }
+      update(t, [a]) {
+        var n
+        const o = a !== this.Y
+        return (
+          o && this.Y !== void 0 && this.rt(void 0),
+          (o || this.lt !== this.ct) &&
+            ((this.Y = a),
+            (this.ht = (n = t.options) == null ? void 0 : n.host),
+            this.rt((this.ct = t.element))),
+          h
+        )
+      }
+      rt(t) {
+        if ((this.isConnected || (t = void 0), typeof this.Y == 'function')) {
+          const a = this.ht ?? globalThis
+          let o = v.get(a)
+          o === void 0 && ((o = new WeakMap()), v.set(a, o)),
+            o.get(this.Y) !== void 0 && this.Y.call(this.ht, void 0),
+            o.set(this.Y, t),
+            t !== void 0 && this.Y.call(this.ht, t)
+        } else this.Y.value = t
+      }
+      get lt() {
+        var t, a
+        return typeof this.Y == 'function'
+          ? (t = v.get(this.ht ?? globalThis)) == null
+            ? void 0
+            : t.get(this.Y)
+          : (a = this.Y) == null
+            ? void 0
+            : a.value
+      }
+      disconnected() {
+        this.lt === this.ct && this.rt(void 0)
+      }
+      reconnected() {
+        this.rt(this.ct)
+      }
+    }
+  ),
+  R = b`
   :host {
     width: var(--local-width);
     position: relative;
@@ -197,12 +251,50 @@ import{ax as h,N as b,X as p,a6 as w,O as f,Q as u}from"./cxC4FtgZ.js";import{a 
     transform: translate(-50%, -50%);
     opacity: var(--local-opacity-000);
   }
-`;var e=function(t,a,o,n){var c=arguments.length,s=c<3?a:n===null?n=Object.getOwnPropertyDescriptor(a,o):n,l;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")s=Reflect.decorate(t,a,o,n);else for(var d=t.length-1;d>=0;d--)(l=t[d])&&(s=(c<3?l(s):c>3?l(a,o,s):l(a,o))||s);return c>3&&s&&Object.defineProperty(a,o,s),s};const g={main:"inverse-100",inverse:"inverse-000",accent:"accent-100","accent-error":"error-100","accent-success":"success-100",neutral:"fg-100",disabled:"gray-glass-020"},$={lg:"paragraph-600",md:"small-600"},z={lg:"md",md:"md"};let r=class extends f{constructor(){super(...arguments),this.size="lg",this.disabled=!1,this.fullWidth=!1,this.loading=!1,this.variant="main",this.hasIconLeft=!1,this.hasIconRight=!1,this.borderRadius="m"}render(){this.style.cssText=`
-    --local-width: ${this.fullWidth?"100%":"auto"};
-    --local-opacity-100: ${this.loading?0:1};
-    --local-opacity-000: ${this.loading?1:0};
+`
+var e = function (t, a, o, n) {
+  var c = arguments.length,
+    s = c < 3 ? a : n === null ? (n = Object.getOwnPropertyDescriptor(a, o)) : n,
+    l
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    s = Reflect.decorate(t, a, o, n)
+  else
+    for (var d = t.length - 1; d >= 0; d--)
+      (l = t[d]) && (s = (c < 3 ? l(s) : c > 3 ? l(a, o, s) : l(a, o)) || s)
+  return c > 3 && s && Object.defineProperty(a, o, s), s
+}
+const g = {
+    main: 'inverse-100',
+    inverse: 'inverse-000',
+    accent: 'accent-100',
+    'accent-error': 'error-100',
+    'accent-success': 'success-100',
+    neutral: 'fg-100',
+    disabled: 'gray-glass-020'
+  },
+  $ = { lg: 'paragraph-600', md: 'small-600' },
+  z = { lg: 'md', md: 'md' }
+let r = class extends f {
+  constructor() {
+    super(...arguments),
+      (this.size = 'lg'),
+      (this.disabled = !1),
+      (this.fullWidth = !1),
+      (this.loading = !1),
+      (this.variant = 'main'),
+      (this.hasIconLeft = !1),
+      (this.hasIconRight = !1),
+      (this.borderRadius = 'm')
+  }
+  render() {
+    this.style.cssText = `
+    --local-width: ${this.fullWidth ? '100%' : 'auto'};
+    --local-opacity-100: ${this.loading ? 0 : 1};
+    --local-opacity-000: ${this.loading ? 1 : 0};
     --local-border-radius: var(--wui-border-radius-${this.borderRadius});
-    `;const a=this.textVariant??$[this.size];return u`
+    `
+    const a = this.textVariant ?? $[this.size]
+    return u`
       <button
         data-variant=${this.variant}
         data-icon-left=${this.hasIconLeft}
@@ -211,10 +303,38 @@ import{ax as h,N as b,X as p,a6 as w,O as f,Q as u}from"./cxC4FtgZ.js";import{a 
         ?disabled=${this.disabled}
       >
         ${this.loadingTemplate()}
-        <slot name="iconLeft" @slotchange=${()=>this.handleSlotLeftChange()}></slot>
+        <slot name="iconLeft" @slotchange=${() => this.handleSlotLeftChange()}></slot>
         <wui-text variant=${a} color="inherit">
           <slot></slot>
         </wui-text>
-        <slot name="iconRight" @slotchange=${()=>this.handleSlotRightChange()}></slot>
+        <slot name="iconRight" @slotchange=${() => this.handleSlotRightChange()}></slot>
       </button>
-    `}handleSlotLeftChange(){this.hasIconLeft=!0}handleSlotRightChange(){this.hasIconRight=!0}loadingTemplate(){if(this.loading){const a=z[this.size],o=this.disabled?g.disabled:g[this.variant];return u`<wui-loading-spinner color=${o} size=${a}></wui-loading-spinner>`}return u``}};r.styles=[p,w,R];e([i()],r.prototype,"size",void 0);e([i({type:Boolean})],r.prototype,"disabled",void 0);e([i({type:Boolean})],r.prototype,"fullWidth",void 0);e([i({type:Boolean})],r.prototype,"loading",void 0);e([i()],r.prototype,"variant",void 0);e([i({type:Boolean})],r.prototype,"hasIconLeft",void 0);e([i({type:Boolean})],r.prototype,"hasIconRight",void 0);e([i()],r.prototype,"borderRadius",void 0);e([i()],r.prototype,"textVariant",void 0);r=e([m("wui-button")],r);export{S as e,B as n};
+    `
+  }
+  handleSlotLeftChange() {
+    this.hasIconLeft = !0
+  }
+  handleSlotRightChange() {
+    this.hasIconRight = !0
+  }
+  loadingTemplate() {
+    if (this.loading) {
+      const a = z[this.size],
+        o = this.disabled ? g.disabled : g[this.variant]
+      return u`<wui-loading-spinner color=${o} size=${a}></wui-loading-spinner>`
+    }
+    return u``
+  }
+}
+r.styles = [p, w, R]
+e([i()], r.prototype, 'size', void 0)
+e([i({ type: Boolean })], r.prototype, 'disabled', void 0)
+e([i({ type: Boolean })], r.prototype, 'fullWidth', void 0)
+e([i({ type: Boolean })], r.prototype, 'loading', void 0)
+e([i()], r.prototype, 'variant', void 0)
+e([i({ type: Boolean })], r.prototype, 'hasIconLeft', void 0)
+e([i({ type: Boolean })], r.prototype, 'hasIconRight', void 0)
+e([i()], r.prototype, 'borderRadius', void 0)
+e([i()], r.prototype, 'textVariant', void 0)
+r = e([m('wui-button')], r)
+export { S as e, B as n }

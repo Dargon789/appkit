@@ -1,4 +1,6 @@
-import{as as c}from"./cxC4FtgZ.js";const l=c`<svg fill="none" viewBox="0 0 20 20">
+import { as as c } from './cxC4FtgZ.js'
+
+const l = c`<svg fill="none" viewBox="0 0 20 20">
   <path
     fill="currentColor"
     fill-rule="evenodd"
@@ -6,4 +8,5 @@ import{as as c}from"./cxC4FtgZ.js";const l=c`<svg fill="none" viewBox="0 0 20 20
     clip-rule="evenodd"
   />
   <path fill="currentColor" d="M6.14 17.57a1 1 0 1 0 0 2h7.72a1 1 0 1 0 0-2H6.14Z" />
-</svg>`;export{l as desktopSvg};
+</svg>`
+export { l as desktopSvg }

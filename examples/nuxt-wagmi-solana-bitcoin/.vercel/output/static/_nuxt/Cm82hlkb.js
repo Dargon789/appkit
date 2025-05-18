@@ -1,4 +1,8 @@
-import{N as d,O as g,Q as h}from"./cxC4FtgZ.js";import{n,c as b}from"./D1u8rsYX.js";const p=d`
+import { c as b, n } from './D1u8rsYX.js'
+import { N as d, O as g, Q as h } from './cxC4FtgZ.js'
+
+import { n, c as b } from './D1u8rsYX.js'
+const p = d`
   :host {
     display: block;
     box-shadow: inset 0 0 0 1px var(--wui-color-gray-glass-005);
@@ -38,8 +42,40 @@ import{N as d,O as g,Q as h}from"./cxC4FtgZ.js";import{n,c as b}from"./D1u8rsYX.
       background-position: 250% 0;
     }
   }
-`;var t=function(a,i,e,s){var c=arguments.length,r=c<3?i:s===null?s=Object.getOwnPropertyDescriptor(i,e):s,l;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")r=Reflect.decorate(a,i,e,s);else for(var u=a.length-1;u>=0;u--)(l=a[u])&&(r=(c<3?l(r):c>3?l(i,e,r):l(i,e))||r);return c>3&&r&&Object.defineProperty(i,e,r),r};let o=class extends g{constructor(){super(...arguments),this.width="",this.height="",this.borderRadius="m",this.variant="default"}render(){return this.style.cssText=`
+`
+var t = function (a, i, e, s) {
+  var c = arguments.length,
+    r = c < 3 ? i : s === null ? (s = Object.getOwnPropertyDescriptor(i, e)) : s,
+    l
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    r = Reflect.decorate(a, i, e, s)
+  else
+    for (var u = a.length - 1; u >= 0; u--)
+      (l = a[u]) && (r = (c < 3 ? l(r) : c > 3 ? l(i, e, r) : l(i, e)) || r)
+  return c > 3 && r && Object.defineProperty(i, e, r), r
+}
+let o = class extends g {
+  constructor() {
+    super(...arguments),
+      (this.width = ''),
+      (this.height = ''),
+      (this.borderRadius = 'm'),
+      (this.variant = 'default')
+  }
+  render() {
+    return (
+      (this.style.cssText = `
       width: ${this.width};
       height: ${this.height};
       border-radius: ${`clamp(0px,var(--wui-border-radius-${this.borderRadius}), 40px)`};
-    `,h`<slot></slot>`}};o.styles=[p];t([n()],o.prototype,"width",void 0);t([n()],o.prototype,"height",void 0);t([n()],o.prototype,"borderRadius",void 0);t([n()],o.prototype,"variant",void 0);o=t([b("wui-shimmer")],o);
+    `),
+      h`<slot></slot>`
+    )
+  }
+}
+o.styles = [p]
+t([n()], o.prototype, 'width', void 0)
+t([n()], o.prototype, 'height', void 0)
+t([n()], o.prototype, 'borderRadius', void 0)
+t([n()], o.prototype, 'variant', void 0)
+o = t([b('wui-shimmer')], o)

@@ -1,4 +1,14 @@
-import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n as o,c as k,o as v}from"./D1u8rsYX.js";import"./D5z3hTdP.js";import"./DsbIaR_i.js";import"./CmZgvnX6.js";const M=w`
+import './CmZgvnX6.js'
+import { c as k, n as o, o as v } from './D1u8rsYX.js'
+import './D5z3hTdP.js'
+import './DsbIaR_i.js'
+import { X as g, Q as n, as as t, O as u, N as w, a6 as x } from './cxC4FtgZ.js'
+
+import { n as o, c as k, o as v } from './D1u8rsYX.js'
+import './D5z3hTdP.js'
+import './DsbIaR_i.js'
+import './CmZgvnX6.js'
+const M = w`
   button {
     column-gap: var(--wui-spacing-s);
     padding: 11px 18px 11px var(--wui-spacing-s);
@@ -82,9 +92,33 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
     top: 50%;
     transform: translateY(-50%);
   }
-`;var s=function(c,e,l,r){var h=arguments.length,i=h<3?e:r===null?r=Object.getOwnPropertyDescriptor(e,l):r,C;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")i=Reflect.decorate(c,e,l,r);else for(var d=c.length-1;d>=0;d--)(C=c[d])&&(i=(h<3?C(i):h>3?C(e,l,i):C(e,l))||i);return h>3&&i&&Object.defineProperty(e,l,i),i};let a=class extends u{constructor(){super(...arguments),this.tabIdx=void 0,this.variant="icon",this.disabled=!1,this.imageSrc=void 0,this.alt=void 0,this.chevron=!1,this.loading=!1}render(){return n`
+`
+var s = function (c, e, l, r) {
+  var h = arguments.length,
+    i = h < 3 ? e : r === null ? (r = Object.getOwnPropertyDescriptor(e, l)) : r,
+    C
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    i = Reflect.decorate(c, e, l, r)
+  else
+    for (var d = c.length - 1; d >= 0; d--)
+      (C = c[d]) && (i = (h < 3 ? C(i) : h > 3 ? C(e, l, i) : C(e, l)) || i)
+  return h > 3 && i && Object.defineProperty(e, l, i), i
+}
+let a = class extends u {
+  constructor() {
+    super(...arguments),
+      (this.tabIdx = void 0),
+      (this.variant = 'icon'),
+      (this.disabled = !1),
+      (this.imageSrc = void 0),
+      (this.alt = void 0),
+      (this.chevron = !1),
+      (this.loading = !1)
+  }
+  render() {
+    return n`
       <button
-        ?disabled=${this.loading?!0:!!this.disabled}
+        ?disabled=${this.loading ? !0 : !!this.disabled}
         data-loading=${this.loading}
         data-iconvariant=${v(this.iconVariant)}
         tabindex=${v(this.tabIdx)}
@@ -95,7 +129,18 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
         </wui-flex>
         ${this.chevronTemplate()}
       </button>
-    `}visualTemplate(){if(this.variant==="image"&&this.imageSrc)return n`<wui-image src=${this.imageSrc} alt=${this.alt??"list item"}></wui-image>`;if(this.iconVariant==="square"&&this.icon&&this.variant==="icon")return n`<wui-icon name=${this.icon}></wui-icon>`;if(this.variant==="icon"&&this.icon&&this.iconVariant){const e=["blue","square-blue"].includes(this.iconVariant)?"accent-100":"fg-200",l=this.iconVariant==="square-blue"?"mdl":"md",r=this.iconSize?this.iconSize:l;return n`
+    `
+  }
+  visualTemplate() {
+    if (this.variant === 'image' && this.imageSrc)
+      return n`<wui-image src=${this.imageSrc} alt=${this.alt ?? 'list item'}></wui-image>`
+    if (this.iconVariant === 'square' && this.icon && this.variant === 'icon')
+      return n`<wui-icon name=${this.icon}></wui-icon>`
+    if (this.variant === 'icon' && this.icon && this.iconVariant) {
+      const e = ['blue', 'square-blue'].includes(this.iconVariant) ? 'accent-100' : 'fg-200',
+        l = this.iconVariant === 'square-blue' ? 'mdl' : 'md',
+        r = this.iconSize ? this.iconSize : l
+      return n`
         <wui-icon-box
           data-variant=${this.iconVariant}
           icon=${this.icon}
@@ -105,10 +150,37 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
           backgroundColor=${e}
           size=${l}
         ></wui-icon-box>
-      `}return null}loadingTemplate(){return this.loading?n`<wui-loading-spinner
+      `
+    }
+    return null
+  }
+  loadingTemplate() {
+    return this.loading
+      ? n`<wui-loading-spinner
         data-testid="wui-list-item-loading-spinner"
         color="fg-300"
-      ></wui-loading-spinner>`:n``}chevronTemplate(){return this.chevron?n`<wui-icon size="inherit" color="fg-200" name="chevronRight"></wui-icon>`:null}};a.styles=[g,x,M];s([o()],a.prototype,"icon",void 0);s([o()],a.prototype,"iconSize",void 0);s([o()],a.prototype,"tabIdx",void 0);s([o()],a.prototype,"variant",void 0);s([o()],a.prototype,"iconVariant",void 0);s([o({type:Boolean})],a.prototype,"disabled",void 0);s([o()],a.prototype,"imageSrc",void 0);s([o()],a.prototype,"alt",void 0);s([o({type:Boolean})],a.prototype,"chevron",void 0);s([o({type:Boolean})],a.prototype,"loading",void 0);a=s([k("wui-list-item")],a);const y=t`<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      ></wui-loading-spinner>`
+      : n``
+  }
+  chevronTemplate() {
+    return this.chevron
+      ? n`<wui-icon size="inherit" color="fg-200" name="chevronRight"></wui-icon>`
+      : null
+  }
+}
+a.styles = [g, x, M]
+s([o()], a.prototype, 'icon', void 0)
+s([o()], a.prototype, 'iconSize', void 0)
+s([o()], a.prototype, 'tabIdx', void 0)
+s([o()], a.prototype, 'variant', void 0)
+s([o()], a.prototype, 'iconVariant', void 0)
+s([o({ type: Boolean })], a.prototype, 'disabled', void 0)
+s([o()], a.prototype, 'imageSrc', void 0)
+s([o()], a.prototype, 'alt', void 0)
+s([o({ type: Boolean })], a.prototype, 'chevron', void 0)
+s([o({ type: Boolean })], a.prototype, 'loading', void 0)
+a = s([k('wui-list-item')], a)
+const y = t`<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="64" height="64" fill="#F7931A"/>
   <g clip-path="url(#clip0_1045_17)">
     <path d="M63.0394 39.7409C58.7654 56.8839 41.4024 67.3169 24.2574 63.0419C7.11937 58.7679 -3.31363 41.4039 0.962367 24.2619C5.23437 7.11686 22.5974 -3.31714 39.7374 0.956863C56.8814 5.23086 67.3134 22.5969 63.0394 39.7409Z" fill="#F7931A"/>
@@ -120,7 +192,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
     </clipPath>
   </defs>
 </svg>
-`,Z=t`<svg fill="none" viewBox="0 0 60 60">
+`,
+  Z = t`<svg fill="none" viewBox="0 0 60 60">
   <rect width="60" height="60" fill="#1DC956" rx="30" />
   <circle cx="30" cy="30" r="3" fill="#fff" />
   <path
@@ -139,7 +212,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
   />
   <circle cx="30" cy="30" r="3" fill="#fff" transform="rotate(45 30 30)" />
   <rect width="59" height="59" x=".5" y=".5" stroke="#062B2B" stroke-opacity=".1" rx="29.5" />
-</svg> `,L=t`<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none">
+</svg> `,
+  L = t`<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none">
   <g clip-path="url(#clip0_187_29)">
     <path d="M1.18187e-05 15.8055C1.18187e-05 9.8015 -5.19442e-07 6.91338 1.69991e-08 0C4.5 3.72236e-05 9.62249 0 16.5 0L23.5 4.31399e-05C29.9349 4.31399e-05 35.5 0.000206332 40 3.73468e-05C40 2.77754 40 9.36708 40 15.8055V22.8364C40 29.2647 40 33.7962 40 40C31.5 40 29.8337 40 23.4 40H16.6C10.5092 40 6.50004 40 4.04289e-05 40C3.05176e-05 32.2453 1.18187e-05 29.6382 1.18187e-05 22.8364V15.8055Z" fill="#0052FF"/>
     <path d="M20.0236 26.5C16.4342 26.5 13.5236 23.5931 13.5236 20C13.5236 16.4069 16.4342 13.5 20.0236 13.5C23.2411 13.5 25.9134 15.8472 26.4261 18.9167H32.9731C32.4206 12.2433 26.8342 7 20.02 7C12.8411 7 7.02002 12.8211 7.02002 20C7.02002 27.1789 12.8411 33 20.02 33C26.8342 33 32.4206 27.7567 32.9731 21.0833H26.4225C25.9061 24.1528 23.2411 26.5 20.0236 26.5Z" fill="white"/>
@@ -149,7 +223,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
       <rect width="40" height="40" fill="white"/>
     </clipPath>
   </defs>
-</svg>`,V=t`<svg viewBox="0 0 60 60" fill="none">
+</svg>`,
+  V = t`<svg viewBox="0 0 60 60" fill="none">
   <g clip-path="url(#clip0_7734_50402)">
     <path
       d="M0 24.9C0 15.6485 0 11.0228 1.97053 7.56812C3.3015 5.23468 5.23468 3.3015 7.56812 1.97053C11.0228 0 15.6485 0 24.9 0H35.1C44.3514 0 48.9772 0 52.4319 1.97053C54.7653 3.3015 56.6985 5.23468 58.0295 7.56812C60 11.0228 60 15.6485 60 24.9V35.1C60 44.3514 60 48.9772 58.0295 52.4319C56.6985 54.7653 54.7653 56.6985 52.4319 58.0295C48.9772 60 44.3514 60 35.1 60H24.9C15.6485 60 11.0228 60 7.56812 58.0295C5.23468 56.6985 3.3015 54.7653 1.97053 52.4319C0 48.9772 0 44.3514 0 35.1V24.9Z"
@@ -192,7 +267,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
       <rect width="60" height="60" fill="white" />
     </clipPath>
   </defs>
-</svg> `,b=t`<svg fill="none" viewBox="0 0 60 60">
+</svg> `,
+  b = t`<svg fill="none" viewBox="0 0 60 60">
   <g clip-path="url(#a)">
     <path
       fill="#1DC956"
@@ -223,7 +299,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
   <defs>
     <clipPath id="a"><path fill="#fff" d="M0 0h60v60H0z" /></clipPath>
   </defs>
-</svg>`,m=t`<svg fill="none" viewBox="0 0 60 60">
+</svg>`,
+  m = t`<svg fill="none" viewBox="0 0 60 60">
   <g clip-path="url(#a)">
     <rect width="60" height="60" fill="#C653C6" rx="30" />
     <path
@@ -247,7 +324,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
   <defs>
     <clipPath id="a"><rect width="60" height="60" fill="#fff" rx="30" /></clipPath>
   </defs>
-</svg> `,E=t`<svg fill="none" viewBox="0 0 60 60">
+</svg> `,
+  E = t`<svg fill="none" viewBox="0 0 60 60">
   <g clip-path="url(#a)">
     <rect width="60" height="60" fill="#987DE8" rx="30" />
     <path
@@ -285,7 +363,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
   <defs>
     <clipPath id="a"><rect width="60" height="60" fill="#fff" rx="30" /></clipPath>
   </defs>
-</svg> `,B=t`<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+</svg> `,
+  B = t`<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="64" height="64" rx="30" fill="#1DC956"/>
   <rect x="0.5" y="0.5" width="63" height="63" rx="29.5" stroke="#141414" stroke-opacity="0.1"/>
   <path d="M32.4053 19.8031C35.3901 19.8031 38.0431 20.8349 40.1619 22.8247L45.9656 17.0211C42.4465 13.7416 37.8773 11.7333 32.4053 11.7333C24.4829 11.7333 17.6475 16.2841 14.3127 22.9168L21.056 28.1493C22.6589 23.359 27.136 19.8031 32.4053 19.8031Z" fill="#1DC956" stroke="white" stroke-width="2" stroke-linejoin="round"/>
@@ -295,7 +374,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
   <path d="M21.056 35.8507C20.6507 34.6347 20.4111 33.345 20.4111 32C20.4111 30.655 20.6507 29.3653 21.056 28.1493L14.3127 22.9169C12.9309 25.6437 12.1387 28.7205 12.1387 32C12.1387 35.2795 12.9309 38.3564 14.3127 41.0831L19.5636 36.993L21.056 35.8507Z" fill="#86F999"/>
   <path d="M21.056 35.8691L14.3127 41.1016M21.056 35.8507C20.6507 34.6347 20.4111 33.345 20.4111 32C20.4111 30.655 20.6507 29.3653 21.056 28.1493L14.3127 22.9169C12.9309 25.6437 12.1387 28.7205 12.1387 32C12.1387 35.2795 12.9309 38.3564 14.3127 41.0831L19.5636 36.993L21.056 35.8507Z" stroke="white" stroke-width="2" stroke-linejoin="round"/>
 </svg>
-`,H=t`<svg fill="none" viewBox="0 0 60 60">
+`,
+  H = t`<svg fill="none" viewBox="0 0 60 60">
   <rect width="60" height="60" fill="#1DC956" rx="3" />
   <path
     fill="#1FAD7E"
@@ -316,7 +396,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
     d="m46.69 21.06-.94-.35.94.35a3 3 0 0 0 0-2.12l-.94.35.94-.35a3.21 3.21 0 0 0-1.27-1.45c-.53-.36-1.25-.76-2.11-1.24l-.05-.03-6.32-3.51-.18-.1c-2.33-1.3-3.72-2.06-5.22-2.33a9 9 0 0 0-3.08 0c-1.5.27-2.9 1.04-5.22 2.33l-.17.1-6.33 3.51-.05.03c-.86.48-1.58.88-2.1 1.24-.54.37-1.04.81-1.28 1.45a3 3 0 0 0 0 2.12c.24.63.74 1.08 1.27 1.45.53.36 1.25.76 2.11 1.24l.05.03 6.33 3.51.17.1c2.33 1.3 3.72 2.06 5.22 2.32a9 9 0 0 0 3.08 0c1.5-.26 2.9-1.03 5.22-2.32l.18-.1 6.32-3.51.05-.03a26.9 26.9 0 0 0 2.1-1.24 3.21 3.21 0 0 0 1.28-1.45Z"
   />
   <rect width="59" height="59" x=".5" y=".5" stroke="#fff" stroke-opacity=".1" rx="2.5" />
-</svg>`,F=t`<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+</svg>`,
+  F = t`<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
   <g clip-path="url(#clip0_241_31636)">
     <path d="M0 26.5595C0 16.6913 0 11.7572 2.1019 8.07217C3.5216 5.58318 5.58366 3.52111 8.07266 2.10141C11.7577 -0.000488281 16.6918 -0.000488281 26.56 -0.000488281H37.44C47.3082 -0.000488281 52.2423 -0.000488281 55.9273 2.10141C58.4163 3.52111 60.4784 5.58318 61.8981 8.07217C64 11.7572 64 16.6913 64 26.5595V37.4395C64 47.3077 64 52.2418 61.8981 55.9269C60.4784 58.4159 58.4163 60.4779 55.9273 61.8976C52.2423 63.9995 47.3082 63.9995 37.44 63.9995H26.56C16.6918 63.9995 11.7577 63.9995 8.07266 61.8976C5.58366 60.4779 3.5216 58.4159 2.1019 55.9269C0 52.2418 0 47.3077 0 37.4395V26.5595Z" fill="#794CFF"/>
     <path d="M0.5 26.5595C0.5 21.6163 0.50047 17.942 0.760736 15.0418C1.02039 12.1485 1.53555 10.0742 2.53621 8.3199C3.91155 5.90869 5.90917 3.91106 8.32039 2.53572C10.0747 1.53506 12.1489 1.01991 15.0423 0.760247C17.9425 0.499981 21.6168 0.499512 26.56 0.499512H37.44C42.3832 0.499512 46.0575 0.499981 48.9577 0.760247C51.8511 1.01991 53.9253 1.53506 55.6796 2.53572C58.0908 3.91106 60.0885 5.90869 61.4638 8.3199C62.4645 10.0742 62.9796 12.1485 63.2393 15.0418C63.4995 17.942 63.5 21.6163 63.5 26.5595V37.4395C63.5 42.3827 63.4995 46.057 63.2393 48.9572C62.9796 51.8506 62.4645 53.9248 61.4638 55.6791C60.0885 58.0903 58.0908 60.088 55.6796 61.4633C53.9253 62.464 51.8511 62.9791 48.9577 63.2388C46.0575 63.499 42.3832 63.4995 37.44 63.4995H26.56C21.6168 63.4995 17.9425 63.499 15.0423 63.2388C12.1489 62.9791 10.0747 62.464 8.32039 61.4633C5.90917 60.088 3.91155 58.0903 2.53621 55.6791C1.53555 53.9248 1.02039 51.8506 0.760736 48.9572C0.50047 46.057 0.5 42.3827 0.5 37.4395V26.5595Z" stroke="#141414" stroke-opacity="0.1"/>
@@ -333,7 +414,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
     </clipPath>
   </defs>
 </svg>
-`,_=t`<svg fill="none" viewBox="0 0 60 60">
+`,
+  _ = t`<svg fill="none" viewBox="0 0 60 60">
   <rect width="60" height="60" fill="#C653C6" rx="3" />
   <path
     fill="#fff"
@@ -350,7 +432,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
     clip-rule="evenodd"
   />
   <rect width="59" height="59" x=".5" y=".5" stroke="#fff" stroke-opacity=".1" rx="2.5" />
-</svg>`,D=t`<svg fill="none" viewBox="0 0 60 60">
+</svg>`,
+  D = t`<svg fill="none" viewBox="0 0 60 60">
   <g clip-path="url(#a)">
     <path
       fill="#EB8B47"
@@ -372,7 +455,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
   <defs>
     <clipPath id="a"><path fill="#fff" d="M0 0h60v60H0z" /></clipPath>
   </defs>
-</svg> `,S=t`<svg width="40" height="42" viewBox="0 0 40 42" fill="none">
+</svg> `,
+  S = t`<svg width="40" height="42" viewBox="0 0 40 42" fill="none">
 <path opacity="0.7" d="M19.9526 41.9076L7.3877 34.655V26.1226L19.9526 33.3751V41.9076Z" fill="url(#paint0_linear_2113_32117)"/>
 <path opacity="0.7" d="M19.9521 41.9076L32.5171 34.655V26.1226L19.9521 33.3751V41.9076Z" fill="url(#paint1_linear_2113_32117)"/>
 <path opacity="0.7" d="M39.9095 7.34521V21.8562L32.5166 26.1225V11.6114L39.9095 7.34521Z" fill="url(#paint2_linear_2113_32117)"/>
@@ -401,7 +485,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
 <stop offset="1" stop-color="#7E4DBD"/>
 </linearGradient>
 </defs>
-</svg>`,P=t`
+</svg>`,
+  P = t`
   <svg width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
     <g clip-path="url(#a)">
       <path
@@ -422,7 +507,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
       <clipPath id="a"><path fill="#fff" d="M0 0h40v40H0z" /></clipPath>
     </defs>
   </svg>
-`,A=t`<svg fill="none" viewBox="0 0 60 60">
+`,
+  A = t`<svg fill="none" viewBox="0 0 60 60">
   <g clip-path="url(#a)">
     <rect width="60" height="60" fill="#00ACE6" rx="30" />
     <circle cx="64" cy="39" r="50" fill="#1AC6FF" stroke="#fff" stroke-width="2" />
@@ -438,7 +524,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
   <defs>
     <clipPath id="a"><rect width="60" height="60" fill="#fff" rx="30" /></clipPath>
   </defs>
-</svg>`,j=t`<svg fill="none" viewBox="0 0 60 60">
+</svg>`,
+  j = t`<svg fill="none" viewBox="0 0 60 60">
   <g clip-path="url(#a)">
     <rect width="60" height="60" fill="#C653C6" rx="3" />
     <path
@@ -458,7 +545,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
   <defs>
     <clipPath id="a"><rect width="60" height="60" fill="#fff" rx="3" /></clipPath>
   </defs>
-</svg> `,z=t`<svg fill="none" viewBox="0 0 60 60">
+</svg> `,
+  z = t`<svg fill="none" viewBox="0 0 60 60">
   <rect width="60" height="60" fill="#794CFF" rx="3" />
   <path
     fill="#987DE8"
@@ -472,7 +560,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
   <path fill="#4019B2" d="M24.5 25h5v10h-5z" />
   <path fill="#fff" d="M12 30.5h4V37h-4v-6.5Z" />
   <rect width="59" height="59" x=".5" y=".5" stroke="#fff" stroke-opacity=".1" rx="2.5" />
-</svg>`,$=t`<svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+</svg>`,
+  $ = t`<svg width="60" height="60" viewBox="0 0 60 60" fill="none">
 <g clip-path="url(#clip0_13859_31161)">
   <path d="M0 24.8995C0 15.6481 0 11.0223 1.97053 7.56763C3.3015 5.2342 5.23468 3.30101 7.56812 1.97004C11.0228 -0.000488281 15.6485 -0.000488281 24.9 -0.000488281H35.1C44.3514 -0.000488281 48.9772 -0.000488281 52.4319 1.97004C54.7653 3.30101 56.6985 5.2342 58.0295 7.56763C60 11.0223 60 15.6481 60 24.8995V35.0995C60 44.351 60 48.9767 58.0295 52.4314C56.6985 54.7648 54.7653 56.698 52.4319 58.029C48.9772 59.9995 44.3514 59.9995 35.1 59.9995H24.9C15.6485 59.9995 11.0228 59.9995 7.56812 58.029C5.23468 56.698 3.3015 54.7648 1.97053 52.4314C0 48.9767 0 44.351 0 35.0995V24.8995Z" fill="#EB8B47"/>
   <path d="M0.5 24.8995C0.5 20.2647 0.50047 16.8216 0.744315 14.1045C0.987552 11.3941 1.46987 9.45455 2.40484 7.81536C3.69145 5.55971 5.56019 3.69096 7.81585 2.40435C9.45504 1.46938 11.3946 0.987064 14.105 0.743826C16.8221 0.499981 20.2652 0.499512 24.9 0.499512H35.1C39.7348 0.499512 43.1779 0.499981 45.895 0.743826C48.6054 0.987064 50.545 1.46938 52.1841 2.40435C54.4398 3.69096 56.3086 5.55971 57.5952 7.81536C58.5301 9.45455 59.0124 11.3941 59.2557 14.1045C59.4995 16.8216 59.5 20.2647 59.5 24.8995V35.0995C59.5 39.7343 59.4995 43.1774 59.2557 45.8945C59.0124 48.6049 58.5301 50.5445 57.5952 52.1837C56.3086 54.4393 54.4398 56.3081 52.1841 57.5947C50.545 58.5296 48.6054 59.012 45.895 59.2552C43.1779 59.499 39.7348 59.4995 35.1 59.4995H24.9C20.2652 59.4995 16.8221 59.499 14.105 59.2552C11.3946 59.012 9.45504 58.5296 7.81585 57.5947C5.56019 56.3081 3.69145 54.4393 2.40484 52.1837C1.46987 50.5445 0.987552 48.6049 0.744315 45.8945C0.50047 43.1774 0.5 39.7343 0.5 35.0995V24.8995Z" stroke="#141414" stroke-opacity="0.1"/>
@@ -485,7 +574,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
     <rect width="60" height="60" fill="white"/>
   </clipPath>
 </defs>
-</svg>`,O=t`
+</svg>`,
+  O = t`
   <svg width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
     <g clip-path="url(#a)">
       <path
@@ -514,7 +604,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
       <clipPath id="a"><path fill="#fff" d="M0 0h40v40H0z" /></clipPath>
     </defs>
   </svg>
-`,G=t`<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+`,
+  G = t`<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
   <g clip-path="url(#clip0_241_31635)">
     <path d="M0 26.5595C0 16.6913 0 11.7572 2.1019 8.07217C3.5216 5.58317 5.58366 3.52111 8.07266 2.10141C11.7577 -0.000488281 16.6918 -0.000488281 26.56 -0.000488281H37.44C47.3082 -0.000488281 52.2423 -0.000488281 55.9273 2.10141C58.4163 3.52111 60.4784 5.58317 61.8981 8.07217C64 11.7572 64 16.6913 64 26.5595V37.4395C64 47.3077 64 52.2418 61.8981 55.9268C60.4784 58.4158 58.4163 60.4779 55.9273 61.8976C52.2423 63.9995 47.3082 63.9995 37.44 63.9995H26.56C16.6918 63.9995 11.7577 63.9995 8.07266 61.8976C5.58366 60.4779 3.5216 58.4158 2.1019 55.9268C0 52.2418 0 47.3077 0 37.4395V26.5595Z" fill="#EB8B47"/>
     <path d="M0.5 26.5595C0.5 21.6163 0.50047 17.942 0.760736 15.0418C1.02039 12.1485 1.53555 10.0742 2.53621 8.3199C3.91155 5.90869 5.90917 3.91106 8.32039 2.53572C10.0747 1.53506 12.1489 1.01991 15.0423 0.760247C17.9425 0.499981 21.6168 0.499512 26.56 0.499512H37.44C42.3832 0.499512 46.0575 0.499981 48.9577 0.760247C51.8511 1.01991 53.9253 1.53506 55.6796 2.53572C58.0908 3.91106 60.0885 5.90869 61.4638 8.3199C62.4645 10.0742 62.9796 12.1485 63.2393 15.0418C63.4995 17.942 63.5 21.6163 63.5 26.5595V37.4395C63.5 42.3827 63.4995 46.057 63.2393 48.9572C62.9796 51.8506 62.4645 53.9248 61.4638 55.6791C60.0885 58.0903 58.0908 60.088 55.6796 61.4633C53.9253 62.464 51.8511 62.9791 48.9577 63.2388C46.0575 63.499 42.3832 63.4995 37.44 63.4995H26.56C21.6168 63.4995 17.9425 63.499 15.0423 63.2388C12.1489 62.9791 10.0747 62.464 8.32039 61.4633C5.90917 60.088 3.91155 58.0903 2.53621 55.6791C1.53555 53.9248 1.02039 51.8506 0.760736 48.9572C0.50047 46.057 0.5 42.3827 0.5 37.4395V26.5595Z" stroke="#141414" stroke-opacity="0.1"/>
@@ -533,7 +624,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
     </clipPath>
   </defs>
 </svg>
-`,U=t`<svg
+`,
+  U = t`<svg
   viewBox="0 0 60 60"
   fill="none"
 >
@@ -567,7 +659,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
       <rect width="60" height="60" rx="30" fill="white" />
     </clipPath>
   </defs>
-</svg> `,q=t`<svg fill="none" viewBox="0 0 80 80">
+</svg> `,
+  q = t`<svg fill="none" viewBox="0 0 80 80">
   <g clip-path="url(#a)">
     <path fill="url(#b)" d="M40 80a40 40 0 1 0 0-80 40 40 0 0 0 0 80Z" />
     <path
@@ -591,7 +684,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
     </linearGradient>
     <clipPath id="a"><path fill="#fff" d="M0 0h80v80H0z" /></clipPath>
   </defs>
-</svg> `,R=t`
+</svg> `,
+  R = t`
   <svg width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
     <g clip-path="url(#a)">
       <path
@@ -614,7 +708,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
       <clipPath id="a"><path fill="#fff" d="M0 0h40v40H0z" /></clipPath>
     </defs>
   </svg>
-`,T=t`<svg viewBox="0 0 60 60" fill="none">
+`,
+  T = t`<svg viewBox="0 0 60 60" fill="none">
   <g clip-path="url(#1)">
     <path
       d="M0 24.9C0 15.6485 0 11.0228 1.97053 7.56812C3.3015 5.23468 5.23468 3.3015 7.56812 1.97053C11.0228 0 15.6485 0 24.9 0H35.1C44.3514 0 48.9772 0 52.4319 1.97053C54.7653 3.3015 56.6985 5.23468 58.0295 7.56812C60 11.0228 60 15.6485 60 24.9V35.1C60 44.3514 60 48.9772 58.0295 52.4319C56.6985 54.7653 54.7653 56.6985 52.4319 58.0295C48.9772 60 44.3514 60 35.1 60H24.9C15.6485 60 11.0228 60 7.56812 58.0295C5.23468 56.6985 3.3015 54.7653 1.97053 52.4319C0 48.9772 0 44.3514 0 35.1V24.9Z"
@@ -645,7 +740,8 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
       <rect width="60" height="60" fill="white" />
     </clipPath>
   </defs>
-</svg> `,I=w`
+</svg> `,
+  I = w`
   :host {
     display: block;
     width: var(--local-size);
@@ -656,6 +752,58 @@ import{N as w,X as g,a6 as x,O as u,Q as n,as as t}from"./cxC4FtgZ.js";import{n 
     width: 100%;
     height: 100%;
   }
-`;var p=function(c,e,l,r){var h=arguments.length,i=h<3?e:r===null?r=Object.getOwnPropertyDescriptor(e,l):r,C;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")i=Reflect.decorate(c,e,l,r);else for(var d=c.length-1;d>=0;d--)(C=c[d])&&(i=(h<3?C(i):h>3?C(e,l,i):C(e,l))||i);return h>3&&i&&Object.defineProperty(e,l,i),i};const W={browser:Z,dao:V,defi:b,defiAlt:m,eth:E,layers:H,lock:_,login:D,network:A,nft:j,noun:z,profile:U,system:T,coinbase:L,meld:S,onrampCard:$,moonpay:P,stripe:R,paypal:O,google:B,pencil:G,lightbulb:F,solana:q,bitcoin:y};let f=class extends u{constructor(){super(...arguments),this.name="browser",this.size="md"}render(){return this.style.cssText=`
+`
+var p = function (c, e, l, r) {
+  var h = arguments.length,
+    i = h < 3 ? e : r === null ? (r = Object.getOwnPropertyDescriptor(e, l)) : r,
+    C
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    i = Reflect.decorate(c, e, l, r)
+  else
+    for (var d = c.length - 1; d >= 0; d--)
+      (C = c[d]) && (i = (h < 3 ? C(i) : h > 3 ? C(e, l, i) : C(e, l)) || i)
+  return h > 3 && i && Object.defineProperty(e, l, i), i
+}
+const W = {
+  browser: Z,
+  dao: V,
+  defi: b,
+  defiAlt: m,
+  eth: E,
+  layers: H,
+  lock: _,
+  login: D,
+  network: A,
+  nft: j,
+  noun: z,
+  profile: U,
+  system: T,
+  coinbase: L,
+  meld: S,
+  onrampCard: $,
+  moonpay: P,
+  stripe: R,
+  paypal: O,
+  google: B,
+  pencil: G,
+  lightbulb: F,
+  solana: q,
+  bitcoin: y
+}
+let f = class extends u {
+  constructor() {
+    super(...arguments), (this.name = 'browser'), (this.size = 'md')
+  }
+  render() {
+    return (
+      (this.style.cssText = `
        --local-size: var(--wui-visual-size-${this.size});
-   `,n`${W[this.name]}`}};f.styles=[g,I];p([o()],f.prototype,"name",void 0);p([o()],f.prototype,"size",void 0);f=p([k("wui-visual")],f);
+   `),
+      n`${W[this.name]}`
+    )
+  }
+}
+f.styles = [g, I]
+p([o()], f.prototype, 'name', void 0)
+p([o()], f.prototype, 'size', void 0)
+f = p([k('wui-visual')], f)

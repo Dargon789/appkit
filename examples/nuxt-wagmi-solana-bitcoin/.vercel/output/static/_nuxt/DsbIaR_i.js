@@ -1,4 +1,8 @@
-import{N as d,X as f,O as p,Q as g}from"./cxC4FtgZ.js";import{n as c,c as u}from"./D1u8rsYX.js";const x=d`
+import { n as c, c as u } from './D1u8rsYX.js'
+import { N as d, X as f, Q as g, O as p } from './cxC4FtgZ.js'
+
+import { n as c, c as u } from './D1u8rsYX.js'
+const x = d`
   :host {
     display: flex;
   }
@@ -66,6 +70,33 @@ import{N as d,X as f,O as p,Q as g}from"./cxC4FtgZ.js";import{n as c,c as u}from
       stroke-dashoffset: -125;
     }
   }
-`;var l=function(i,t,s,r){var a=arguments.length,e=a<3?t:r===null?r=Object.getOwnPropertyDescriptor(t,s):r,n;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")e=Reflect.decorate(i,t,s,r);else for(var h=i.length-1;h>=0;h--)(n=i[h])&&(e=(a<3?n(e):a>3?n(t,s,e):n(t,s))||e);return a>3&&e&&Object.defineProperty(t,s,e),e};let o=class extends p{constructor(){super(...arguments),this.color="accent-100",this.size="lg"}render(){return this.style.cssText=`--local-color: ${this.color==="inherit"?"inherit":`var(--wui-color-${this.color})`}`,this.dataset.size=this.size,g`<svg viewBox="25 25 50 50">
+`
+var l = function (i, t, s, r) {
+  var a = arguments.length,
+    e = a < 3 ? t : r === null ? (r = Object.getOwnPropertyDescriptor(t, s)) : r,
+    n
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    e = Reflect.decorate(i, t, s, r)
+  else
+    for (var h = i.length - 1; h >= 0; h--)
+      (n = i[h]) && (e = (a < 3 ? n(e) : a > 3 ? n(t, s, e) : n(t, s)) || e)
+  return a > 3 && e && Object.defineProperty(t, s, e), e
+}
+let o = class extends p {
+  constructor() {
+    super(...arguments), (this.color = 'accent-100'), (this.size = 'lg')
+  }
+  render() {
+    return (
+      (this.style.cssText = `--local-color: ${this.color === 'inherit' ? 'inherit' : `var(--wui-color-${this.color})`}`),
+      (this.dataset.size = this.size),
+      g`<svg viewBox="25 25 50 50">
       <circle r="20" cy="50" cx="50"></circle>
-    </svg>`}};o.styles=[f,x];l([c()],o.prototype,"color",void 0);l([c()],o.prototype,"size",void 0);o=l([u("wui-loading-spinner")],o);
+    </svg>`
+    )
+  }
+}
+o.styles = [f, x]
+l([c()], o.prototype, 'color', void 0)
+l([c()], o.prototype, 'size', void 0)
+o = l([u('wui-loading-spinner')], o)

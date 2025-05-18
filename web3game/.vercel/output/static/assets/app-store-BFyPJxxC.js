@@ -1,4 +1,6 @@
-import{F as a}from"./index-DVkBgnkX.js";const e=a`
+import { F as a } from './index-DVkBgnkX.js'
+
+const e = a`
 <svg width="36" height="36">
   <path
     d="M28.724 0H7.271A7.269 7.269 0 0 0 0 7.272v21.46A7.268 7.268 0 0 0 7.271 36H28.73A7.272 7.272 0 0 0 36 28.728V7.272A7.275 7.275 0 0 0 28.724 0Z"
@@ -14,4 +16,5 @@ import{F as a}from"./index-DVkBgnkX.js";const e=a`
       <stop offset="1" stop-color="#2072F3" />
     </linearGradient>
   </defs>
-</svg>`;export{e as appStoreSvg};
+</svg>`
+export { e as appStoreSvg }
