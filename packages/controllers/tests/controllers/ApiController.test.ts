@@ -464,13 +464,15 @@ describe('ApiController', () => {
         caipNetworkId: '12341',
         id: 12341,
         name: 'MetaMask',
-        image_id: '12341'
+        image_id: '12341',
+        chains: ['eip155:42']
       },
       {
         caipNetworkId: '12342',
         id: 12342,
         name: 'RandomWallet',
-        image_id: '12342'
+        image_id: '12342',
+        chains: ['eip155:1', 'eip155:4']
       }
     ]
     OptionsController.setIncludeWalletIds(includeWalletIds)
@@ -479,9 +481,7 @@ describe('ApiController', () => {
 
     const fetchSpy = vi.spyOn(api, 'get').mockResolvedValue({ data, count: data.length })
     const fetchImageSpy = vi.spyOn(ApiController, '_fetchWalletImage').mockResolvedValue()
-
     await ApiController.fetchWalletsByPage({ page: 1 })
-
     expect(fetchSpy).toHaveBeenCalledWith({
       path: '/getWallets',
       params: {
@@ -535,7 +535,6 @@ describe('ApiController', () => {
         ...ApiController._getSdkProperties(),
         page: '1',
         badge_type: undefined,
-        chains: 'eip155:1,eip155:4,eip155:42',
         entries: String(excludeWalletIds.length),
         include: excludeWalletIds.join(','),
         exclude: ''
@@ -918,5 +917,23 @@ describe('ApiController', () => {
 
     await ApiController.fetchWallets({ page: 1, entries: 10 })
     expect(filterSpy).toHaveBeenCalledWith(mockResponse.data)
+  })
+
+  it('should not pass chains parameter when calling fetchWallets in initializeExcludedWallets', async () => {
+    const mockWallets = [
+      { id: '1', name: 'Wallet1', rdns: 'rdns1' },
+      { id: '2', name: 'Wallet2', rdns: 'rdns2' }
+    ] as WcWallet[]
+
+    const fetchWalletsSpy = vi.spyOn(ApiController, 'fetchWallets')
+    vi.spyOn(api, 'get').mockResolvedValueOnce({ data: mockWallets, count: mockWallets.length })
+
+    await ApiController.initializeExcludedWallets({ ids: ['1', '2'] })
+
+    expect(fetchWalletsSpy).toHaveBeenCalledWith({
+      page: 1,
+      entries: 2,
+      include: ['1', '2']
+    })
   })
 })
