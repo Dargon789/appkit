@@ -1,7 +1,13 @@
 import type UniversalProvider from '@walletconnect/universal-provider'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { AdapterNetworkState, AuthConnector, Connector, SocialProvider } from '@reown/appkit'
+import type {
+  AdapterNetworkState,
+  AuthConnector,
+  Connector,
+  SIWXConfig,
+  SocialProvider
+} from '@reown/appkit'
 import {
   type Balance,
   type CaipNetwork,
@@ -33,6 +39,7 @@ import { CaipNetworksUtil } from '@reown/appkit-utils'
 import { ProviderUtil } from '@reown/appkit-utils'
 
 import { AppKit } from '../../src/client/appkit.js'
+import { mockUser, mockUserBalance } from '../mocks/Account.js'
 import { mockEvmAdapter, mockSolanaAdapter, mockUniversalAdapter } from '../mocks/Adapter.js'
 import { base, mainnet, polygon, sepolia, solana } from '../mocks/Networks.js'
 import { mockOptions } from '../mocks/Options.js'
@@ -48,6 +55,7 @@ describe('Base Public methods', () => {
     mockWindowAndDocument()
     mockStorageUtil()
     mockBlockchainApiController()
+    vi.spyOn(ApiController, 'fetchAllowedOrigins').mockResolvedValue(['http://localhost:3000'])
   })
 
   it('should open modal', async () => {
@@ -1079,9 +1087,13 @@ describe('Base Public methods', () => {
   })
 
   it('should get account information', () => {
-    vi.spyOn(ConnectorController, 'getAuthConnector').mockReturnValue({
-      id: 'auth-connector'
-    } as unknown as AuthConnector)
+    const authConnector = {
+      id: 'ID_AUTH',
+      name: 'ID Auth',
+      imageUrl: 'https://example.com/id-auth.png'
+    } as AuthConnector
+    vi.spyOn(ConnectorController, 'getAuthConnector').mockReturnValue(authConnector)
+    vi.spyOn(StorageUtil, 'getConnectedConnectorId').mockReturnValue('ID_AUTH')
     vi.spyOn(StorageUtil, 'getConnectedSocialUsername').mockReturnValue('test-username')
     vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
       allAccounts: [{ address: '0x123', type: 'eoa', namespace: 'eip155' }],
@@ -1179,5 +1191,28 @@ describe('Base Public methods', () => {
 
     expect(showUnsupportedChainUI).not.toHaveBeenCalled()
     expect(setActiveCaipNetwork).toHaveBeenCalledWith(mainnet)
+  })
+
+  it.each([undefined, {} as SIWXConfig])('should set and get SIWX correctly', siwx => {
+    const setSIWXSpy = vi.spyOn(OptionsController, 'setSIWX')
+
+    const appKit = new AppKit({ ...mockOptions, siwx })
+    expect(setSIWXSpy).toHaveBeenCalledWith(siwx)
+
+    vi.spyOn(OptionsController, 'state', 'get').mockReturnValueOnce({ siwx } as any)
+    expect(appKit.getSIWX()).toEqual(siwx)
+  })
+
+  it('should fetch balance when address, namespace, and chainId are available', async () => {
+    const appKit = new AppKit(mockOptions)
+
+    const updateNativeBalanceSpy = vi
+      .spyOn(appKit, 'updateNativeBalance')
+      .mockResolvedValue(mockUserBalance)
+
+    const result = await appKit.updateNativeBalance(mockUser.address, 1, 'eip155')
+
+    expect(updateNativeBalanceSpy).toHaveBeenCalledWith(mockUser.address, 1, 'eip155')
+    expect(result).toEqual(mockUserBalance)
   })
 })
