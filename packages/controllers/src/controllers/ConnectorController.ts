@@ -31,8 +31,7 @@ const defaultActiveConnectors = {
   eip155: undefined,
   solana: undefined,
   polkadot: undefined,
-  bip122: undefined,
-  cosmos: undefined
+  bip122: undefined
 }
 
 // -- State --------------------------------------------- //
@@ -46,8 +45,7 @@ const state = proxy<ConnectorControllerState>({
     eip155: true,
     solana: true,
     polkadot: true,
-    bip122: true,
-    cosmos: true
+    bip122: true
   }
 })
 

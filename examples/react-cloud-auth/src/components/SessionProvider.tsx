@@ -13,7 +13,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [value, setValue] = useState<SessionContextType>(undefined)
 
   useEffect(() => {
-    if (!siwx) return
+    if (!siwx) {
 
     const unsubscribe = siwx.on('sessionChanged', session => {
       setValue(session)
