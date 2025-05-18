@@ -49,7 +49,7 @@ jobs:
           cache: 'pnpm'
 
       - name: install
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install
 
       # Cache Turborepo's build outputs (.turbo directory).
       # This speeds up the 'pnpm build' step significantly if inputs haven't changed.
@@ -66,7 +66,6 @@ jobs:
           key: ${{ runner.os }}-turbo-build-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-turbo-build-
-
       - name: build
         run: pnpm build
         env:
@@ -239,7 +238,7 @@ jobs:
         uses: davelosert/vitest-coverage-report-action@v2
 
   ui-test:
-    if: github.event.pull_request.draft == false
+    if: github.event.pull_request.draft == false && github.event_name != 'push'
     uses: ./.github/workflows/ui_tests.yml
     secrets: inherit
     permissions:
@@ -247,5 +246,3 @@ jobs:
       pull-requests: write
     with:
       branch: ${{ github.ref }}
-      build-and-cache-only: ${{ github.event_name == 'push' }}
-      matrix_config: '{"shard":[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "shardTotal":[10]}'
