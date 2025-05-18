@@ -9,15 +9,9 @@
   "dependencies": {
     "@reown/appkit": "workspace:*",
     "@reown/appkit-adapter-solana": "workspace:*",
-<<<<<<< HEAD
     "@tanstack/react-query": "5.24.8",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-=======
-    "@tanstack/react-query": "5.75.5",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
->>>>>>> ed640e5d2e53c62a94039d8b0ce90e56d2e905b4
     "vite": "5.4.19",
     "@solana/wallet-adapter-backpack": "0.1.14",
     "@solana/wallet-adapter-wallets": "0.19.36"
