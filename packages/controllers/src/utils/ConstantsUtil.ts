@@ -212,8 +212,7 @@ export const ConstantsUtil = {
     eip155: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
     solana: 'So11111111111111111111111111111111111111111',
     polkadot: '0x',
-    bip122: '0x',
-    cosmos: '0x'
+    bip122: '0x'
   } as const satisfies Record<ChainNamespace, string>,
 
   CONVERT_SLIPPAGE_TOLERANCE: 1,
