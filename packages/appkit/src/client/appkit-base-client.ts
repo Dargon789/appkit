@@ -1022,16 +1022,10 @@ export abstract class AppKitBaseClient {
       } else {
         this.setCaipNetwork(network)
       }
-    } else if (!isActiveNamespace) {
-      /**
-       * If the incoming sync is not for the active namespace,
-       * set the network specifically for that namespace using networkOfChain
-       * (which was derived from the incoming params.chainId)
-       */
-      if (networkOfChain) {
-        this.setCaipNetworkOfNamespace(networkOfChain, chainNamespace)
-      }
-    }
+    } else if (!isActiveNamespace && networkOfChain) {
+                 this.setCaipNetworkOfNamespace(networkOfChain, chainNamespace)
+           }
+
   }
 
   // Refactored syncAccount method
