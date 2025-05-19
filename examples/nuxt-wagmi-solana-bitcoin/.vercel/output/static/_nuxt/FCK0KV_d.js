@@ -1,4 +1,33 @@
-import{ah as _,ak as O,al as R,N as d,X as y,O as h,Q as l,a9 as c,a6 as j}from"./cxC4FtgZ.js";import{n as v,c as p,o as P,r as T}from"./D1u8rsYX.js";import{e as U,n as L}from"./DFaAtWOZ.js";const u=_({isLegalCheckboxChecked:!1}),g={state:u,subscribe(i){return R(u,()=>i(u))},subscribeKey(i,e){return O(u,i,e)},setIsLegalCheckboxChecked(i){u.isLegalCheckboxChecked=i}},E=d`
+import { o as P, r as T, c as p, n as v } from './D1u8rsYX.js'
+import { n as L, e as U } from './DFaAtWOZ.js'
+import {
+  ak as O,
+  al as R,
+  ah as _,
+  a9 as c,
+  N as d,
+  O as h,
+  a6 as j,
+  Q as l,
+  X as y
+} from './cxC4FtgZ.js'
+
+import { n as v, c as p, o as P, r as T } from './D1u8rsYX.js'
+import { e as U, n as L } from './DFaAtWOZ.js'
+const u = _({ isLegalCheckboxChecked: !1 }),
+  g = {
+    state: u,
+    subscribe(i) {
+      return R(u, () => i(u))
+    },
+    subscribeKey(i, e) {
+      return O(u, i, e)
+    },
+    setIsLegalCheckboxChecked(i) {
+      u.isLegalCheckboxChecked = i
+    }
+  },
+  E = d`
   label {
     display: flex;
     align-items: center;
@@ -52,7 +81,24 @@ import{ah as _,ak as O,al as R,N as d,X as y,O as h,Q as l,a9 as c,a6 as j}from"
   label > input[type='checkbox']:checked + span wui-icon {
     opacity: 1;
   }
-`;var k=function(i,e,r,n){var o=arguments.length,t=o<3?e:n===null?n=Object.getOwnPropertyDescriptor(e,r):n,s;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")t=Reflect.decorate(i,e,r,n);else for(var a=i.length-1;a>=0;a--)(s=i[a])&&(t=(o<3?s(t):o>3?s(e,r,t):s(e,r))||t);return o>3&&t&&Object.defineProperty(e,r,t),t};let f=class extends h{constructor(){super(...arguments),this.inputElementRef=U(),this.checked=void 0}render(){return l`
+`
+var k = function (i, e, r, n) {
+  var o = arguments.length,
+    t = o < 3 ? e : n === null ? (n = Object.getOwnPropertyDescriptor(e, r)) : n,
+    s
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    t = Reflect.decorate(i, e, r, n)
+  else
+    for (var a = i.length - 1; a >= 0; a--)
+      (s = i[a]) && (t = (o < 3 ? s(t) : o > 3 ? s(e, r, t) : s(e, r)) || t)
+  return o > 3 && t && Object.defineProperty(e, r, t), t
+}
+let f = class extends h {
+  constructor() {
+    super(...arguments), (this.inputElementRef = U()), (this.checked = void 0)
+  }
+  render() {
+    return l`
       <label>
         <input
           ${L(this.inputElementRef)}
@@ -65,7 +111,23 @@ import{ah as _,ak as O,al as R,N as d,X as y,O as h,Q as l,a9 as c,a6 as j}from"
         </span>
         <slot></slot>
       </label>
-    `}dispatchChangeEvent(){var e;this.dispatchEvent(new CustomEvent("checkboxChange",{detail:(e=this.inputElementRef.value)==null?void 0:e.checked,bubbles:!0,composed:!0}))}};f.styles=[y,E];k([v({type:Boolean})],f.prototype,"checked",void 0);f=k([p("wui-checkbox")],f);const W=d`
+    `
+  }
+  dispatchChangeEvent() {
+    var e
+    this.dispatchEvent(
+      new CustomEvent('checkboxChange', {
+        detail: (e = this.inputElementRef.value) == null ? void 0 : e.checked,
+        bubbles: !0,
+        composed: !0
+      })
+    )
+  }
+}
+f.styles = [y, E]
+k([v({ type: Boolean })], f.prototype, 'checked', void 0)
+f = k([p('wui-checkbox')], f)
+const W = d`
   :host {
     display: flex;
     align-items: center;
@@ -79,7 +141,39 @@ import{ah as _,ak as O,al as R,N as d,X as y,O as h,Q as l,a9 as c,a6 as j}from"
     color: var(--wui-color-fg-150);
     font-weight: 500;
   }
-`;var C=function(i,e,r,n){var o=arguments.length,t=o<3?e:n===null?n=Object.getOwnPropertyDescriptor(e,r):n,s;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")t=Reflect.decorate(i,e,r,n);else for(var a=i.length-1;a>=0;a--)(s=i[a])&&(t=(o<3?s(t):o>3?s(e,r,t):s(e,r))||t);return o>3&&t&&Object.defineProperty(e,r,t),t};let b=class extends h{constructor(){super(),this.unsubscribe=[],this.checked=g.state.isLegalCheckboxChecked,this.unsubscribe.push(g.subscribeKey("isLegalCheckboxChecked",e=>{this.checked=e}))}disconnectedCallback(){this.unsubscribe.forEach(e=>e())}render(){var o;const{termsConditionsUrl:e,privacyPolicyUrl:r}=c.state,n=(o=c.state.features)==null?void 0:o.legalCheckbox;return!e&&!r||!n?null:l`
+`
+var C = function (i, e, r, n) {
+  var o = arguments.length,
+    t = o < 3 ? e : n === null ? (n = Object.getOwnPropertyDescriptor(e, r)) : n,
+    s
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    t = Reflect.decorate(i, e, r, n)
+  else
+    for (var a = i.length - 1; a >= 0; a--)
+      (s = i[a]) && (t = (o < 3 ? s(t) : o > 3 ? s(e, r, t) : s(e, r)) || t)
+  return o > 3 && t && Object.defineProperty(e, r, t), t
+}
+let b = class extends h {
+  constructor() {
+    super(),
+      (this.unsubscribe = []),
+      (this.checked = g.state.isLegalCheckboxChecked),
+      this.unsubscribe.push(
+        g.subscribeKey('isLegalCheckboxChecked', e => {
+          this.checked = e
+        })
+      )
+  }
+  disconnectedCallback() {
+    this.unsubscribe.forEach(e => e())
+  }
+  render() {
+    var o
+    const { termsConditionsUrl: e, privacyPolicyUrl: r } = c.state,
+      n = (o = c.state.features) == null ? void 0 : o.legalCheckbox
+    return (!e && !r) || !n
+      ? null
+      : l`
       <wui-checkbox
         ?checked=${this.checked}
         @checkboxChange=${this.onCheckboxChange.bind(this)}
@@ -89,21 +183,61 @@ import{ah as _,ak as O,al as R,N as d,X as y,O as h,Q as l,a9 as c,a6 as j}from"
           I agree to our ${this.termsTemplate()} ${this.andTemplate()} ${this.privacyTemplate()}
         </wui-text>
       </wui-checkbox>
-    `}andTemplate(){const{termsConditionsUrl:e,privacyPolicyUrl:r}=c.state;return e&&r?"and":""}termsTemplate(){const{termsConditionsUrl:e}=c.state;return e?l`<a rel="noreferrer" target="_blank" href=${e}>terms of service</a>`:null}privacyTemplate(){const{privacyPolicyUrl:e}=c.state;return e?l`<a rel="noreferrer" target="_blank" href=${e}>privacy policy</a>`:null}onCheckboxChange(){g.setIsLegalCheckboxChecked(!this.checked)}};b.styles=[W];C([T()],b.prototype,"checked",void 0);b=C([p("w3m-legal-checkbox")],b);const B=d`
+    `
+  }
+  andTemplate() {
+    const { termsConditionsUrl: e, privacyPolicyUrl: r } = c.state
+    return e && r ? 'and' : ''
+  }
+  termsTemplate() {
+    const { termsConditionsUrl: e } = c.state
+    return e ? l`<a rel="noreferrer" target="_blank" href=${e}>terms of service</a>` : null
+  }
+  privacyTemplate() {
+    const { privacyPolicyUrl: e } = c.state
+    return e ? l`<a rel="noreferrer" target="_blank" href=${e}>privacy policy</a>` : null
+  }
+  onCheckboxChange() {
+    g.setIsLegalCheckboxChecked(!this.checked)
+  }
+}
+b.styles = [W]
+C([T()], b.prototype, 'checked', void 0)
+b = C([p('w3m-legal-checkbox')], b)
+const B = d`
   .reown-logo {
     height: var(--wui-spacing-xxl);
   }
-`;var z=function(i,e,r,n){var o=arguments.length,t=o<3?e:n===null?n=Object.getOwnPropertyDescriptor(e,r):n,s;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")t=Reflect.decorate(i,e,r,n);else for(var a=i.length-1;a>=0;a--)(s=i[a])&&(t=(o<3?s(t):o>3?s(e,r,t):s(e,r))||t);return o>3&&t&&Object.defineProperty(e,r,t),t};let x=class extends h{render(){return l`
+`
+var z = function (i, e, r, n) {
+  var o = arguments.length,
+    t = o < 3 ? e : n === null ? (n = Object.getOwnPropertyDescriptor(e, r)) : n,
+    s
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    t = Reflect.decorate(i, e, r, n)
+  else
+    for (var a = i.length - 1; a >= 0; a--)
+      (s = i[a]) && (t = (o < 3 ? s(t) : o > 3 ? s(e, r, t) : s(e, r)) || t)
+  return o > 3 && t && Object.defineProperty(e, r, t), t
+}
+let x = class extends h {
+  render() {
+    return l`
       <wui-flex
         justifyContent="center"
         alignItems="center"
         gap="xs"
-        .padding=${["0","0","l","0"]}
+        .padding=${['0', '0', 'l', '0']}
       >
         <wui-text variant="small-500" color="fg-100"> UX by </wui-text>
         <wui-icon name="reown" size="xxxl" class="reown-logo"></wui-icon>
       </wui-flex>
-    `}};x.styles=[y,j,B];x=z([p("wui-ux-by-reown")],x);const D=d`
+    `
+  }
+}
+x.styles = [y, j, B]
+x = z([p('wui-ux-by-reown')], x)
+const D = d`
   :host > wui-flex {
     background-color: var(--wui-color-gray-glass-005);
     margin-top: var(--wui-spacing-s);
@@ -114,9 +248,28 @@ import{ah as _,ak as O,al as R,N as d,X as y,O as h,Q as l,a9 as c,a6 as j}from"
     color: var(--wui-color-fg-175);
     font-weight: 500;
   }
-`;var S=function(i,e,r,n){var o=arguments.length,t=o<3?e:n===null?n=Object.getOwnPropertyDescriptor(e,r):n,s;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")t=Reflect.decorate(i,e,r,n);else for(var a=i.length-1;a>=0;a--)(s=i[a])&&(t=(o<3?s(t):o>3?s(e,r,t):s(e,r))||t);return o>3&&t&&Object.defineProperty(e,r,t),t};let m=class extends h{render(){var o;const{termsConditionsUrl:e,privacyPolicyUrl:r}=c.state,n=(o=c.state.features)==null?void 0:o.legalCheckbox;return!e&&!r||n?null:l`
+`
+var S = function (i, e, r, n) {
+  var o = arguments.length,
+    t = o < 3 ? e : n === null ? (n = Object.getOwnPropertyDescriptor(e, r)) : n,
+    s
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    t = Reflect.decorate(i, e, r, n)
+  else
+    for (var a = i.length - 1; a >= 0; a--)
+      (s = i[a]) && (t = (o < 3 ? s(t) : o > 3 ? s(e, r, t) : s(e, r)) || t)
+  return o > 3 && t && Object.defineProperty(e, r, t), t
+}
+let m = class extends h {
+  render() {
+    var o
+    const { termsConditionsUrl: e, privacyPolicyUrl: r } = c.state,
+      n = (o = c.state.features) == null ? void 0 : o.legalCheckbox
+    return (!e && !r) || n
+      ? null
+      : l`
       <wui-flex flexDirection="column">
-        <wui-flex .padding=${["m","s","s","s"]} justifyContent="center">
+        <wui-flex .padding=${['m', 's', 's', 's']} justifyContent="center">
           <wui-text color="fg-250" variant="small-400" align="center">
             By connecting your wallet, you agree to our <br />
             ${this.termsTemplate()} ${this.andTemplate()} ${this.privacyTemplate()}
@@ -124,7 +277,24 @@ import{ah as _,ak as O,al as R,N as d,X as y,O as h,Q as l,a9 as c,a6 as j}from"
         </wui-flex>
         <wui-ux-by-reown></wui-ux-by-reown>
       </wui-flex>
-    `}andTemplate(){const{termsConditionsUrl:e,privacyPolicyUrl:r}=c.state;return e&&r?"and":""}termsTemplate(){const{termsConditionsUrl:e}=c.state;return e?l`<a href=${e}>Terms of Service</a>`:null}privacyTemplate(){const{privacyPolicyUrl:e}=c.state;return e?l`<a href=${e}>Privacy Policy</a>`:null}};m.styles=[D];m=S([p("w3m-legal-footer")],m);const I=d`
+    `
+  }
+  andTemplate() {
+    const { termsConditionsUrl: e, privacyPolicyUrl: r } = c.state
+    return e && r ? 'and' : ''
+  }
+  termsTemplate() {
+    const { termsConditionsUrl: e } = c.state
+    return e ? l`<a href=${e}>Terms of Service</a>` : null
+  }
+  privacyTemplate() {
+    const { privacyPolicyUrl: e } = c.state
+    return e ? l`<a href=${e}>Privacy Policy</a>` : null
+  }
+}
+m.styles = [D]
+m = S([p('w3m-legal-footer')], m)
+const I = d`
   :host {
     display: block;
     width: var(--wui-box-size-md);
@@ -149,7 +319,32 @@ import{ah as _,ak as O,al as R,N as d,X as y,O as h,Q as l,a9 as c,a6 as j}from"
       stroke-dashoffset: 0px;
     }
   }
-`;var $=function(i,e,r,n){var o=arguments.length,t=o<3?e:n===null?n=Object.getOwnPropertyDescriptor(e,r):n,s;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")t=Reflect.decorate(i,e,r,n);else for(var a=i.length-1;a>=0;a--)(s=i[a])&&(t=(o<3?s(t):o>3?s(e,r,t):s(e,r))||t);return o>3&&t&&Object.defineProperty(e,r,t),t};let w=class extends h{constructor(){super(...arguments),this.radius=36}render(){return this.svgLoaderTemplate()}svgLoaderTemplate(){const e=this.radius>50?50:this.radius,n=36-e,o=116+n,t=245+n,s=360+n*1.75;return l`
+`
+var $ = function (i, e, r, n) {
+  var o = arguments.length,
+    t = o < 3 ? e : n === null ? (n = Object.getOwnPropertyDescriptor(e, r)) : n,
+    s
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    t = Reflect.decorate(i, e, r, n)
+  else
+    for (var a = i.length - 1; a >= 0; a--)
+      (s = i[a]) && (t = (o < 3 ? s(t) : o > 3 ? s(e, r, t) : s(e, r)) || t)
+  return o > 3 && t && Object.defineProperty(e, r, t), t
+}
+let w = class extends h {
+  constructor() {
+    super(...arguments), (this.radius = 36)
+  }
+  render() {
+    return this.svgLoaderTemplate()
+  }
+  svgLoaderTemplate() {
+    const e = this.radius > 50 ? 50 : this.radius,
+      n = 36 - e,
+      o = 116 + n,
+      t = 245 + n,
+      s = 360 + n * 1.75
+    return l`
       <svg viewBox="0 0 110 110" width="110" height="110">
         <rect
           x="2"
@@ -161,4 +356,10 @@ import{ah as _,ak as O,al as R,N as d,X as y,O as h,Q as l,a9 as c,a6 as j}from"
           stroke-dashoffset=${s}
         />
       </svg>
-    `}};w.styles=[y,I];$([v({type:Number})],w.prototype,"radius",void 0);w=$([p("wui-loading-thumbnail")],w);export{g as O};
+    `
+  }
+}
+w.styles = [y, I]
+$([v({ type: Number })], w.prototype, 'radius', void 0)
+w = $([p('wui-loading-thumbnail')], w)
+export { g as O }

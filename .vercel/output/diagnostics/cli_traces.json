@@ -1,1 +1,29 @@
-[{"name":"vc.builder","duration":66343067,"timestamp":62340827901,"id":"a90a6800-74d7-47b3-823d-b4dfec880565","parentId":"9cdaf023-dcfc-4ba5-8f41-68f7de6bde9d","tags":{"name":"@vercel/static-build"},"startTime":1745387700796},{"name":"vc.builder.diagnostics","duration":453,"timestamp":62407173187,"id":"c3192d46-3368-4068-80c2-6f5d0ae1289a","parentId":"a90a6800-74d7-47b3-823d-b4dfec880565","tags":{},"startTime":1745387767142},{"name":"vc.doBuild","duration":69567381,"timestamp":62337621478,"id":"9cdaf023-dcfc-4ba5-8f41-68f7de6bde9d","parentId":"5091315d-163c-4673-aee3-ac0e71d386f3","tags":{},"startTime":1745387697590}]
+[
+  {
+    "name": "vc.builder",
+    "duration": 66343067,
+    "timestamp": 62340827901,
+    "id": "a90a6800-74d7-47b3-823d-b4dfec880565",
+    "parentId": "9cdaf023-dcfc-4ba5-8f41-68f7de6bde9d",
+    "tags": { "name": "@vercel/static-build" },
+    "startTime": 1745387700796
+  },
+  {
+    "name": "vc.builder.diagnostics",
+    "duration": 453,
+    "timestamp": 62407173187,
+    "id": "c3192d46-3368-4068-80c2-6f5d0ae1289a",
+    "parentId": "a90a6800-74d7-47b3-823d-b4dfec880565",
+    "tags": {},
+    "startTime": 1745387767142
+  },
+  {
+    "name": "vc.doBuild",
+    "duration": 69567381,
+    "timestamp": 62337621478,
+    "id": "9cdaf023-dcfc-4ba5-8f41-68f7de6bde9d",
+    "parentId": "5091315d-163c-4673-aee3-ac0e71d386f3",
+    "tags": {},
+    "startTime": 1745387697590
+  }
+]
