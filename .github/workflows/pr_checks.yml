@@ -42,7 +42,7 @@ jobs:
           cache: 'pnpm'
 
       - name: install
-        run: pnpm install
+        run: pnpm install -r --workspace express
 
       - name: build
         run: pnpm build
