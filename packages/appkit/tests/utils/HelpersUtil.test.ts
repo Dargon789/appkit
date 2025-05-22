@@ -459,7 +459,7 @@ describe('WcHelpersUtil', () => {
   })
 
   describe('isOriginAllowed', () => {
-    const defaultOrigins = ['https://default.com', 'https://*.safe.org']
+    const defaultOrigins = ['https://default.com', 'https://*.safe\\.org']
     const allowedPatterns = [
       'https://explicit.com',
       'http://localhost:*',

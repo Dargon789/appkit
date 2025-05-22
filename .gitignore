@@ -20,3 +20,5 @@ tsconfig.tsbuildinfo
 .coverage
 .cursor
 .envrc*
+file.txt
+.env*.local
