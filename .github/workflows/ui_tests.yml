@@ -1,5 +1,4 @@
 name: UI Tests
-
 on:
   workflow_call:
     inputs:
