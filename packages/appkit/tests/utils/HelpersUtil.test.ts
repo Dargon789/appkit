@@ -538,7 +538,7 @@ describe('WcHelpersUtil', () => {
 
     test('should handle origins and patterns with dots correctly', () => {
       const patternsWithDots = ['https://test\\.example\\.com']
-      const defaultWithDots = ['https://*.another.test.org']
+      const defaultWithDots = ['https://.*\\.another\\.test\\.org']
       expect(
         WcHelpersUtil.isOriginAllowed('https://test.example.com', patternsWithDots, defaultWithDots)
       ).toBe(true) // Exact match
