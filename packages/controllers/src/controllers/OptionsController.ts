@@ -9,9 +9,9 @@ import type { SIWXConfig } from '../utils/SIWXUtil.js'
 import type {
   ConnectMethod,
   CustomWallet,
-  DefaultAccountTypes,
   Features,
   Metadata,
+  PreferredAccountTypes,
   ProjectId,
   SdkVersion,
   SocialProvider,
@@ -125,6 +125,11 @@ export interface OptionsControllerStatePublic {
    */
   enableAuthLogger?: boolean
   /**
+   * Enable or disable Universal Links to open the wallets as default option instead of Deep Links.
+   * @default true
+   */
+  experimental_preferUniversalLinks?: boolean
+  /**
    * Enable or disable debug mode in your AppKit. This is useful if you want to see UI alerts when debugging.
    * @default true
    */
@@ -155,7 +160,7 @@ export interface OptionsControllerStatePublic {
    * Default account types for each namespace.
    * @default "{ bip122: 'payment', eip155: 'smartAccount', polkadot: 'eoa', solana: 'eoa' }"
    */
-  defaultAccountTypes: DefaultAccountTypes
+  defaultAccountTypes: PreferredAccountTypes
   /**
    * Allows users to indicate if they want to handle the WC connection themselves.
    * @default false
@@ -203,7 +208,8 @@ const state = proxy<OptionsControllerState & OptionsControllerStateInternal>({
   sdkType: 'appkit',
   sdkVersion: 'html-wagmi-undefined',
   defaultAccountTypes: ConstantsUtil.DEFAULT_ACCOUNT_TYPES,
-  enableNetworkSwitch: true
+  enableNetworkSwitch: true,
+  experimental_preferUniversalLinks: false
 })
 
 // -- Controller ---------------------------------------- //
@@ -317,6 +323,12 @@ export const OptionsController = {
 
   setEnableWallets(enableWallets: OptionsControllerState['enableWallets']) {
     state.enableWallets = enableWallets
+  },
+
+  setPreferUniversalLinks(
+    preferUniversalLinks: OptionsControllerState['experimental_preferUniversalLinks']
+  ) {
+    state.experimental_preferUniversalLinks = preferUniversalLinks
   },
 
   setHasMultipleAddresses(hasMultipleAddresses: OptionsControllerState['hasMultipleAddresses']) {

@@ -22,6 +22,7 @@ export const SIWXUtil = {
   getSIWX() {
     return OptionsController.state.siwx
   },
+
   async initializeIfEnabled() {
     const siwx = OptionsController.state.siwx
     const caipAddress = ChainController.getActiveCaipAddress()
@@ -93,11 +94,7 @@ export const SIWXUtil = {
       const connectorId = ConnectorController.getConnectorId(network.chainNamespace)
 
       if (connectorId === CommonConstantsUtil.CONNECTOR_ID.AUTH) {
-        RouterController.pushTransactionStack({
-          view: null,
-          goBack: false,
-          replace: true
-        })
+        RouterController.pushTransactionStack({})
       }
 
       const signature = await client.signMessage(message)
@@ -293,10 +290,12 @@ export const SIWXUtil = {
     return true
   },
   getSIWXEventProperties() {
+    const activeChainNamespace = ChainController.state.activeChain as ChainNamespace
+
     return {
       network: ChainController.state.activeCaipNetwork?.caipNetworkId || '',
       isSmartAccount:
-        AccountController.state.preferredAccountType ===
+        AccountController.state.preferredAccountTypes?.[activeChainNamespace] ===
         W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT
     }
   },

@@ -1,7 +1,14 @@
 import type UniversalProvider from '@walletconnect/universal-provider'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { AdapterNetworkState, AuthConnector, Connector, SocialProvider } from '@reown/appkit'
+import type {
+  AdapterNetworkState,
+  AuthConnector,
+  Connector,
+  ConnectorType,
+  SIWXConfig,
+  SocialProvider
+} from '@reown/appkit'
 import {
   type Balance,
   type CaipNetwork,
@@ -29,10 +36,11 @@ import {
   StorageUtil,
   ThemeController
 } from '@reown/appkit-controllers'
-import { CaipNetworksUtil } from '@reown/appkit-utils'
+import { CaipNetworksUtil, ConstantsUtil as UtilConstantsUtil } from '@reown/appkit-utils'
 import { ProviderUtil } from '@reown/appkit-utils'
 
 import { AppKit } from '../../src/client/appkit.js'
+import { mockUser, mockUserBalance } from '../mocks/Account.js'
 import { mockEvmAdapter, mockSolanaAdapter, mockUniversalAdapter } from '../mocks/Adapter.js'
 import { base, mainnet, polygon, sepolia, solana } from '../mocks/Networks.js'
 import { mockOptions } from '../mocks/Options.js'
@@ -48,6 +56,7 @@ describe('Base Public methods', () => {
     mockWindowAndDocument()
     mockStorageUtil()
     mockBlockchainApiController()
+    vi.spyOn(ApiController, 'fetchAllowedOrigins').mockResolvedValue(['http://localhost:3000'])
   })
 
   it('should open modal', async () => {
@@ -289,9 +298,9 @@ describe('Base Public methods', () => {
     const popTransactionStack = vi.spyOn(RouterController, 'popTransactionStack')
 
     const appKit = new AppKit(mockOptions)
-    appKit.popTransactionStack(true)
+    appKit.popTransactionStack('success')
 
-    expect(popTransactionStack).toHaveBeenCalledWith(true)
+    expect(popTransactionStack).toHaveBeenCalledWith('success')
   })
 
   it('should check if modal is open', async () => {
@@ -388,7 +397,7 @@ describe('Base Public methods', () => {
     const appKit = new AppKit(mockOptions)
     appKit.setPreferredAccountType('eoa', mainnet.chainNamespace)
 
-    expect(appKit.getPreferredAccountType()).toBe('eoa')
+    expect(appKit.getPreferredAccountType(mainnet.chainNamespace)).toBe('eoa')
   })
 
   it('should set CAIP address', () => {
@@ -819,12 +828,15 @@ describe('Base Public methods', () => {
     const setConnectedWalletInfo = vi.spyOn(AccountController, 'setConnectedWalletInfo')
     const getActiveNetworkProps = vi.spyOn(StorageUtil, 'getActiveNetworkProps')
     const fetchTokenBalance = vi.spyOn(AccountController, 'fetchTokenBalance')
+    vi.spyOn(ProviderUtil, 'getProviderId').mockReturnValue(
+      UtilConstantsUtil.CONNECTOR_TYPE_INJECTED as ConnectorType
+    )
     const mockConnector = {
       id: 'test-wallet',
       name: 'Test Wallet',
       imageUrl: 'test-wallet-icon'
     } as Connector
-    ConnectorController.state.connectors = [mockConnector]
+    vi.spyOn(ConnectorController, 'getConnectors').mockReturnValueOnce([mockConnector])
     vi.spyOn(ConnectorController, 'getConnectorId').mockReturnValueOnce(mockConnector.id)
     const mockAccountData = {
       address: '0x123',
@@ -847,7 +859,14 @@ describe('Base Public methods', () => {
     const appKit = new AppKit(mockOptions)
     await appKit['syncAccount'](mockAccountData)
 
-    expect(setConnectedWalletInfo).toHaveBeenCalledWith({ name: mockConnector.id }, 'eip155')
+    expect(setConnectedWalletInfo).toHaveBeenCalledWith(
+      {
+        name: mockConnector.name,
+        type: UtilConstantsUtil.CONNECTOR_TYPE_INJECTED as ConnectorType,
+        icon: mockConnector.imageUrl
+      },
+      'eip155'
+    )
   })
 
   it('should sync identity only if address changed', async () => {
@@ -1079,16 +1098,23 @@ describe('Base Public methods', () => {
   })
 
   it('should get account information', () => {
-    vi.spyOn(ConnectorController, 'getAuthConnector').mockReturnValue({
-      id: 'auth-connector'
-    } as unknown as AuthConnector)
+    const authConnector = {
+      id: 'ID_AUTH',
+      name: 'ID Auth',
+      imageUrl: 'https://example.com/id-auth.png'
+    } as AuthConnector
+    vi.spyOn(ConnectorController, 'getAuthConnector').mockReturnValue(authConnector)
+    vi.spyOn(StorageUtil, 'getConnectedConnectorId').mockReturnValue('ID_AUTH')
+    vi.spyOn(StorageUtil, 'getConnectedSocialUsername').mockReturnValue('test-username')
     vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
       allAccounts: [{ address: '0x123', type: 'eoa', namespace: 'eip155' }],
       caipAddress: 'eip155:1:0x123',
       status: 'connected',
       user: { email: 'test@example.com' },
       socialProvider: 'email' as SocialProvider,
-      preferredAccountType: 'eoa',
+      preferredAccountTypes: {
+        eip155: 'eoa'
+      },
       smartAccountDeployed: true,
       currentTab: 0,
       addressLabels: new Map([['eip155:1:0x123', 'test-label']])
@@ -1105,7 +1131,7 @@ describe('Base Public methods', () => {
       isConnected: true,
       status: 'connected',
       embeddedWalletInfo: {
-        user: { email: 'test@example.com' },
+        user: { email: 'test@example.com', username: 'test-username' },
         authProvider: 'email',
         accountType: 'eoa',
         isSmartAccountDeployed: true
@@ -1176,5 +1202,28 @@ describe('Base Public methods', () => {
 
     expect(showUnsupportedChainUI).not.toHaveBeenCalled()
     expect(setActiveCaipNetwork).toHaveBeenCalledWith(mainnet)
+  })
+
+  it.each([undefined, {} as SIWXConfig])('should set and get SIWX correctly', siwx => {
+    const setSIWXSpy = vi.spyOn(OptionsController, 'setSIWX')
+
+    const appKit = new AppKit({ ...mockOptions, siwx })
+    expect(setSIWXSpy).toHaveBeenCalledWith(siwx)
+
+    vi.spyOn(OptionsController, 'state', 'get').mockReturnValueOnce({ siwx } as any)
+    expect(appKit.getSIWX()).toEqual(siwx)
+  })
+
+  it('should fetch balance when address, namespace, and chainId are available', async () => {
+    const appKit = new AppKit(mockOptions)
+
+    const updateNativeBalanceSpy = vi
+      .spyOn(appKit, 'updateNativeBalance')
+      .mockResolvedValue(mockUserBalance)
+
+    const result = await appKit.updateNativeBalance(mockUser.address, 1, 'eip155')
+
+    expect(updateNativeBalanceSpy).toHaveBeenCalledWith(mockUser.address, 1, 'eip155')
+    expect(result).toEqual(mockUserBalance)
   })
 })

@@ -29,6 +29,9 @@ type ThemeVariablesOptions = AppKitOptions['themeVariables']
 declare module 'react' {
   namespace JSX {
     interface IntrinsicElements {
+      'appkit-modal': {
+        class?: string
+      }
       'appkit-button': Pick<
         AppKitButton,
         'size' | 'label' | 'loadingLabel' | 'disabled' | 'balance' | 'namespace'
@@ -141,16 +144,21 @@ export function useAppKitState() {
     throw new Error('Please call "createAppKit" before using "useAppKitState" hook')
   }
 
-  const [state, setState] = useState(modal.getState())
+  const [state, setState] = useState({ ...modal.getState(), initialized: false })
 
   useEffect(() => {
-    const unsubscribe = modal?.subscribeState(newState => {
-      setState({ ...newState })
-    })
+    if (modal) {
+      setState({ ...modal.getState() })
+      const unsubscribe = modal?.subscribeState(newState => {
+        setState({ ...newState })
+      })
 
-    return () => {
-      unsubscribe?.()
+      return () => {
+        unsubscribe?.()
+      }
     }
+
+    return () => null
   }, [])
 
   return state

@@ -9,12 +9,16 @@ import {
 } from '@reown/appkit-common'
 import { SafeLocalStorage } from '@reown/appkit-common'
 
-import type { ChainAdapter, NetworkControllerClient } from '../../exports/index.js'
+import {
+  AccountController,
+  type ChainAdapter,
+  ModalController,
+  type NetworkControllerClient
+} from '../../exports/index.js'
 import { ChainController } from '../../src/controllers/ChainController.js'
 import { type ConnectionControllerClient } from '../../src/controllers/ConnectionController.js'
 import { ConnectionController } from '../../src/controllers/ConnectionController.js'
 import { EventsController } from '../../src/controllers/EventsController.js'
-import { RouterController } from '../../src/controllers/RouterController.js'
 import { StorageUtil } from '../../src/utils/StorageUtil.js'
 
 // -- Setup --------------------------------------------------------------------
@@ -110,7 +114,8 @@ const connectionControllerClient: ConnectionControllerClient = {
   getCapabilities: async () => Promise.resolve(''),
   grantPermissions: async () => Promise.resolve(''),
   revokePermissions: async () => Promise.resolve('0x'),
-  walletGetAssets: async () => Promise.resolve({})
+  walletGetAssets: async () => Promise.resolve({}),
+  updateBalance: () => Promise.resolve()
 }
 
 const networkControllerClient: NetworkControllerClient = {
@@ -274,28 +279,26 @@ describe('ChainController', () => {
 
   it('should reset account as expected', () => {
     ChainController.resetAccount(chainNamespace)
-    expect(ChainController.getAccountProp('smartAccountDeployed', chainNamespace)).toEqual(false)
-    expect(ChainController.getAccountProp('currentTab', chainNamespace)).toEqual(0)
-    expect(ChainController.getAccountProp('caipAddress', chainNamespace)).toEqual(undefined)
-    expect(ChainController.getAccountProp('address', chainNamespace)).toEqual(undefined)
-    expect(ChainController.getAccountProp('balance', chainNamespace)).toEqual(undefined)
-    expect(ChainController.getAccountProp('balanceSymbol', chainNamespace)).toEqual(undefined)
-    expect(ChainController.getAccountProp('profileName', chainNamespace)).toEqual(undefined)
-    expect(ChainController.getAccountProp('profileImage', chainNamespace)).toEqual(undefined)
-    expect(ChainController.getAccountProp('addressExplorerUrl', chainNamespace)).toEqual(undefined)
-    expect(ChainController.getAccountProp('tokenBalance', chainNamespace)).toEqual([])
-    expect(ChainController.getAccountProp('connectedWalletInfo', chainNamespace)).toEqual(undefined)
-    expect(ChainController.getAccountProp('preferredAccountType', chainNamespace)).toEqual(
-      undefined
-    )
-    expect(ChainController.getAccountProp('status', chainNamespace)).toEqual('disconnected')
-    expect(ChainController.getAccountProp('socialProvider', chainNamespace)).toEqual(undefined)
-    expect(ChainController.getAccountProp('socialWindow', chainNamespace)).toEqual(undefined)
+    expect(AccountController.state.smartAccountDeployed).toEqual(false)
+    expect(AccountController.state.currentTab).toEqual(0)
+    expect(AccountController.state.caipAddress).toEqual(undefined)
+    expect(AccountController.state.address).toEqual(undefined)
+    expect(AccountController.state.balance).toEqual(undefined)
+    expect(AccountController.state.balanceSymbol).toEqual(undefined)
+    expect(AccountController.state.profileName).toEqual(undefined)
+    expect(AccountController.state.profileImage).toEqual(undefined)
+    expect(AccountController.state.addressExplorerUrl).toEqual(undefined)
+    expect(AccountController.state.tokenBalance).toEqual([])
+    expect(AccountController.state.connectedWalletInfo).toEqual(undefined)
+    expect(AccountController.state.preferredAccountTypes).toEqual(undefined)
+    expect(AccountController.state.status).toEqual('disconnected')
+    expect(AccountController.state.socialProvider).toEqual(undefined)
+    expect(AccountController.state.socialWindow).toEqual(undefined)
   })
 
   it('Expect modal to close after switching from unsupported network to supported network', async () => {
-    // Mock RouterController.goBack
-    const routerGoBackSpy = vi.spyOn(RouterController, 'goBack')
+    // Mock ModalController.close
+    const modalCloseSpy = vi.spyOn(ModalController, 'close')
 
     // Setup adapter with limited network support
     const limitedEvmAdapter = {
@@ -326,9 +329,9 @@ describe('ChainController', () => {
     ChainController.state.chains.set(ConstantsUtil.CHAIN.EVM, limitedEvmAdapter)
     await ChainController.switchActiveNetwork(mainnetCaipNetwork)
 
-    expect(routerGoBackSpy).toHaveBeenCalled()
+    expect(modalCloseSpy).toHaveBeenCalled()
 
-    routerGoBackSpy.mockRestore()
+    modalCloseSpy.mockRestore()
   })
 
   it('should initialize with active network from local storage', () => {

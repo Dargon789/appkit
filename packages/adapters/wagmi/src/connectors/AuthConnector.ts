@@ -2,9 +2,12 @@ import { type CreateConfigParameters, createConnector } from '@wagmi/core'
 import { SwitchChainError, getAddress } from 'viem'
 import type { Address } from 'viem'
 
-import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
+import {
+  ConstantsUtil as CommonConstantsUtil,
+  type EmbeddedWalletTimeoutReason
+} from '@reown/appkit-common'
 import { NetworkUtil } from '@reown/appkit-common'
-import { AccountController, AlertController, OptionsController } from '@reown/appkit-controllers'
+import { AccountController, AlertController } from '@reown/appkit-controllers'
 import { ErrorUtil } from '@reown/appkit-utils'
 import { W3mFrameProvider } from '@reown/appkit-wallet'
 import { W3mFrameProviderSingleton } from '@reown/appkit/auth-provider'
@@ -48,9 +51,16 @@ export function authConnector(parameters: AuthParameters) {
       socialProvider = W3mFrameProviderSingleton.getInstance({
         projectId: parameters.options.projectId,
         enableLogger: parameters.options.enableAuthLogger,
-        onTimeout: () => {
-          AlertController.open(ErrorUtil.ALERT_ERRORS.SOCIALS_TIMEOUT, 'error')
-        }
+        onTimeout: (reason: EmbeddedWalletTimeoutReason) => {
+          if (reason === 'iframe_load_failed') {
+            AlertController.open(ErrorUtil.ALERT_ERRORS.IFRAME_LOAD_FAILED, 'error')
+          } else if (reason === 'iframe_request_timeout') {
+            AlertController.open(ErrorUtil.ALERT_ERRORS.IFRAME_REQUEST_TIMEOUT, 'error')
+          } else if (reason === 'unverified_domain') {
+            AlertController.open(ErrorUtil.ALERT_ERRORS.UNVERIFIED_DOMAIN, 'error')
+          }
+        },
+        abortController: ErrorUtil.EmbeddedWalletAbortController
       })
     }
 
@@ -61,6 +71,7 @@ export function authConnector(parameters: AuthParameters) {
     options: {
       chainId?: number
       isReconnecting?: boolean
+      socialUri?: string
     } = {}
   ) {
     const provider = getProviderInstance()
@@ -77,9 +88,7 @@ export function authConnector(parameters: AuthParameters) {
       }
     }
 
-    const preferredAccountType =
-      AccountController.state.preferredAccountType ||
-      OptionsController.state.defaultAccountTypes.eip155
+    const preferredAccountType = AccountController.state.preferredAccountTypes?.eip155
 
     const {
       address,
@@ -87,7 +96,8 @@ export function authConnector(parameters: AuthParameters) {
       accounts
     } = await provider.connect({
       chainId,
-      preferredAccountType
+      preferredAccountType,
+      socialUri: options.socialUri
     })
 
     currentAccounts = accounts?.map(a => a.address as Address) || [address as Address]
@@ -110,7 +120,9 @@ export function authConnector(parameters: AuthParameters) {
     name: CommonConstantsUtil.CONNECTOR_NAMES.AUTH,
     type: 'AUTH',
     chain: CommonConstantsUtil.CHAIN.EVM,
-    async connect(options = {}) {
+    async connect(
+      options: { chainId?: number; isReconnecting?: boolean; socialUri?: string } = {}
+    ) {
       if (connectSocialPromise) {
         return connectSocialPromise
       }
@@ -146,8 +158,15 @@ export function authConnector(parameters: AuthParameters) {
         this.provider = W3mFrameProviderSingleton.getInstance({
           projectId: parameters.options.projectId,
           enableLogger: parameters.options.enableAuthLogger,
-          onTimeout: () => {
-            AlertController.open(ErrorUtil.ALERT_ERRORS.SOCIALS_TIMEOUT, 'error')
+          abortController: ErrorUtil.EmbeddedWalletAbortController,
+          onTimeout: (reason: EmbeddedWalletTimeoutReason) => {
+            if (reason === 'iframe_load_failed') {
+              AlertController.open(ErrorUtil.ALERT_ERRORS.IFRAME_LOAD_FAILED, 'error')
+            } else if (reason === 'iframe_request_timeout') {
+              AlertController.open(ErrorUtil.ALERT_ERRORS.IFRAME_REQUEST_TIMEOUT, 'error')
+            } else if (reason === 'unverified_domain') {
+              AlertController.open(ErrorUtil.ALERT_ERRORS.UNVERIFIED_DOMAIN, 'error')
+            }
           }
         })
       }
@@ -176,9 +195,7 @@ export function authConnector(parameters: AuthParameters) {
         }
         const provider = await this.getProvider()
 
-        const preferredAccountType =
-          AccountController.state.preferredAccountType ||
-          OptionsController.state.defaultAccountTypes.eip155
+        const preferredAccountType = AccountController.state.preferredAccountTypes?.eip155
 
         // We connect instead, since changing the chain may cause the address to change as well
         const response = await provider.connect({

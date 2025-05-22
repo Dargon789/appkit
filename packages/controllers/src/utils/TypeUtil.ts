@@ -65,6 +65,7 @@ export type User = {
 
 export interface LinkingRecord {
   redirect: string
+  redirectUniversalLink?: string
   href: string
 }
 
@@ -145,6 +146,7 @@ export interface WcWallet {
   image_id?: string
   image_url?: string
   order?: number
+  link_mode?: string | null
   mobile_link?: string | null
   desktop_link?: string | null
   webapp_link?: string | null
@@ -173,6 +175,10 @@ export interface ApiGetWalletsRequest {
 export interface ApiGetWalletsResponse {
   data: WcWallet[]
   count: number
+}
+
+export interface ApiGetAllowedOriginsResponse {
+  allowedOrigins: string[]
 }
 
 export interface ApiGetAnalyticsConfigResponse {
@@ -874,6 +880,79 @@ export type Event =
       event: 'INITIALIZE'
       properties: InitializeAppKitConfigs
     }
+  | PayEvent
+
+type PayConfiguration = {
+  network: string
+  asset: string
+  amount: number
+  recipient: string
+}
+
+type PayExchange = {
+  id: string
+}
+
+type PayCurrentPayment = {
+  exchangeId?: string
+  sessionId?: string
+  status?: string
+  result?: string
+  type: 'exchange' | 'wallet'
+}
+
+type PayEvent =
+  | {
+      type: 'track'
+      address?: string
+      event: 'PAY_SUCCESS'
+      properties: {
+        paymentId: string
+        configuration: PayConfiguration
+        currentPayment: PayCurrentPayment
+      }
+    }
+  | {
+      type: 'track'
+      address?: string
+      event: 'PAY_ERROR'
+      properties: {
+        paymentId: string
+        configuration: PayConfiguration
+        currentPayment: PayCurrentPayment
+      }
+    }
+  | {
+      type: 'track'
+      address?: string
+      event: 'PAY_INITIATED'
+      properties: {
+        paymentId: string
+        configuration: PayConfiguration
+        currentPayment: PayCurrentPayment
+      }
+    }
+  | {
+      type: 'track'
+      address?: string
+      event: 'PAY_MODAL_OPEN'
+      properties: {
+        exchanges: PayExchange[]
+        configuration: PayConfiguration
+      }
+    }
+  | {
+      type: 'track'
+      address?: string
+      event: 'PAY_EXCHANGE_SELECTED'
+      properties: {
+        exchange: PayExchange
+        configuration: PayConfiguration
+        currentPayment: PayCurrentPayment
+        headless: boolean
+      }
+    }
+
 // Onramp Types
 export type DestinationWallet = {
   address: string
@@ -940,6 +1019,7 @@ export type NamespaceTypeMap = {
   solana: 'eoa'
   bip122: 'payment' | 'ordinal' | 'stx'
   polkadot: 'eoa'
+  cosmos: 'eoa'
 }
 
 export type AccountTypeMap = {
@@ -1160,6 +1240,12 @@ export type Features = {
    * @default false
    */
   collapseWallets?: boolean
+
+  /**
+   * @description Enable or disable the pay feature. Disabled by default.
+   * @type {boolean}
+   */
+  pay?: boolean
 }
 
 export type FeaturesKeys = keyof Features
@@ -1174,7 +1260,7 @@ export type UseAppKitAccountReturn = {
   embeddedWalletInfo?: {
     user: AccountControllerState['user']
     authProvider: AccountControllerState['socialProvider'] | 'email'
-    accountType: W3mFrameTypes.AccountType | undefined
+    accountType: PreferredAccountTypes[ChainNamespace] | undefined
     isSmartAccountDeployed: boolean
   }
   status: AccountControllerState['status']
@@ -1195,4 +1281,6 @@ export type ConnectionStatus = 'connected' | 'disconnected' | 'connecting' | 're
  * @description The default account types for each namespace.
  * @default
  */
-export type DefaultAccountTypes = { [Key in keyof NamespaceTypeMap]: NamespaceTypeMap[Key] }
+export type PreferredAccountTypes = {
+  [Key in keyof NamespaceTypeMap]?: NamespaceTypeMap[Key]
+}

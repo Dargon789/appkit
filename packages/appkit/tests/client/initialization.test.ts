@@ -1,11 +1,16 @@
+import UniversalProvider from '@walletconnect/universal-provider'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { type AppKitNetwork } from '@reown/appkit-common'
 import {
+  AccountController,
   AlertController,
+  ApiController,
   ChainController,
+  ConstantsUtil,
   EventsController,
   OptionsController,
+  PublicStateController,
   StorageUtil
 } from '@reown/appkit-controllers'
 import { ErrorUtil } from '@reown/appkit-utils'
@@ -13,6 +18,7 @@ import { ErrorUtil } from '@reown/appkit-utils'
 import { AppKit } from '../../src/client/appkit.js'
 import { mainnet, polygon, sepolia, solana } from '../mocks/Networks'
 import { mockOptions } from '../mocks/Options'
+import { mockUniversalProvider } from '../mocks/Providers.js'
 import {
   mockBlockchainApiController,
   mockStorageUtil,
@@ -28,15 +34,36 @@ describe('Base', () => {
 
   describe('Base Initialization', () => {
     it('should initialize controllers', async () => {
-      const sendEvent = vi.spyOn(EventsController, 'sendEvent')
       const initialize = vi.spyOn(ChainController, 'initialize')
 
       new AppKit(mockOptions)
 
+      expect(initialize).toHaveBeenCalledOnce()
+      expect(initialize).toHaveBeenCalledWith(mockOptions.adapters, [mainnet, sepolia, solana], {
+        connectionControllerClient: expect.any(Object),
+        networkControllerClient: expect.any(Object)
+      })
+    })
+
+    it('should send initialize event', async () => {
+      const sendEvent = vi.spyOn(EventsController, 'sendEvent').mockResolvedValue()
+
+      new AppKit({
+        ...mockOptions,
+        universalProvider: mockUniversalProvider as unknown as UniversalProvider
+      })
       const options = { ...mockOptions }
       delete options.adapters
 
-      expect(sendEvent).toHaveBeenCalled()
+      // Event is sent at the end of the initialize method, we need to wait for it to be sent
+      await new Promise(resolve =>
+        PublicStateController.subscribe(state => {
+          if (state.initialized) {
+            resolve(true)
+          }
+        })
+      )
+
       expect(sendEvent).toHaveBeenCalledWith({
         type: 'track',
         event: 'INITIALIZE',
@@ -48,14 +75,7 @@ describe('Base', () => {
           }
         }
       })
-
-      expect(initialize).toHaveBeenCalledOnce()
-      expect(initialize).toHaveBeenCalledWith(mockOptions.adapters, [mainnet, sepolia, solana], {
-        connectionControllerClient: expect.any(Object),
-        networkControllerClient: expect.any(Object)
-      })
     })
-
     it('should set EIP6963 enabled by default', () => {
       const setEIP6963Enabled = vi.spyOn(OptionsController, 'setEIP6963Enabled')
 
@@ -75,20 +95,58 @@ describe('Base', () => {
       expect(setEIP6963Enabled).toHaveBeenCalledWith(false)
     })
 
-    it('should set partially defaultAccountType', () => {
+    it('should set default account types', () => {
       const setDefaultAccountTypes = vi.spyOn(OptionsController, 'setDefaultAccountTypes')
+      const setPreferredAccountTypes = vi.spyOn(AccountController, 'setPreferredAccountTypes')
+      vi.spyOn(StorageUtil, 'getPreferredAccountTypes').mockReturnValueOnce({
+        bip122: 'ordinal'
+      })
 
       new AppKit({
         ...mockOptions,
         defaultAccountTypes: {
-          eip155: 'eoa',
-          bip122: 'ordinal'
+          eip155: 'eoa'
         }
       })
 
       expect(setDefaultAccountTypes).toHaveBeenCalledWith({
+        eip155: 'eoa'
+      })
+      expect(setPreferredAccountTypes).toHaveBeenCalledWith({
+        eip155: 'eoa',
+        bip122: 'ordinal',
+        solana: 'eoa',
+        polkadot: 'eoa'
+      })
+    })
+
+    it('should use default account types when no account types are set', () => {
+      vi.spyOn(StorageUtil, 'getPreferredAccountTypes').mockReturnValueOnce(
+        ConstantsUtil.DEFAULT_ACCOUNT_TYPES
+      )
+      const setPreferredAccountTypes = vi.spyOn(AccountController, 'setPreferredAccountTypes')
+
+      new AppKit(mockOptions)
+
+      expect(setPreferredAccountTypes).toHaveBeenCalledWith(ConstantsUtil.DEFAULT_ACCOUNT_TYPES)
+    })
+
+    it('should use stored account types', () => {
+      vi.spyOn(StorageUtil, 'getPreferredAccountTypes').mockReturnValueOnce({
         eip155: 'eoa',
         bip122: 'ordinal'
+      })
+      const setPreferredAccountTypes = vi.spyOn(AccountController, 'setPreferredAccountTypes')
+      const setDefaultAccountTypes = vi.spyOn(OptionsController, 'setDefaultAccountTypes')
+
+      new AppKit(mockOptions)
+
+      expect(setDefaultAccountTypes).toHaveBeenCalledWith(undefined)
+      expect(setPreferredAccountTypes).toHaveBeenCalledWith({
+        eip155: 'eoa',
+        bip122: 'ordinal',
+        solana: 'eoa',
+        polkadot: 'eoa'
       })
     })
 
@@ -126,6 +184,23 @@ describe('Base', () => {
       })
 
       expect(setActiveCaipNetwork).toHaveBeenCalledWith(sepolia)
+    })
+
+    it('should check allowed origins if social or email feature is enabled', async () => {
+      const fetchAllowedOriginsSpy = vi
+        .spyOn(ApiController, 'fetchAllowedOrigins')
+        .mockResolvedValue(['http://localhost:3000'])
+
+      new AppKit({
+        ...mockOptions,
+        features: {
+          socials: ['google']
+        }
+      })
+
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      expect(fetchAllowedOriginsSpy).toHaveBeenCalled()
     })
   })
 

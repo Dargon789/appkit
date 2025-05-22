@@ -7,11 +7,13 @@ import {
   getSafeConnectorIdKey
 } from '@reown/appkit-common'
 
+import type { Connection } from '../controllers/ConnectionController.js'
 import type {
   BlockchainApiBalanceResponse,
   BlockchainApiIdentityResponse,
   BlockchainApiLookupEnsName,
   ConnectionStatus,
+  PreferredAccountTypes,
   SocialProvider,
   WcWallet
 } from './TypeUtil.js'
@@ -559,6 +561,57 @@ export const StorageUtil = {
       SafeLocalStorage.removeItem(SafeLocalStorageKeys.IDENTITY_CACHE)
     } catch {
       console.info('Unable to clear address cache')
+    }
+  },
+  setPreferredAccountTypes(accountTypes: PreferredAccountTypes) {
+    try {
+      SafeLocalStorage.setItem(
+        SafeLocalStorageKeys.PREFERRED_ACCOUNT_TYPES,
+        JSON.stringify(accountTypes)
+      )
+    } catch {
+      console.info('Unable to set preferred account types', accountTypes)
+    }
+  },
+  getPreferredAccountTypes() {
+    try {
+      const result = SafeLocalStorage.getItem(SafeLocalStorageKeys.PREFERRED_ACCOUNT_TYPES)
+      if (!result) {
+        return {}
+      }
+
+      return JSON.parse(result) as PreferredAccountTypes
+    } catch {
+      console.info('Unable to get preferred account types')
+    }
+
+    return {}
+  },
+  setConnections(connections: Connection[], chainNamespace: ChainNamespace) {
+    try {
+      const newConnections = {
+        ...StorageUtil.getConnections(),
+        [chainNamespace]: connections
+      }
+
+      SafeLocalStorage.setItem(SafeLocalStorageKeys.CONNECTIONS, JSON.stringify(newConnections))
+    } catch (error) {
+      console.error('Unable to sync connections to storage', error)
+    }
+  },
+  getConnections() {
+    try {
+      const connectionsStorage = SafeLocalStorage.getItem(SafeLocalStorageKeys.CONNECTIONS)
+
+      if (!connectionsStorage) {
+        return {}
+      }
+
+      return JSON.parse(connectionsStorage) as { [key in ChainNamespace]: Connection[] }
+    } catch (error) {
+      console.error('Unable to get connections from storage', error)
+
+      return {}
     }
   }
 }
