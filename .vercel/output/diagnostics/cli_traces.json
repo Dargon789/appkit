@@ -1,0 +1,29 @@
+[
+  {
+    "name": "vc.builder",
+    "duration": 42214817,
+    "timestamp": 135124490128,
+    "id": "f407c622-a89a-44cd-91f4-d46b61c01054",
+    "parentId": "73922e88-ed05-4ef6-82af-286ddd72512d",
+    "tags": { "name": "@vercel/static-build" },
+    "startTime": 1747704947451
+  },
+  {
+    "name": "vc.builder.diagnostics",
+    "duration": 73,
+    "timestamp": 135166705444,
+    "id": "e4cba54b-5140-4c1f-8f1a-546b0fb2719a",
+    "parentId": "f407c622-a89a-44cd-91f4-d46b61c01054",
+    "tags": {},
+    "startTime": 1747704989666
+  },
+  {
+    "name": "vc.doBuild",
+    "duration": 43770224,
+    "timestamp": 135122939107,
+    "id": "73922e88-ed05-4ef6-82af-286ddd72512d",
+    "parentId": "217cd54f-6539-4451-8865-aa0964dba23d",
+    "tags": {},
+    "startTime": 1747704945900
+  }
+]
