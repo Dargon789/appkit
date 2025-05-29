@@ -89,5 +89,9 @@
   },
   "@parcel/resolver-default": {
     "packageExports": true
+  },
+  "dependencies": {
+    "@reown/appkit-ui": "^1.7.7",
+    "@vercel/analytics": "^1.5.0"
   }
 }
