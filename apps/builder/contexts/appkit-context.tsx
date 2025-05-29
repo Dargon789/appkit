@@ -4,8 +4,8 @@ import { createContext } from 'react'
 
 import { UniqueIdentifier } from '@dnd-kit/core'
 
-import type { ChainNamespace } from '@reown/appkit-common'
-import type { Features, SocialProvider, ThemeMode } from '@reown/appkit-core'
+import type { AppKitNetwork, ChainNamespace } from '@reown/appkit-common'
+import type { Features, SocialProvider, ThemeMode } from '@reown/appkit-controllers'
 
 import { NetworkOption } from '@/lib/constants'
 import { URLState } from '@/lib/url-state'
@@ -18,7 +18,7 @@ interface AppKitContextType {
   isDraggingByKey: Record<string, boolean>
   enabledChains: ChainNamespace[]
   removeChain: (chain: ChainNamespace) => void
-  addChain: (chain: ChainNamespace) => void
+  addChain: (chain: ChainNamespace, network: AppKitNetwork | undefined) => void
   removeNetwork: (network: NetworkOption) => void
   addNetwork: (network: NetworkOption) => void
   updateThemeMode: (mode: ThemeMode) => void
@@ -30,6 +30,7 @@ interface AppKitContextType {
   setSocialsOrder: ((order: SocialProvider[]) => void) | undefined
   updateDraggingState: (key: UniqueIdentifier, dragging: boolean) => void
   resetConfigs: () => void
+  getEnabledNetworksInNamespace: (namespace: ChainNamespace) => (string | number)[]
 }
 
 export const AppKitContext = createContext<AppKitContextType | undefined>(undefined)

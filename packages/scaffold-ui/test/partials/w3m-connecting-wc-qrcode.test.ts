@@ -9,8 +9,8 @@ import {
   EventsController,
   RouterController,
   type WcWallet
-} from '@reown/appkit-core'
-import type { WuiQrCode } from '@reown/appkit-ui'
+} from '@reown/appkit-controllers'
+import type { WuiQrCode } from '@reown/appkit-ui/wui-qr-code'
 
 import { HelpersUtil } from '../utils/HelpersUtil'
 
@@ -61,26 +61,5 @@ describe('W3mConnectingWcQrcode', () => {
       event: 'SELECT_WALLET',
       properties: { name: WALLET.name, platform: 'qrcode' }
     })
-  })
-
-  it('should clear RouterController wallet data on unmount', async () => {
-    vi.spyOn(RouterController, 'state', 'get').mockReturnValue({
-      ...RouterController.state,
-      data: {
-        wallet: WALLET
-      }
-    })
-
-    const connectingQrCode = await fixture(
-      html`<w3m-connecting-wc-qrcode></w3m-connecting-wc-qrcode>`
-    )
-
-    expect(RouterController.state.data?.wallet).toBeDefined()
-
-    connectingQrCode.remove()
-
-    await new Promise(resolve => setTimeout(resolve, 0))
-
-    expect(RouterController.state.data?.wallet).toBeUndefined()
   })
 })

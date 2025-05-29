@@ -13,8 +13,8 @@ import {
   mockSession
 } from './mocks/AppKit'
 
-vi.mock('@reown/appkit-core', async importOriginal => {
-  const actual = await importOriginal<typeof import('@reown/appkit-core')>()
+vi.mock('@reown/appkit-controllers', async importOriginal => {
+  const actual = await importOriginal<typeof import('@reown/appkit-controllers')>()
   return {
     ...actual,
     StorageUtil: {
@@ -75,6 +75,7 @@ describe('UniversalConnector', () => {
       })
       expect(mockProvider.on).toHaveBeenCalled()
       expect(mockProvider.session.namespaces.eip155.accounts).toEqual([mockCaipAddress])
+      expect(mockProvider.setDefaultChain).toHaveBeenCalledWith(`eip155:${expectedChainId}`)
     })
 
     it('should handle user rejection', async () => {

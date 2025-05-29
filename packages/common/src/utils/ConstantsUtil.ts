@@ -15,13 +15,14 @@ export const ConstantsUtil = {
     COINBASE_SDK: 'coinbaseWalletSDK',
     SAFE: 'safe',
     LEDGER: 'ledger',
+    OKX: 'okx',
     EIP6963: 'eip6963',
     AUTH: 'ID_AUTH'
   },
   CONNECTOR_NAMES: {
     AUTH: 'Auth'
   },
-  AUTH_CONNECTOR_SUPPORTED_CHAINS: ['eip155', 'solana'],
+  AUTH_CONNECTOR_SUPPORTED_CHAINS: ['eip155', 'solana'] as ChainNamespace[],
   LIMITS: {
     PENDING_TRANSACTIONS: 99
   },
@@ -32,7 +33,7 @@ export const ConstantsUtil = {
     BITCOIN: 'bip122'
   } as const satisfies Record<string, ChainNamespace>,
   CHAIN_NAME_MAP: {
-    eip155: 'Ethereum',
+    eip155: 'EVM Networks',
     solana: 'Solana',
     polkadot: 'Polkadot',
     bip122: 'Bitcoin'
