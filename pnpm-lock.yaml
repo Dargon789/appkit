@@ -350,7 +350,7 @@ importers:
         version: 8.55.0(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(next@14.2.28(@opentelemetry/api@1.9.0)(@playwright/test@1.48.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(webpack@5.94.0)
       '@solana/wallet-adapter-wallets':
         specifier: 0.19.36
-        version: 0.19.36(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(@solana/sysvars@2.1.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3))(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@types/react@19.1.3)(bs58@6.0.0)(bufferutil@4.0.9)(db0@0.3.2)(fastestsmallesttextencoderdecoder@1.0.22)(ioredis@5.6.1)(react-dom@19.1.0(react@19.1.0))(react-native@0.77.0(@types/react@19.1.3)(bufferutil@4.0.9)(react@19.1.0)(utf-8-validate@5.0.10))(react@19.1.0)(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(ws@8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@3.25.50)
+        version: 0.19.36(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(@solana/sysvars@2.1.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3))(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@types/react@19.1.3)(bs58@6.0.0)(bufferutil@4.0.9)(db0@0.3.2)(fastestsmallesttextencoderdecoder@1.0.22)(ioredis@5.6.1)(react-dom@19.1.0(react@19.1.0))(react-native@0.77.0(@types/react@19.1.3)(bufferutil@4.0.9)(react@19.1.0)(utf-8-validate@5.0.10))(react@19.1.0)(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(ws@8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@3.25.50)
       '@solana/web3.js':
         specifier: 1.98.0
         version: 1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -537,11 +537,11 @@ importers:
         specifier: 7.119.1
         version: 7.119.1
       '@sentry/react':
-        specifier: 7.92.0
-        version: 7.92.0(react@18.3.1)
+        specifier: 7.120.3
+        version: 7.120.3(react@18.3.1)
       '@solana/wallet-adapter-wallets':
         specifier: 0.19.32
-        version: 0.19.32(@babel/core@7.27.4)(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bs58@6.0.0)(bufferutil@4.0.9)(db0@0.3.2)(ioredis@5.6.1)(react-dom@18.3.1(react@18.3.1))(react-native@0.77.0(@babel/core@7.27.4)(@types/react@18.2.62)(bufferutil@4.0.9)(react@18.3.1)(utf-8-validate@5.0.10))(react@18.3.1)(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.50)
+        version: 0.19.32(@babel/core@7.27.4)(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bs58@6.0.0)(bufferutil@4.0.9)(db0@0.3.2)(ioredis@5.6.1)(react-dom@18.3.1(react@18.3.1))(react-native@0.77.0(@babel/core@7.27.4)(@types/react@18.2.62)(bufferutil@4.0.9)(react@18.3.1)(utf-8-validate@5.0.10))(react@18.3.1)(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.50)
       '@solana/web3.js':
         specifier: 1.98.0
         version: 1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -1549,7 +1549,7 @@ importers:
         version: 0.1.14(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-wallets':
         specifier: 0.19.36
-        version: 0.19.36(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(@solana/sysvars@2.1.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3))(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@types/react@19.1.3)(bs58@6.0.0)(bufferutil@4.0.9)(db0@0.3.2)(fastestsmallesttextencoderdecoder@1.0.22)(ioredis@5.6.1)(react-dom@19.1.0(react@19.1.0))(react-native@0.77.0(@types/react@19.1.3)(bufferutil@4.0.9)(react@19.1.0)(utf-8-validate@5.0.10))(react@19.1.0)(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(ws@8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@3.25.50)
+        version: 0.19.36(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(@solana/sysvars@2.1.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3))(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@types/react@19.1.3)(bs58@6.0.0)(bufferutil@4.0.9)(db0@0.3.2)(fastestsmallesttextencoderdecoder@1.0.22)(ioredis@5.6.1)(react-dom@19.1.0(react@19.1.0))(react-native@0.77.0(@types/react@19.1.3)(bufferutil@4.0.9)(react@19.1.0)(utf-8-validate@5.0.10))(react@19.1.0)(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(ws@8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@3.25.50)
       '@tanstack/react-query':
         specifier: 5.75.5
         version: 5.75.5(react@19.1.0)
@@ -1954,7 +1954,7 @@ importers:
         version: 0.1.14(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-wallets':
         specifier: 0.19.36
-        version: 0.19.36(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(@solana/sysvars@2.1.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3))(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@types/react@19.1.6)(bs58@6.0.0)(bufferutil@4.0.9)(db0@0.3.2)(fastestsmallesttextencoderdecoder@1.0.22)(ioredis@5.6.1)(react-native@0.77.0(@types/react@19.1.6)(bufferutil@4.0.9)(react@19.1.0)(utf-8-validate@5.0.10))(react@19.1.0)(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(ws@8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@3.25.50)
+        version: 0.19.36(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(@solana/sysvars@2.1.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3))(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@types/react@19.1.6)(bs58@6.0.0)(bufferutil@4.0.9)(db0@0.3.2)(fastestsmallesttextencoderdecoder@1.0.22)(ioredis@5.6.1)(react-native@0.77.0(@types/react@19.1.6)(bufferutil@4.0.9)(react@19.1.0)(utf-8-validate@5.0.10))(react@19.1.0)(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(ws@8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@3.25.50)
       vue:
         specifier: 3.4.3
         version: 3.4.3(typescript@5.8.3)
@@ -2028,7 +2028,7 @@ importers:
         version: 0.1.14(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-wallets':
         specifier: 0.19.36
-        version: 0.19.36(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(@solana/sysvars@2.1.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3))(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@types/react@19.1.6)(bs58@6.0.0)(bufferutil@4.0.9)(db0@0.3.2)(fastestsmallesttextencoderdecoder@1.0.22)(ioredis@5.6.1)(react-native@0.77.0(@types/react@19.1.6)(bufferutil@4.0.9)(react@19.1.0)(utf-8-validate@5.0.10))(react@19.1.0)(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(ws@8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@3.25.50)
+        version: 0.19.36(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(@solana/sysvars@2.1.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3))(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@types/react@19.1.6)(bs58@6.0.0)(bufferutil@4.0.9)(db0@0.3.2)(fastestsmallesttextencoderdecoder@1.0.22)(ioredis@5.6.1)(react-native@0.77.0(@types/react@19.1.6)(bufferutil@4.0.9)(react@19.1.0)(utf-8-validate@5.0.10))(react@19.1.0)(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(ws@8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@3.25.50)
       '@tanstack/vue-query':
         specifier: 5.75.5
         version: 5.75.5(vue@3.4.3(typescript@5.8.3))
@@ -9621,8 +9621,8 @@ packages:
     resolution: {integrity: sha512-EPyW6EKZmhKpw/OQUPRkTynXecZdYl4uhZwdZuGqnGMAzswPOgQvFrkwsOuPYvoMfXqCH7YuRqyJrox3uBOrTA==}
     engines: {node: '>=12'}
 
-  '@sentry-internal/feedback@7.92.0':
-    resolution: {integrity: sha512-/jEALRtVqboxB9kcK2tag8QCO6XANTlGBb9RV3oeGXJe0DDNJXRq6wVZbfgztXJRrfgx4XVDcNt1pRVoGGG++g==}
+  '@sentry-internal/feedback@7.120.3':
+    resolution: {integrity: sha512-ewJJIQ0mbsOX6jfiVFvqMjokxNtgP3dNwUv+4nenN+iJJPQsM6a0ocro3iscxwVdbkjw5hY3BUV2ICI5Q0UWoA==}
     engines: {node: '>=12'}
 
   '@sentry-internal/feedback@8.55.0':
@@ -9631,6 +9631,10 @@ packages:
 
   '@sentry-internal/replay-canvas@7.119.1':
     resolution: {integrity: sha512-O/lrzENbMhP/UDr7LwmfOWTjD9PLNmdaCF408Wx8SDuj7Iwc+VasGfHg7fPH4Pdr4nJON6oh+UqoV4IoG05u+A==}
+    engines: {node: '>=12'}
+
+  '@sentry-internal/replay-canvas@7.120.3':
+    resolution: {integrity: sha512-s5xy+bVL1eDZchM6gmaOiXvTqpAsUfO7122DxVdEDMtwVq3e22bS2aiGa8CUgOiJkulZ+09q73nufM77kOmT/A==}
     engines: {node: '>=12'}
 
   '@sentry-internal/replay-canvas@8.55.0':
@@ -9645,8 +9649,8 @@ packages:
     resolution: {integrity: sha512-cI0YraPd6qBwvUA3wQdPGTy8PzAoK0NZiaTN1LM3IczdPegehWOaEG5GVTnpGnTsmBAzn1xnBXNBhgiU4dgcrQ==}
     engines: {node: '>=8'}
 
-  '@sentry-internal/tracing@7.92.0':
-    resolution: {integrity: sha512-ur55vPcUUUWFUX4eVLNP71ohswK7ZZpleNZw9Y1GfLqyI+0ILQUwjtzqItJrdClvVsdRZJMRmDV40Hp9Lbb9mA==}
+  '@sentry-internal/tracing@7.120.3':
+    resolution: {integrity: sha512-Ausx+Jw1pAMbIBHStoQ6ZqDZR60PsCByvHdw/jdH9AqPrNE9xlBSf9EwcycvmrzwyKspSLaB52grlje2cRIUMg==}
     engines: {node: '>=8'}
 
   '@sentry/babel-plugin-component-annotate@2.22.7':
@@ -9657,8 +9661,8 @@ packages:
     resolution: {integrity: sha512-aMwAnFU4iAPeLyZvqmOQaEDHt/Dkf8rpgYeJ0OEi50dmP6AjG+KIAMCXU7CYCCQDn70ITJo8QD5+KzCoZPYz0A==}
     engines: {node: '>=8'}
 
-  '@sentry/browser@7.92.0':
-    resolution: {integrity: sha512-loMr02/zQ38u8aQhYLtIBg0i5n3ps2e3GUXrt3CdsJQdkRYfa62gcrE7SzvoEpMVHTk7VOI4fWGht8cWw/1k3A==}
+  '@sentry/browser@7.120.3':
+    resolution: {integrity: sha512-i9vGcK9N8zZ/JQo1TCEfHHYZ2miidOvgOABRUc9zQKhYdcYQB2/LU1kqlj77Pxdxf4wOa9137d6rPrSn9iiBxg==}
     engines: {node: '>=8'}
 
   '@sentry/browser@8.55.0':
@@ -9719,8 +9723,8 @@ packages:
     resolution: {integrity: sha512-YUNnH7O7paVd+UmpArWCPH4Phlb5LwrkWVqzFWqL3xPyCcTSof2RL8UmvpkTjgYJjJ+NDfq5mPFkqv3aOEn5Sw==}
     engines: {node: '>=8'}
 
-  '@sentry/core@7.92.0':
-    resolution: {integrity: sha512-1Tly7YB2I1byI5xb0Cwrxs56Rhww+6mQ7m9P7rTmdC3/ijOzbEoohtYIUPwcooCEarpbEJe/tAayRx6BrH2UbQ==}
+  '@sentry/core@7.120.3':
+    resolution: {integrity: sha512-vyy11fCGpkGK3qI5DSXOjgIboBZTriw0YDx/0KyX5CjIjDDNgp5AGgpgFkfZyiYiaU2Ww3iFuKo4wHmBusz1uA==}
     engines: {node: '>=8'}
 
   '@sentry/core@8.55.0':
@@ -9729,6 +9733,10 @@ packages:
 
   '@sentry/integrations@7.119.1':
     resolution: {integrity: sha512-CGmLEPnaBqbUleVqrmGYjRjf5/OwjUXo57I9t0KKWViq81mWnYhaUhRZWFNoCNQHns+3+GPCOMvl0zlawt+evw==}
+    engines: {node: '>=8'}
+
+  '@sentry/integrations@7.120.3':
+    resolution: {integrity: sha512-6i/lYp0BubHPDTg91/uxHvNui427df9r17SsIEXa2eKDwQ9gW2qRx5IWgvnxs2GV/GfSbwcx4swUB3RfEWrXrQ==}
     engines: {node: '>=8'}
 
   '@sentry/nextjs@8.55.0':
@@ -9752,8 +9760,8 @@ packages:
       '@opentelemetry/sdk-trace-base': ^1.30.1
       '@opentelemetry/semantic-conventions': ^1.28.0
 
-  '@sentry/react@7.92.0':
-    resolution: {integrity: sha512-lTvrLuvxtGEZbkW6NHru03K6eyixKyBliwiLwO+k37FK7Ha8Bwat2m77weyizWCdQ6DKlVazJNppkNeAlACIvQ==}
+  '@sentry/react@7.120.3':
+    resolution: {integrity: sha512-BcpoK9dwblfb20xwjn/1DRtplvPEXFc3XCRkYSnTfnfZNU8yPOcVX4X2X0I8R+/gsg+MWiFOdEtXJ3FqpJiJ4Q==}
     engines: {node: '>=8'}
     peerDependencies:
       react: 15.x || 16.x || 17.x || 18.x
@@ -9768,24 +9776,24 @@ packages:
     resolution: {integrity: sha512-4da+ruMEipuAZf35Ybt2StBdV1S+oJbSVccGpnl9w6RoeQoloT4ztR6ML3UcFDTXeTPT1FnHWDCyOfST0O7XMw==}
     engines: {node: '>=12'}
 
-  '@sentry/replay@7.92.0':
-    resolution: {integrity: sha512-G1t9Uvc9cR8VpNkElwvHIMGzykjIKikb10n0tfVd3e+rBPMCCjCPWOduwG6jZYxcvCjTpqmJh6NSLXxL/Mt4JA==}
+  '@sentry/replay@7.120.3':
+    resolution: {integrity: sha512-CjVq1fP6bpDiX8VQxudD5MPWwatfXk8EJ2jQhJTcWu/4bCSOQmHxnnmBM+GVn5acKUBCodWHBN+IUZgnJheZSg==}
     engines: {node: '>=12'}
 
   '@sentry/types@7.119.1':
     resolution: {integrity: sha512-4G2mcZNnYzK3pa2PuTq+M2GcwBRY/yy1rF+HfZU+LAPZr98nzq2X3+mJHNJoobeHRkvVh7YZMPi4ogXiIS5VNQ==}
     engines: {node: '>=8'}
 
-  '@sentry/types@7.92.0':
-    resolution: {integrity: sha512-APmSOuZuoRGpbPpPeYIbMSplPjiWNLZRQa73QiXuTflW4Tu/ItDlU8hOa2+A6JKVkJCuD2EN6yUrxDGSMyNXeg==}
+  '@sentry/types@7.120.3':
+    resolution: {integrity: sha512-C4z+3kGWNFJ303FC+FxAd4KkHvxpNFYAFN8iMIgBwJdpIl25KZ8Q/VdGn0MLLUEHNLvjob0+wvwlcRBBNLXOow==}
     engines: {node: '>=8'}
 
   '@sentry/utils@7.119.1':
     resolution: {integrity: sha512-ju/Cvyeu/vkfC5/XBV30UNet5kLEicZmXSyuLwZu95hEbL+foPdxN+re7pCI/eNqfe3B2vz7lvz5afLVOlQ2Hg==}
     engines: {node: '>=8'}
 
-  '@sentry/utils@7.92.0':
-    resolution: {integrity: sha512-3nEfrQ1z28b/2zgFGANPh5yMVtgwXmrasZxTvKbrAj+KWJpjrJHrIR84r9W277J44NMeZ5RhRW2uoDmuBslPnA==}
+  '@sentry/utils@7.120.3':
+    resolution: {integrity: sha512-UDAOQJtJDxZHQ5Nm1olycBIsz2wdGX8SdzyGVHmD8EOQYAeDZQyIlQYohDe9nazdIOQLZCIc3fU0G9gqVLkaGQ==}
     engines: {node: '>=8'}
 
   '@sentry/vercel-edge@8.55.0':
@@ -31715,11 +31723,11 @@ snapshots:
       '@sentry/types': 7.119.1
       '@sentry/utils': 7.119.1
 
-  '@sentry-internal/feedback@7.92.0':
+  '@sentry-internal/feedback@7.120.3':
     dependencies:
-      '@sentry/core': 7.92.0
-      '@sentry/types': 7.92.0
-      '@sentry/utils': 7.92.0
+      '@sentry/core': 7.120.3
+      '@sentry/types': 7.120.3
+      '@sentry/utils': 7.120.3
 
   '@sentry-internal/feedback@8.55.0':
     dependencies:
@@ -31731,6 +31739,13 @@ snapshots:
       '@sentry/replay': 7.119.1
       '@sentry/types': 7.119.1
       '@sentry/utils': 7.119.1
+
+  '@sentry-internal/replay-canvas@7.120.3':
+    dependencies:
+      '@sentry/core': 7.120.3
+      '@sentry/replay': 7.120.3
+      '@sentry/types': 7.120.3
+      '@sentry/utils': 7.120.3
 
   '@sentry-internal/replay-canvas@8.55.0':
     dependencies:
@@ -31748,11 +31763,11 @@ snapshots:
       '@sentry/types': 7.119.1
       '@sentry/utils': 7.119.1
 
-  '@sentry-internal/tracing@7.92.0':
+  '@sentry-internal/tracing@7.120.3':
     dependencies:
-      '@sentry/core': 7.92.0
-      '@sentry/types': 7.92.0
-      '@sentry/utils': 7.92.0
+      '@sentry/core': 7.120.3
+      '@sentry/types': 7.120.3
+      '@sentry/utils': 7.120.3
 
   '@sentry/babel-plugin-component-annotate@2.22.7': {}
 
@@ -31767,14 +31782,16 @@ snapshots:
       '@sentry/types': 7.119.1
       '@sentry/utils': 7.119.1
 
-  '@sentry/browser@7.92.0':
+  '@sentry/browser@7.120.3':
     dependencies:
-      '@sentry-internal/feedback': 7.92.0
-      '@sentry-internal/tracing': 7.92.0
-      '@sentry/core': 7.92.0
-      '@sentry/replay': 7.92.0
-      '@sentry/types': 7.92.0
-      '@sentry/utils': 7.92.0
+      '@sentry-internal/feedback': 7.120.3
+      '@sentry-internal/replay-canvas': 7.120.3
+      '@sentry-internal/tracing': 7.120.3
+      '@sentry/core': 7.120.3
+      '@sentry/integrations': 7.120.3
+      '@sentry/replay': 7.120.3
+      '@sentry/types': 7.120.3
+      '@sentry/utils': 7.120.3
 
   '@sentry/browser@8.55.0':
     dependencies:
@@ -31843,10 +31860,10 @@ snapshots:
       '@sentry/types': 7.119.1
       '@sentry/utils': 7.119.1
 
-  '@sentry/core@7.92.0':
+  '@sentry/core@7.120.3':
     dependencies:
-      '@sentry/types': 7.92.0
-      '@sentry/utils': 7.92.0
+      '@sentry/types': 7.120.3
+      '@sentry/utils': 7.120.3
 
   '@sentry/core@8.55.0': {}
 
@@ -31855,6 +31872,13 @@ snapshots:
       '@sentry/core': 7.119.1
       '@sentry/types': 7.119.1
       '@sentry/utils': 7.119.1
+      localforage: 1.10.0
+
+  '@sentry/integrations@7.120.3':
+    dependencies:
+      '@sentry/core': 7.120.3
+      '@sentry/types': 7.120.3
+      '@sentry/utils': 7.120.3
       localforage: 1.10.0
 
   '@sentry/nextjs@8.55.0(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(next@14.2.28(@opentelemetry/api@1.9.0)(@playwright/test@1.48.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(webpack@5.94.0)':
@@ -31934,11 +31958,12 @@ snapshots:
       '@opentelemetry/semantic-conventions': 1.34.0
       '@sentry/core': 8.55.0
 
-  '@sentry/react@7.92.0(react@18.3.1)':
+  '@sentry/react@7.120.3(react@18.3.1)':
     dependencies:
-      '@sentry/browser': 7.92.0
-      '@sentry/types': 7.92.0
-      '@sentry/utils': 7.92.0
+      '@sentry/browser': 7.120.3
+      '@sentry/core': 7.120.3
+      '@sentry/types': 7.120.3
+      '@sentry/utils': 7.120.3
       hoist-non-react-statics: 3.3.2
       react: 18.3.1
 
@@ -31956,24 +31981,24 @@ snapshots:
       '@sentry/types': 7.119.1
       '@sentry/utils': 7.119.1
 
-  '@sentry/replay@7.92.0':
+  '@sentry/replay@7.120.3':
     dependencies:
-      '@sentry-internal/tracing': 7.92.0
-      '@sentry/core': 7.92.0
-      '@sentry/types': 7.92.0
-      '@sentry/utils': 7.92.0
+      '@sentry-internal/tracing': 7.120.3
+      '@sentry/core': 7.120.3
+      '@sentry/types': 7.120.3
+      '@sentry/utils': 7.120.3
 
   '@sentry/types@7.119.1': {}
 
-  '@sentry/types@7.92.0': {}
+  '@sentry/types@7.120.3': {}
 
   '@sentry/utils@7.119.1':
     dependencies:
       '@sentry/types': 7.119.1
 
-  '@sentry/utils@7.92.0':
+  '@sentry/utils@7.120.3':
     dependencies:
-      '@sentry/types': 7.92.0
+      '@sentry/types': 7.120.3
 
   '@sentry/vercel-edge@8.55.0':
     dependencies:
@@ -33036,11 +33061,11 @@ snapshots:
       '@solana/wallet-adapter-base': 0.9.26(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/web3.js': 1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
 
-  '@solana/wallet-adapter-torus@0.11.28(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@solana/wallet-adapter-torus@0.11.28(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@solana/wallet-adapter-base': 0.9.26(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/web3.js': 1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@toruslabs/solana-embed': 0.3.4(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@toruslabs/solana-embed': 0.3.4(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       assert: 2.1.0
       crypto-browserify: 3.12.1
       process: 0.11.10
@@ -33053,11 +33078,11 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@solana/wallet-adapter-torus@0.11.31(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@solana/wallet-adapter-torus@0.11.31(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@solana/wallet-adapter-base': 0.9.26(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/web3.js': 1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@toruslabs/solana-embed': 2.1.0(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@toruslabs/solana-embed': 2.1.0(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       assert: 2.1.0
       crypto-browserify: 3.12.1
       process: 0.11.10
@@ -33248,7 +33273,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@solana/wallet-adapter-wallets@0.19.32(@babel/core@7.27.4)(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bs58@6.0.0)(bufferutil@4.0.9)(db0@0.3.2)(ioredis@5.6.1)(react-dom@18.3.1(react@18.3.1))(react-native@0.77.0(@babel/core@7.27.4)(@types/react@18.2.62)(bufferutil@4.0.9)(react@18.3.1)(utf-8-validate@5.0.10))(react@18.3.1)(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.50)':
+  '@solana/wallet-adapter-wallets@0.19.32(@babel/core@7.27.4)(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bs58@6.0.0)(bufferutil@4.0.9)(db0@0.3.2)(ioredis@5.6.1)(react-dom@18.3.1(react@18.3.1))(react-native@0.77.0(@babel/core@7.27.4)(@types/react@18.2.62)(bufferutil@4.0.9)(react@18.3.1)(utf-8-validate@5.0.10))(react@18.3.1)(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.50)':
     dependencies:
       '@solana/wallet-adapter-alpha': 0.1.10(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-avana': 0.1.13(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
@@ -33280,7 +33305,7 @@ snapshots:
       '@solana/wallet-adapter-spot': 0.1.15(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-tokenary': 0.1.12(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-tokenpocket': 0.4.19(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
-      '@solana/wallet-adapter-torus': 0.11.28(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@solana/wallet-adapter-torus': 0.11.28(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@solana/wallet-adapter-trezor': 0.1.2(@babel/core@7.27.4)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(react-native@0.77.0(@babel/core@7.27.4)(@types/react@18.2.62)(bufferutil@4.0.9)(react@18.3.1)(utf-8-validate@5.0.10))(tslib@2.8.1)(utf-8-validate@5.0.10)
       '@solana/wallet-adapter-trust': 0.1.13(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-unsafe-burner': 0.1.7(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
@@ -33323,7 +33348,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@solana/wallet-adapter-wallets@0.19.36(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(@solana/sysvars@2.1.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3))(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@types/react@19.1.3)(bs58@6.0.0)(bufferutil@4.0.9)(db0@0.3.2)(fastestsmallesttextencoderdecoder@1.0.22)(ioredis@5.6.1)(react-dom@19.1.0(react@19.1.0))(react-native@0.77.0(@types/react@19.1.3)(bufferutil@4.0.9)(react@19.1.0)(utf-8-validate@5.0.10))(react@19.1.0)(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(ws@8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@3.25.50)':
+  '@solana/wallet-adapter-wallets@0.19.36(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(@solana/sysvars@2.1.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3))(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@types/react@19.1.3)(bs58@6.0.0)(bufferutil@4.0.9)(db0@0.3.2)(fastestsmallesttextencoderdecoder@1.0.22)(ioredis@5.6.1)(react-dom@19.1.0(react@19.1.0))(react-native@0.77.0(@types/react@19.1.3)(bufferutil@4.0.9)(react@19.1.0)(utf-8-validate@5.0.10))(react@19.1.0)(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(ws@8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@3.25.50)':
     dependencies:
       '@solana/wallet-adapter-alpha': 0.1.13(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-avana': 0.1.16(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
@@ -33355,7 +33380,7 @@ snapshots:
       '@solana/wallet-adapter-spot': 0.1.18(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-tokenary': 0.1.15(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-tokenpocket': 0.4.22(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
-      '@solana/wallet-adapter-torus': 0.11.31(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@solana/wallet-adapter-torus': 0.11.31(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@solana/wallet-adapter-trezor': 0.1.5(@solana/sysvars@2.1.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3))(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(fastestsmallesttextencoderdecoder@1.0.22)(react-native@0.77.0(@types/react@19.1.3)(bufferutil@4.0.9)(react@19.1.0)(utf-8-validate@5.0.10))(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(ws@8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-trust': 0.1.16(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-unsafe-burner': 0.1.10(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
@@ -33402,7 +33427,7 @@ snapshots:
       - ws
       - zod
 
-  '@solana/wallet-adapter-wallets@0.19.36(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(@solana/sysvars@2.1.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3))(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@types/react@19.1.6)(bs58@6.0.0)(bufferutil@4.0.9)(db0@0.3.2)(fastestsmallesttextencoderdecoder@1.0.22)(ioredis@5.6.1)(react-native@0.77.0(@types/react@19.1.6)(bufferutil@4.0.9)(react@19.1.0)(utf-8-validate@5.0.10))(react@19.1.0)(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(ws@8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@3.25.50)':
+  '@solana/wallet-adapter-wallets@0.19.36(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(@solana/sysvars@2.1.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3))(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@types/react@19.1.6)(bs58@6.0.0)(bufferutil@4.0.9)(db0@0.3.2)(fastestsmallesttextencoderdecoder@1.0.22)(ioredis@5.6.1)(react-native@0.77.0(@types/react@19.1.6)(bufferutil@4.0.9)(react@19.1.0)(utf-8-validate@5.0.10))(react@19.1.0)(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(ws@8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@3.25.50)':
     dependencies:
       '@solana/wallet-adapter-alpha': 0.1.13(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-avana': 0.1.16(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
@@ -33434,7 +33459,7 @@ snapshots:
       '@solana/wallet-adapter-spot': 0.1.18(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-tokenary': 0.1.15(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-tokenpocket': 0.4.22(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
-      '@solana/wallet-adapter-torus': 0.11.31(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@solana/wallet-adapter-torus': 0.11.31(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@solana/wallet-adapter-trezor': 0.1.5(@solana/sysvars@2.1.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3))(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(fastestsmallesttextencoderdecoder@1.0.22)(react-native@0.77.0(@types/react@19.1.6)(bufferutil@4.0.9)(react@19.1.0)(utf-8-validate@5.0.10))(tslib@2.8.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(ws@8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-trust': 0.1.16(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-unsafe-burner': 0.1.10(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
@@ -34676,12 +34701,12 @@ snapshots:
 
   '@tootallnate/once@2.0.0': {}
 
-  '@toruslabs/base-controllers@2.9.0(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@toruslabs/base-controllers@2.9.0(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@babel/runtime': 7.27.4
       '@ethereumjs/util': 8.1.0
-      '@toruslabs/broadcast-channel': 6.3.1(@sentry/types@7.119.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@toruslabs/http-helpers': 3.4.0(@babel/runtime@7.27.4)(@sentry/types@7.119.1)
+      '@toruslabs/broadcast-channel': 6.3.1(@sentry/types@7.120.3)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@toruslabs/http-helpers': 3.4.0(@babel/runtime@7.27.4)(@sentry/types@7.120.3)
       '@toruslabs/openlogin-jrpc': 4.7.2(@babel/runtime@7.27.4)
       async-mutex: 0.4.1
       bignumber.js: 9.1.2
@@ -34696,12 +34721,12 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@toruslabs/base-controllers@5.11.0(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@toruslabs/base-controllers@5.11.0(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@babel/runtime': 7.27.4
       '@ethereumjs/util': 9.1.0
-      '@toruslabs/broadcast-channel': 10.0.2(@sentry/types@7.119.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@toruslabs/http-helpers': 6.1.1(@babel/runtime@7.27.4)(@sentry/types@7.119.1)
+      '@toruslabs/broadcast-channel': 10.0.2(@sentry/types@7.120.3)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@toruslabs/http-helpers': 6.1.1(@babel/runtime@7.27.4)(@sentry/types@7.120.3)
       '@toruslabs/openlogin-jrpc': 8.3.0(@babel/runtime@7.27.4)
       '@toruslabs/openlogin-utils': 8.2.1(@babel/runtime@7.27.4)
       async-mutex: 0.5.0
@@ -34715,11 +34740,11 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@toruslabs/broadcast-channel@10.0.2(@sentry/types@7.119.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@toruslabs/broadcast-channel@10.0.2(@sentry/types@7.120.3)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@babel/runtime': 7.27.4
       '@toruslabs/eccrypto': 4.0.0
-      '@toruslabs/metadata-helpers': 5.1.0(@babel/runtime@7.27.4)(@sentry/types@7.119.1)
+      '@toruslabs/metadata-helpers': 5.1.0(@babel/runtime@7.27.4)(@sentry/types@7.120.3)
       loglevel: 1.9.2
       oblivious-set: 1.4.0
       socket.io-client: 4.8.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -34730,11 +34755,11 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@toruslabs/broadcast-channel@6.3.1(@sentry/types@7.119.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@toruslabs/broadcast-channel@6.3.1(@sentry/types@7.120.3)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@babel/runtime': 7.27.4
       '@toruslabs/eccrypto': 2.2.1
-      '@toruslabs/metadata-helpers': 3.2.0(@babel/runtime@7.27.4)(@sentry/types@7.119.1)
+      '@toruslabs/metadata-helpers': 3.2.0(@babel/runtime@7.27.4)(@sentry/types@7.120.3)
       bowser: 2.11.0
       loglevel: 1.9.2
       oblivious-set: 1.1.1
@@ -34758,38 +34783,38 @@ snapshots:
     dependencies:
       elliptic: 6.6.1
 
-  '@toruslabs/http-helpers@3.4.0(@babel/runtime@7.27.4)(@sentry/types@7.119.1)':
+  '@toruslabs/http-helpers@3.4.0(@babel/runtime@7.27.4)(@sentry/types@7.120.3)':
     dependencies:
       '@babel/runtime': 7.27.4
       lodash.merge: 4.6.2
       loglevel: 1.9.2
     optionalDependencies:
-      '@sentry/types': 7.119.1
+      '@sentry/types': 7.120.3
 
-  '@toruslabs/http-helpers@6.1.1(@babel/runtime@7.27.4)(@sentry/types@7.119.1)':
+  '@toruslabs/http-helpers@6.1.1(@babel/runtime@7.27.4)(@sentry/types@7.120.3)':
     dependencies:
       '@babel/runtime': 7.27.4
       lodash.merge: 4.6.2
       loglevel: 1.9.2
     optionalDependencies:
-      '@sentry/types': 7.119.1
+      '@sentry/types': 7.120.3
 
-  '@toruslabs/metadata-helpers@3.2.0(@babel/runtime@7.27.4)(@sentry/types@7.119.1)':
+  '@toruslabs/metadata-helpers@3.2.0(@babel/runtime@7.27.4)(@sentry/types@7.120.3)':
     dependencies:
       '@babel/runtime': 7.27.4
       '@toruslabs/eccrypto': 2.2.1
-      '@toruslabs/http-helpers': 3.4.0(@babel/runtime@7.27.4)(@sentry/types@7.119.1)
+      '@toruslabs/http-helpers': 3.4.0(@babel/runtime@7.27.4)(@sentry/types@7.120.3)
       elliptic: 6.6.1
       ethereum-cryptography: 2.2.1
       json-stable-stringify: 1.2.1
     transitivePeerDependencies:
       - '@sentry/types'
 
-  '@toruslabs/metadata-helpers@5.1.0(@babel/runtime@7.27.4)(@sentry/types@7.119.1)':
+  '@toruslabs/metadata-helpers@5.1.0(@babel/runtime@7.27.4)(@sentry/types@7.120.3)':
     dependencies:
       '@babel/runtime': 7.27.4
       '@toruslabs/eccrypto': 4.0.0
-      '@toruslabs/http-helpers': 6.1.1(@babel/runtime@7.27.4)(@sentry/types@7.119.1)
+      '@toruslabs/http-helpers': 6.1.1(@babel/runtime@7.27.4)(@sentry/types@7.120.3)
       elliptic: 6.6.1
       ethereum-cryptography: 2.2.1
       json-stable-stringify: 1.3.0
@@ -34851,12 +34876,12 @@ snapshots:
       base64url: 3.0.1
       color: 4.2.3
 
-  '@toruslabs/solana-embed@0.3.4(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@toruslabs/solana-embed@0.3.4(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@babel/runtime': 7.27.4
       '@solana/web3.js': 1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@toruslabs/base-controllers': 2.9.0(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@toruslabs/http-helpers': 3.4.0(@babel/runtime@7.27.4)(@sentry/types@7.119.1)
+      '@toruslabs/base-controllers': 2.9.0(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@toruslabs/http-helpers': 3.4.0(@babel/runtime@7.27.4)(@sentry/types@7.120.3)
       '@toruslabs/openlogin-jrpc': 3.2.0(@babel/runtime@7.27.4)
       eth-rpc-errors: 4.0.3
       fast-deep-equal: 3.1.3
@@ -34871,12 +34896,12 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@toruslabs/solana-embed@2.1.0(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@toruslabs/solana-embed@2.1.0(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@babel/runtime': 7.27.4
       '@solana/web3.js': 1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@toruslabs/base-controllers': 5.11.0(@babel/runtime@7.27.4)(@sentry/types@7.119.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@toruslabs/http-helpers': 6.1.1(@babel/runtime@7.27.4)(@sentry/types@7.119.1)
+      '@toruslabs/base-controllers': 5.11.0(@babel/runtime@7.27.4)(@sentry/types@7.120.3)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@toruslabs/http-helpers': 6.1.1(@babel/runtime@7.27.4)(@sentry/types@7.120.3)
       '@toruslabs/openlogin-jrpc': 8.3.0(@babel/runtime@7.27.4)
       eth-rpc-errors: 4.0.3
       fast-deep-equal: 3.1.3
