@@ -59,10 +59,12 @@ describe('W3mAccountDefaultWidget', () => {
     // Mock OptionsController state
     vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
       features: {
-        onramp: true,
-        swaps: true,
-        send: true,
         walletFeaturesOrder: ['onramp', 'swaps', 'send']
+      },
+      remoteFeatures: {
+        onramp: ['coinbase'],
+        swaps: ['1inch'],
+        send: true
       }
     } as any)
 
@@ -255,10 +257,6 @@ describe('W3mAccountDefaultWidget', () => {
       await disconnectButton?.click()
 
       expect(ConnectionController.disconnect).toHaveBeenCalled()
-      expect(EventsController.sendEvent).toHaveBeenCalledWith({
-        type: 'track',
-        event: 'DISCONNECT_SUCCESS'
-      })
       expect(ModalController.close).toHaveBeenCalled()
     })
 

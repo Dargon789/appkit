@@ -1,6 +1,11 @@
-import { type ChainNamespace } from '@reown/appkit-common'
+import {
+  type ChainNamespace,
+  type OnRampProvider,
+  type SocialProvider,
+  type SwapProvider
+} from '@reown/appkit-common'
 
-import type { DefaultAccountTypes, Features, SocialProvider } from './TypeUtil.js'
+import type { Features, PreferredAccountTypes, RemoteFeatures } from './TypeUtil.js'
 
 const SECURE_SITE =
   // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
@@ -207,27 +212,27 @@ export const ConstantsUtil = {
 
   NAMES_SUPPORTED_CHAIN_NAMESPACES: ['eip155'] as ChainNamespace[],
   ONRAMP_SUPPORTED_CHAIN_NAMESPACES: ['eip155', 'solana'] as ChainNamespace[],
-  ACTIVITY_ENABLED_CHAIN_NAMESPACES: ['eip155', 'solana'] as ChainNamespace[],
+  ACTIVITY_ENABLED_CHAIN_NAMESPACES: ['eip155'] as ChainNamespace[],
   NATIVE_TOKEN_ADDRESS: {
     eip155: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
     solana: 'So11111111111111111111111111111111111111111',
     polkadot: '0x',
-    bip122: '0x'
+    bip122: '0x',
+    cosmos: '0x'
   } as const satisfies Record<ChainNamespace, string>,
 
   CONVERT_SLIPPAGE_TOLERANCE: 1,
 
   CONNECT_LABELS: {
-    MOBILE: 'Open and continue in a new browser tab'
+    MOBILE: 'Open and continue in the wallet app',
+    WEB: 'Open and continue in the wallet app'
   },
 
-  DEFAULT_FEATURES: {
-    swaps: true,
-    onramp: true,
-    receive: true,
-    send: true,
+  SEND_SUPPORTED_NAMESPACES: ['eip155', 'solana'] as ChainNamespace[],
+  DEFAULT_REMOTE_FEATURES: {
+    swaps: ['1inch'] as SwapProvider[],
+    onramp: ['coinbase', 'meld'] as OnRampProvider[],
     email: true,
-    emailShowWallets: true,
     socials: [
       'google',
       'x',
@@ -237,22 +242,56 @@ export const ConstantsUtil = {
       'apple',
       'facebook'
     ] as SocialProvider[],
-    history: true,
+    activity: true,
+    reownBranding: true
+  },
+  DEFAULT_REMOTE_FEATURES_DISABLED: {
+    email: false,
+    socials: false,
+    swaps: false,
+    onramp: false,
+    activity: false,
+    reownBranding: false
+  } as const satisfies RemoteFeatures,
+  DEFAULT_FEATURES: {
+    receive: true,
+    send: true,
+    emailShowWallets: true,
+    connectorTypeOrder: [
+      'walletConnect',
+      'recent',
+      'injected',
+      'featured',
+      'custom',
+      'external',
+      'recommended'
+    ],
     analytics: true,
     allWallets: true,
     legalCheckbox: false,
     smartSessions: false,
     collapseWallets: false,
     walletFeaturesOrder: ['onramp', 'swaps', 'receive', 'send'],
-    connectMethodsOrder: undefined
+    connectMethodsOrder: undefined,
+    pay: false
   } satisfies Features,
+
+  DEFAULT_SOCIALS: [
+    'google',
+    'x',
+    'farcaster',
+    'discord',
+    'apple',
+    'github',
+    'facebook'
+  ] as SocialProvider[],
 
   DEFAULT_ACCOUNT_TYPES: {
     bip122: 'payment',
     eip155: 'smartAccount',
     polkadot: 'eoa',
     solana: 'eoa'
-  } as const satisfies DefaultAccountTypes,
+  } as const satisfies PreferredAccountTypes,
   ADAPTER_TYPES: {
     UNIVERSAL: 'universal',
     SOLANA: 'solana',

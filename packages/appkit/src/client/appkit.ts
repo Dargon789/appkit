@@ -5,6 +5,7 @@ import {
   type CaipNetworkId,
   type ChainNamespace,
   ConstantsUtil,
+  type EmbeddedWalletTimeoutReason,
   getW3mThemeVariables
 } from '@reown/appkit-common'
 import {
@@ -14,7 +15,10 @@ import {
   type ConnectorType,
   ConstantsUtil as CoreConstantsUtil,
   EventsController,
-  type Metadata
+  type Features,
+  type Metadata,
+  PublicStateController,
+  type RemoteFeatures
 } from '@reown/appkit-controllers'
 import {
   AccountController,
@@ -25,14 +29,18 @@ import {
   StorageUtil,
   ThemeController
 } from '@reown/appkit-controllers'
-import { ErrorUtil, HelpersUtil, ConstantsUtil as UtilConstantsUtil } from '@reown/appkit-utils'
+import {
+  ErrorUtil,
+  HelpersUtil,
+  ProviderUtil,
+  ConstantsUtil as UtilConstantsUtil
+} from '@reown/appkit-utils'
 import { W3mFrameHelpers, W3mFrameProvider } from '@reown/appkit-wallet'
 import type { W3mFrameTypes } from '@reown/appkit-wallet'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet/utils'
 
 import type { AdapterBlueprint } from '../adapters/ChainAdapterBlueprint.js'
 import { W3mFrameProviderSingleton } from '../auth-provider/W3MFrameProviderSingleton.js'
-import { ProviderUtil } from '../store/ProviderUtil.js'
 import { AppKitBaseClient, type AppKitOptionsWithSdk } from './appkit-base-client.js'
 
 declare global {
@@ -78,7 +86,7 @@ export class AppKit extends AppKitBaseClient {
         if (this.isTransactionStackEmpty()) {
           this.close()
         } else {
-          this.popTransactionStack(true)
+          this.popTransactionStack('error')
         }
       }
     })
@@ -90,16 +98,15 @@ export class AppKit extends AppKitBaseClient {
       if (isSafeRequest) {
         return
       }
+
+      if (address && caipNetwork?.id) {
+        this.updateNativeBalance(address, caipNetwork.id, caipNetwork.chainNamespace)
+      }
+
       if (this.isTransactionStackEmpty()) {
         this.close()
-        if (address && caipNetwork?.id) {
-          this.updateNativeBalance(address, caipNetwork.id, caipNetwork.chainNamespace)
-        }
       } else {
-        this.popTransactionStack()
-        if (address && caipNetwork?.id) {
-          this.updateNativeBalance(address, caipNetwork.id, caipNetwork.chainNamespace)
-        }
+        this.popTransactionStack('success')
       }
     })
     provider.onNotConnected(() => {
@@ -111,7 +118,7 @@ export class AppKit extends AppKitBaseClient {
         this.setLoading(false, namespace)
       }
     })
-    provider.onConnect(async user => {
+    provider.onConnect(user => {
       const namespace = ChainController.state.activeChain as ChainNamespace
 
       // To keep backwards compatibility, eip155 chainIds are numbers and not actual caipChainIds
@@ -119,7 +126,14 @@ export class AppKit extends AppKitBaseClient {
         namespace === ConstantsUtil.CHAIN.EVM
           ? (`eip155:${user.chainId}:${user.address}` as CaipAddress)
           : (`${user.chainId}:${user.address}` as CaipAddress)
-      this.setSmartAccountDeployed(Boolean(user.smartAccountDeployed), namespace)
+
+      const defaultAccountType = OptionsController.state.defaultAccountTypes[namespace]
+      const currentAccountType = AccountController.state.preferredAccountTypes?.[namespace]
+      const preferredAccountType =
+        (user.preferredAccountType as W3mFrameTypes.AccountType) ||
+        currentAccountType ||
+        defaultAccountType
+
       /*
        * This covers the case where user switches back from a smart account supported
        *  network to a non-smart account supported network resulting in a different address
@@ -133,29 +147,29 @@ export class AppKit extends AppKitBaseClient {
         })
       }
       this.setCaipAddress(caipAddress, namespace)
-
-      this.setUser({ ...(AccountController.state.user || {}), email: user.email }, namespace)
-
-      const preferredAccountType = (user.preferredAccountType ||
-        OptionsController.state.defaultAccountTypes[namespace]) as W3mFrameTypes.AccountType
+      this.setUser({ ...(AccountController.state.user || {}), ...user }, namespace)
+      this.setSmartAccountDeployed(Boolean(user.smartAccountDeployed), namespace)
       this.setPreferredAccountType(preferredAccountType, namespace)
 
       const userAccounts = user.accounts?.map(account =>
         CoreHelperUtil.createAccount(
           namespace,
           account.address,
-          account.type || OptionsController.state.defaultAccountTypes[namespace]
+          account.type || currentAccountType || defaultAccountType
         )
       )
 
       this.setAllAccounts(
         userAccounts || [
-          CoreHelperUtil.createAccount(namespace, user.address, preferredAccountType)
+          CoreHelperUtil.createAccount(
+            namespace,
+            user.address,
+            (user.preferredAccountType as W3mFrameTypes.AccountType) || preferredAccountType
+          )
         ],
         namespace
       )
 
-      await provider.getSmartAccountEnabledNetworks()
       this.setLoading(false, namespace)
     })
     provider.onSocialConnected(({ userName }) => {
@@ -174,6 +188,7 @@ export class AppKit extends AppKitBaseClient {
       if (!address) {
         return
       }
+
       this.setPreferredAccountType(
         type as W3mFrameTypes.AccountType,
         ChainController.state.activeChain as ChainNamespace
@@ -199,10 +214,7 @@ export class AppKit extends AppKitBaseClient {
     const email = provider.getEmail()
     const username = provider.getUsername()
 
-    this.setUser(
-      { ...(AccountController.state?.user || {}), username, email },
-      ChainController.state.activeChain
-    )
+    this.setUser({ ...(AccountController.state?.user || {}), username, email }, chainNamespace)
 
     this.setupAuthConnectorListeners(provider)
 
@@ -211,17 +223,21 @@ export class AppKit extends AppKitBaseClient {
     const theme = ThemeController.getSnapshot()
     const options = OptionsController.getSnapshot()
 
-    provider.syncDappData({
-      metadata: options.metadata as Metadata,
-      sdkVersion: options.sdkVersion,
-      projectId: options.projectId,
-      sdkType: options.sdkType
-    })
-    provider.syncTheme({
-      themeMode: theme.themeMode,
-      themeVariables: theme.themeVariables,
-      w3mThemeVariables: getW3mThemeVariables(theme.themeVariables, theme.themeMode)
-    })
+    await Promise.all([
+      provider.syncDappData({
+        metadata: options.metadata as Metadata,
+        sdkVersion: options.sdkVersion,
+        projectId: options.projectId,
+        sdkType: options.sdkType
+      }),
+      provider.syncTheme({
+        themeMode: theme.themeMode,
+        themeVariables: theme.themeVariables,
+        w3mThemeVariables: getW3mThemeVariables(theme.themeVariables, theme.themeMode)
+      })
+    ])
+
+    await provider.getSmartAccountEnabledNetworks()
 
     if (chainNamespace && isAuthSupported) {
       if (isConnected && this.connectionControllerClient?.connectExternal) {
@@ -254,7 +270,7 @@ export class AppKit extends AppKitBaseClient {
       if (!socialProviderToConnect) {
         return
       }
-      if (typeof window === 'undefined' || typeof document === 'undefined') {
+      if (!CoreHelperUtil.isClient()) {
         return
       }
       const url = new URL(window.location.href)
@@ -268,8 +284,15 @@ export class AppKit extends AppKitBaseClient {
       if (socialProviderToConnect && authConnector) {
         this.setLoading(true, chainNamespace)
 
-        await authConnector.provider.connectSocial(resultUri)
-        await ConnectionController.connectExternal(authConnector, authConnector.chain)
+        await ConnectionController.connectExternal(
+          {
+            id: authConnector.id,
+            type: authConnector.type,
+            socialUri: resultUri
+          },
+          authConnector.chain
+        )
+
         StorageUtil.setConnectedSocialProvider(socialProviderToConnect)
         StorageUtil.removeTelegramSocialProvider()
 
@@ -304,14 +327,10 @@ export class AppKit extends AppKitBaseClient {
       return
     }
 
-    const isEmailEnabled =
-      this.options?.features?.email === undefined
-        ? CoreConstantsUtil.DEFAULT_FEATURES.email
-        : this.options?.features?.email
+    const isEmailEnabled = this.remoteFeatures?.email
 
-    const isSocialsEnabled = this.options?.features?.socials
-      ? this.options?.features?.socials?.length > 0
-      : CoreConstantsUtil.DEFAULT_FEATURES.socials
+    const isSocialsEnabled =
+      Array.isArray(this.remoteFeatures?.socials) && this.remoteFeatures.socials.length > 0
 
     const isAuthEnabled = isEmailEnabled || isSocialsEnabled
 
@@ -320,15 +339,23 @@ export class AppKit extends AppKitBaseClient {
         projectId: this.options.projectId,
         enableLogger: this.options.enableAuthLogger,
         chainId: this.getCaipNetwork(chainNamespace)?.caipNetworkId,
-        onTimeout: () => {
-          AlertController.open(ErrorUtil.ALERT_ERRORS.SOCIALS_TIMEOUT, 'error')
+        abortController: ErrorUtil.EmbeddedWalletAbortController,
+        onTimeout: (reason: EmbeddedWalletTimeoutReason) => {
+          if (reason === 'iframe_load_failed') {
+            AlertController.open(ErrorUtil.ALERT_ERRORS.IFRAME_LOAD_FAILED, 'error')
+          } else if (reason === 'iframe_request_timeout') {
+            AlertController.open(ErrorUtil.ALERT_ERRORS.IFRAME_REQUEST_TIMEOUT, 'error')
+          } else if (reason === 'unverified_domain') {
+            AlertController.open(ErrorUtil.ALERT_ERRORS.UNVERIFIED_DOMAIN, 'error')
+          }
         }
       })
-      this.subscribeState(val => {
-        if (!val.open) {
+      PublicStateController.subscribeOpen(isOpen => {
+        if (!isOpen && this.isTransactionStackEmpty()) {
           this.authProvider?.rejectRpcRequests()
         }
       })
+
       this.syncAuthConnector(this.authProvider, chainNamespace)
       this.checkExistingTelegramSocialConnection(chainNamespace)
     }
@@ -348,7 +375,7 @@ export class AppKit extends AppKitBaseClient {
     super.initControllers(options)
 
     if (this.options.excludeWalletIds) {
-      ApiController.initializeExcludedWalletRdns({ ids: this.options.excludeWalletIds })
+      ApiController.initializeExcludedWallets({ ids: this.options.excludeWalletIds })
     }
   }
 
@@ -359,9 +386,10 @@ export class AppKit extends AppKitBaseClient {
 
     const currentNamespace = ChainController.state.activeChain
     const networkNamespace = caipNetwork.chainNamespace
-    const namespaceAddress = this.getAddressByChainNamespace(caipNetwork.chainNamespace)
+    const namespaceAddress = this.getAddressByChainNamespace(networkNamespace)
+    const isSameNamespace = networkNamespace === currentNamespace
 
-    if (caipNetwork.chainNamespace === ChainController.state.activeChain && namespaceAddress) {
+    if (isSameNamespace && namespaceAddress) {
       const adapter = this.getAdapter(networkNamespace)
       const provider = ProviderUtil.getProvider(networkNamespace)
       const providerType = ProviderUtil.getProviderId(networkNamespace)
@@ -379,21 +407,43 @@ export class AppKit extends AppKitBaseClient {
       const isNewNamespaceSupportsAuthConnector =
         ConstantsUtil.AUTH_CONNECTOR_SUPPORTED_CHAINS.includes(networkNamespace)
 
+      /*
+       * Only connect with the auth connector if:
+       * 1. The current namespace is an auth connector AND
+       *    the new namespace provider type is undefined
+       * OR
+       * 2. The new namespace provider type is auth connector AND
+       *    the new namespace supports auth connector
+       *
+       * Note: There are cases where the current namespace is an auth connector
+       * but the new namespace uses a different connector type (injected, walletconnect, etc).
+       * In those cases, we should not connect with the auth connector.
+       */
       if (
-        // If the current namespace is one of the auth connector supported chains, when switching to other supported namespace, we should use the auth connector
-        (isCurrentNamespaceAuthProvider || isNewNamespaceAuthProvider) &&
+        ((isCurrentNamespaceAuthProvider && newNamespaceProviderType === undefined) ||
+          isNewNamespaceAuthProvider) &&
         isNewNamespaceSupportsAuthConnector
       ) {
         try {
           ChainController.state.activeChain = caipNetwork.chainNamespace
-          await this.connectionControllerClient?.connectExternal?.({
-            id: ConstantsUtil.CONNECTOR_ID.AUTH,
-            provider: this.authProvider,
-            chain: networkNamespace,
-            chainId: caipNetwork.id,
-            type: UtilConstantsUtil.CONNECTOR_TYPE_AUTH as ConnectorType,
-            caipNetwork
-          })
+
+          if (namespaceAddress) {
+            const adapter = this.getAdapter(networkNamespace as ChainNamespace)
+            await adapter?.switchNetwork({
+              caipNetwork,
+              provider: this.authProvider,
+              providerType: newNamespaceProviderType
+            })
+          } else {
+            await this.connectionControllerClient?.connectExternal?.({
+              id: ConstantsUtil.CONNECTOR_ID.AUTH,
+              provider: this.authProvider,
+              chain: networkNamespace,
+              chainId: caipNetwork.id,
+              type: UtilConstantsUtil.CONNECTOR_TYPE_AUTH as ConnectorType,
+              caipNetwork
+            })
+          }
           this.setCaipNetwork(caipNetwork)
         } catch (error) {
           const adapter = this.getAdapter(networkNamespace as ChainNamespace)
@@ -419,11 +469,14 @@ export class AppKit extends AppKitBaseClient {
     }
   }
 
-  protected override async initChainAdapter(namespace: ChainNamespace): Promise<void> {
-    await super.initChainAdapter(namespace)
-    this.createAuthProviderForAdapter(namespace)
+  protected override async initialize(options: AppKitOptionsWithSdk) {
+    await super.initialize(options)
+    this.chainNamespaces?.forEach(namespace => {
+      this.createAuthProviderForAdapter(namespace)
+    })
+    await this.injectModalUi()
+    PublicStateController.set({ initialized: true })
   }
-
   public override async syncIdentity({
     address,
     chainId,
@@ -449,24 +502,6 @@ export class AppKit extends AppKitBaseClient {
 
       this.setProfileName(name, chainNamespace)
       this.setProfileImage(avatar, chainNamespace)
-
-      if (!name) {
-        const adapter = this.getAdapter(chainNamespace)
-        const result = await adapter?.getProfile({
-          address,
-          chainId: Number(chainId)
-        })
-
-        if (result?.profileName) {
-          this.setProfileName(result.profileName, chainNamespace)
-          if (result.profileImage) {
-            this.setProfileImage(result.profileImage, chainNamespace)
-          }
-        } else {
-          await this.syncReownName(address, chainNamespace)
-          this.setProfileImage(null, chainNamespace)
-        }
-      }
     } catch {
       await this.syncReownName(address, chainNamespace)
       if (chainId !== 1) {
@@ -492,59 +527,89 @@ export class AppKit extends AppKitBaseClient {
   }
 
   protected override async injectModalUi() {
-    if (!isInitialized && CoreHelperUtil.isClient()) {
-      const features = { ...CoreConstantsUtil.DEFAULT_FEATURES, ...this.options.features }
-
-      // Selectively import views based on feature flags
-      const featureImportPromises = []
-      if (features) {
-        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-        const usingEmbeddedWallet = features.email || (features.socials && features.socials.length)
-        if (usingEmbeddedWallet) {
-          featureImportPromises.push(import('@reown/appkit-scaffold-ui/embedded-wallet'))
-        }
-
-        if (features.email) {
-          featureImportPromises.push(import('@reown/appkit-scaffold-ui/email'))
-        }
-        if (features.socials) {
-          featureImportPromises.push(import('@reown/appkit-scaffold-ui/socials'))
-        }
-
-        if (features.swaps) {
-          featureImportPromises.push(import('@reown/appkit-scaffold-ui/swaps'))
-        }
-
-        if (features.send) {
-          featureImportPromises.push(import('@reown/appkit-scaffold-ui/send'))
-        }
-
-        if (features.receive) {
-          featureImportPromises.push(import('@reown/appkit-scaffold-ui/receive'))
-        }
-
-        if (features.onramp) {
-          featureImportPromises.push(import('@reown/appkit-scaffold-ui/onramp'))
-        }
-
-        if (features.history) {
-          featureImportPromises.push(import('@reown/appkit-scaffold-ui/transactions'))
-        }
-      }
-
-      await Promise.all([
-        ...featureImportPromises,
-        import('@reown/appkit-scaffold-ui'),
-        import('@reown/appkit-scaffold-ui/w3m-modal')
-      ])
-      const isElementCreated = document.querySelector('w3m-modal')
-      if (!isElementCreated) {
-        const modal = document.createElement('w3m-modal')
-        if (!OptionsController.state.disableAppend && !OptionsController.state.enableEmbedded) {
-          document.body.insertAdjacentElement('beforeend', modal)
-        }
-      }
-      isInitialized = true
+    // Skip entirely in non-browser environments - ensures proper tree-shaking during build
+    if (!CoreHelperUtil.isClient()) {
+      return
     }
+
+    if (!isInitialized) {
+      try {
+        const features = { ...CoreConstantsUtil.DEFAULT_FEATURES, ...this.options.features }
+        const remoteFeatures = this.remoteFeatures
+
+        // Use a factory function that will be properly tree-shaken in SSR builds
+        await this.loadModalComponents(features, remoteFeatures)
+
+        // Always check again in case environment changed during async operations
+        if (CoreHelperUtil.isClient()) {
+          const isElementCreated = document.querySelector('w3m-modal')
+          if (!isElementCreated) {
+            const modal = document.createElement('w3m-modal')
+            if (!OptionsController.state.disableAppend && !OptionsController.state.enableEmbedded) {
+              document.body.insertAdjacentElement('beforeend', modal)
+            }
+          }
+        }
+
+        isInitialized = true
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Error injecting modal UI:', error)
+      }
+    }
+  }
+
+  // This separate method helps with tree-shaking for SSR builds
+  private async loadModalComponents(features: Features, remoteFeatures: RemoteFeatures) {
+    // Early explicit check forces bundlers to exclude this code in SSR builds
+    if (!CoreHelperUtil.isClient()) {
+      return
+    }
+
+    const featureImportPromises = []
+
+    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+    const usingEmbeddedWallet =
+      remoteFeatures.email || (remoteFeatures.socials && remoteFeatures.socials.length > 0)
+    if (usingEmbeddedWallet) {
+      featureImportPromises.push(import('@reown/appkit-scaffold-ui/embedded-wallet'))
+    }
+
+    if (remoteFeatures.email) {
+      featureImportPromises.push(import('@reown/appkit-scaffold-ui/email'))
+    }
+    if (remoteFeatures.socials) {
+      featureImportPromises.push(import('@reown/appkit-scaffold-ui/socials'))
+    }
+
+    if (remoteFeatures.swaps && remoteFeatures.swaps.length > 0) {
+      featureImportPromises.push(import('@reown/appkit-scaffold-ui/swaps'))
+    }
+
+    if (features.send) {
+      featureImportPromises.push(import('@reown/appkit-scaffold-ui/send'))
+    }
+
+    if (features.receive) {
+      featureImportPromises.push(import('@reown/appkit-scaffold-ui/receive'))
+    }
+
+    if (remoteFeatures.onramp && remoteFeatures.onramp.length > 0) {
+      featureImportPromises.push(import('@reown/appkit-scaffold-ui/onramp'))
+    }
+
+    if (remoteFeatures.activity) {
+      featureImportPromises.push(import('@reown/appkit-scaffold-ui/transactions'))
+    }
+
+    if (features.pay) {
+      featureImportPromises.push(import('@reown/appkit-pay'))
+    }
+
+    await Promise.all([
+      ...featureImportPromises,
+      import('@reown/appkit-scaffold-ui'),
+      import('@reown/appkit-scaffold-ui/w3m-modal')
+    ])
   }
 }

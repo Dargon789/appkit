@@ -7,6 +7,7 @@ import { createAppKit } from '@reown/appkit/react'
 import { AppKitButtons } from '@/src/components/AppKitButtons'
 import { AppKitInfo } from '@/src/components/AppKitInfo'
 import { Ethers5Tests } from '@/src/components/Ethers/Ethers5Tests'
+import InitializeBoundary from '@/src/components/InitializeBoundary'
 import { SiweData } from '@/src/components/Siwe/SiweData'
 import { ConstantsUtil } from '@/src/utils/ConstantsUtil'
 import { siweConfig } from '@/src/utils/SiweUtils'
@@ -20,10 +21,6 @@ const modal = createAppKit({
   networks,
   defaultNetwork: mainnet,
   projectId: ConstantsUtil.ProjectId,
-  features: {
-    analytics: true,
-    socials: ['google', 'x', 'discord', 'farcaster', 'github', 'apple', 'facebook']
-  },
   termsConditionsUrl: 'https://reown.com/terms-of-service',
   privacyPolicyUrl: 'https://reown.com/privacy-policy',
   siweConfig,
@@ -34,11 +31,11 @@ ThemeStore.setModal(modal)
 
 export default function Ethers() {
   return (
-    <>
+    <InitializeBoundary>
       <AppKitButtons />
       <AppKitInfo />
       <SiweData />
       <Ethers5Tests />
-    </>
+    </InitializeBoundary>
   )
 }

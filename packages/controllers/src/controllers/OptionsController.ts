@@ -1,16 +1,19 @@
 import { proxy, snapshot } from 'valtio/vanilla'
 import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 
+import type { CaipNetworkId, CustomRpcUrl } from '@reown/appkit-common'
+
 import { ConstantsUtil } from '../utils/ConstantsUtil.js'
 import { OptionsUtil } from '../utils/OptionsUtil.js'
 import type { SIWXConfig } from '../utils/SIWXUtil.js'
 import type {
   ConnectMethod,
   CustomWallet,
-  DefaultAccountTypes,
   Features,
   Metadata,
+  PreferredAccountTypes,
   ProjectId,
+  RemoteFeatures,
   SdkVersion,
   SocialProvider,
   Tokens,
@@ -30,6 +33,12 @@ export interface OptionsControllerStatePublic {
    * @see https://cloud.walletconnect.com/
    */
   projectId: ProjectId
+  /**
+   * A map of CAIP network ID and custom RPC URLs to be used by the AppKit.
+   * @default {}
+   * @see https://docs.reown.com/appkit/react/core/options#customrpcurls
+   */
+  customRpcUrls?: Record<CaipNetworkId, CustomRpcUrl[]>
   /**
    * Array of wallet ids to be shown in the modal's connection view with priority. These wallets will also show up first in `All Wallets` view
    * @default []
@@ -87,22 +96,22 @@ export interface OptionsControllerStatePublic {
    */
   enableWallets?: boolean
   /**
-   * Enable or disable the EIP6963 feature in your AppKit.
+   * Enable or disable the EIP6963 feature.
    * @default false
    */
   enableEIP6963?: boolean
   /**
-   * Enable or disable the Coinbase wallet in your AppKit.
+   * Enable or disable the Coinbase wallet.
    * @default true
    */
   enableCoinbase?: boolean
   /**
-   * Enable or disable the Injected wallet in your AppKit.
+   * Enable or disable the Injected wallet.
    * @default true
    */
   enableInjected?: boolean
   /**
-   * Enable or disable the WalletConnect QR code in your AppKit.
+   * Enable or disable the WalletConnect QR code.
    * @default true
    */
   enableWalletConnect?: boolean
@@ -117,7 +126,12 @@ export interface OptionsControllerStatePublic {
    */
   enableAuthLogger?: boolean
   /**
-   * Enable or disable debug mode in your AppKit. This is useful if you want to see UI alerts when debugging.
+   * Enable or disable Universal Links to open the wallets as default option instead of Deep Links.
+   * @default true
+   */
+  experimental_preferUniversalLinks?: boolean
+  /**
+   * Enable or disable debug mode. This is useful if you want to see UI alerts when debugging.
    * @default true
    */
   debug?: boolean
@@ -129,7 +143,7 @@ export interface OptionsControllerStatePublic {
   features?: Features
   /**
    * @experimental - This feature is not production ready.
-   * Enable Sign In With X (SIWX) feature in your AppKit.
+   * Enable Sign In With X (SIWX) feature.
    * @default undefined
    */
   siwx?: SIWXConfig
@@ -147,13 +161,34 @@ export interface OptionsControllerStatePublic {
    * Default account types for each namespace.
    * @default "{ bip122: 'payment', eip155: 'smartAccount', polkadot: 'eoa', solana: 'eoa' }"
    */
-  defaultAccountTypes: DefaultAccountTypes
+  defaultAccountTypes: PreferredAccountTypes
   /**
    * Allows users to indicate if they want to handle the WC connection themselves.
    * @default false
    * @see https://docs.reown.com/appkit/react/core/options#manualwccontrol
    */
   manualWCControl?: boolean
+  /**
+   * Custom Universal Provider configuration to override the default one.
+   * If `methods` is provided, it will override the default methods.
+   * If `chains` is provided, it will override the default chains.
+   * If `events` is provided, it will override the default events.
+   * If `rpcMap` is provided, it will override the default rpcMap.
+   * If `defaultChain` is provided, it will override the default defaultChain.
+   * @default undefined
+   */
+  universalProviderConfigOverride?: {
+    methods?: Record<string, string[]>
+    chains?: Record<string, string[]>
+    events?: Record<string, string[]>
+    rpcMap?: Record<string, string>
+    defaultChain?: string
+  }
+  /**
+   * Enable or disable the network switching functionality in the modal.
+   * @default true
+   */
+  enableNetworkSwitch?: boolean
 }
 
 export interface OptionsControllerStateInternal {
@@ -162,18 +197,22 @@ export interface OptionsControllerStateInternal {
   isSiweEnabled?: boolean
   isUniversalProvider?: boolean
   hasMultipleAddresses?: boolean
+  remoteFeatures?: RemoteFeatures
 }
 
 type StateKey = keyof OptionsControllerStatePublic | keyof OptionsControllerStateInternal
 type OptionsControllerState = OptionsControllerStatePublic & OptionsControllerStateInternal
 
 // -- State --------------------------------------------- //
-const state = proxy<OptionsControllerState & OptionsControllerStateInternal>({
+const state = proxy<OptionsControllerState>({
   features: ConstantsUtil.DEFAULT_FEATURES,
   projectId: '',
   sdkType: 'appkit',
   sdkVersion: 'html-wagmi-undefined',
-  defaultAccountTypes: ConstantsUtil.DEFAULT_ACCOUNT_TYPES
+  defaultAccountTypes: ConstantsUtil.DEFAULT_ACCOUNT_TYPES,
+  enableNetworkSwitch: true,
+  experimental_preferUniversalLinks: false,
+  remoteFeatures: {}
 })
 
 // -- Controller ---------------------------------------- //
@@ -188,6 +227,21 @@ export const OptionsController = {
     Object.assign(state, options)
   },
 
+  setRemoteFeatures(remoteFeatures: OptionsControllerState['remoteFeatures']) {
+    if (!remoteFeatures) {
+      return
+    }
+
+    const newRemoteFeatures = { ...state.remoteFeatures, ...remoteFeatures }
+    state.remoteFeatures = newRemoteFeatures
+
+    if (state.remoteFeatures?.socials) {
+      state.remoteFeatures.socials = OptionsUtil.filterSocialsByPlatform(
+        state.remoteFeatures.socials
+      )
+    }
+  },
+
   setFeatures(features: OptionsControllerState['features'] | undefined) {
     if (!features) {
       return
@@ -199,14 +253,14 @@ export const OptionsController = {
 
     const newFeatures = { ...state.features, ...features }
     state.features = newFeatures
-
-    if (state.features.socials) {
-      state.features.socials = OptionsUtil.filterSocialsByPlatform(state.features.socials)
-    }
   },
 
   setProjectId(projectId: OptionsControllerState['projectId']) {
     state.projectId = projectId
+  },
+
+  setCustomRpcUrls(customRpcUrls: OptionsControllerState['customRpcUrls']) {
+    state.customRpcUrls = customRpcUrls
   },
 
   setAllWallets(allWallets: OptionsControllerState['allWallets']) {
@@ -285,6 +339,12 @@ export const OptionsController = {
     state.enableWallets = enableWallets
   },
 
+  setPreferUniversalLinks(
+    preferUniversalLinks: OptionsControllerState['experimental_preferUniversalLinks']
+  ) {
+    state.experimental_preferUniversalLinks = preferUniversalLinks
+  },
+
   setHasMultipleAddresses(hasMultipleAddresses: OptionsControllerState['hasMultipleAddresses']) {
     state.hasMultipleAddresses = hasMultipleAddresses
   },
@@ -308,8 +368,8 @@ export const OptionsController = {
   },
 
   setSocialsOrder(socialsOrder: SocialProvider[]) {
-    state.features = {
-      ...state.features,
+    state.remoteFeatures = {
+      ...state.remoteFeatures,
       socials: socialsOrder
     }
   },
@@ -333,6 +393,10 @@ export const OptionsController = {
     state.manualWCControl = manualWCControl
   },
 
+  setEnableNetworkSwitch(enableNetworkSwitch: OptionsControllerState['enableNetworkSwitch']) {
+    state.enableNetworkSwitch = enableNetworkSwitch
+  },
+
   setDefaultAccountTypes(
     defaultAccountType: Partial<OptionsControllerState['defaultAccountTypes']> = {}
   ) {
@@ -342,6 +406,16 @@ export const OptionsController = {
         state.defaultAccountTypes[namespace] = accountType
       }
     })
+  },
+
+  setUniversalProviderConfigOverride(
+    universalProviderConfigOverride: OptionsControllerState['universalProviderConfigOverride']
+  ) {
+    state.universalProviderConfigOverride = universalProviderConfigOverride
+  },
+
+  getUniversalProviderConfigOverride() {
+    return state.universalProviderConfigOverride
   },
 
   getSnapshot() {

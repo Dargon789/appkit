@@ -7,13 +7,11 @@ import {
   AssetController,
   AssetUtil,
   ChainController,
-  ConnectionController,
   ConnectorController,
   EventsController,
-  ModalController,
+  ModalUtil,
   OptionsController,
-  RouterController,
-  SIWXUtil
+  RouterController
 } from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
 import '@reown/appkit-ui/wui-flex'
@@ -54,6 +52,7 @@ function headings() {
     ConvertSelectToken: 'Select token',
     ConvertPreview: 'Preview convert',
     Downloads: name ? `Get ${name}` : 'Downloads',
+    EmailLogin: 'Email Login',
     EmailVerifyOtp: 'Confirm Email',
     EmailVerifyDevice: 'Register Device',
     GetWallet: 'Get a wallet',
@@ -62,6 +61,7 @@ function headings() {
     OnRampActivity: 'Activity',
     OnRampTokenSelect: 'Select Token',
     OnRampFiatSelect: 'Select Currency',
+    Pay: 'How you pay',
     Profile: undefined,
     SwitchNetwork: networkName ?? 'Switch Network',
     SwitchAddress: 'Switch Address',
@@ -94,7 +94,8 @@ function headings() {
     SwitchActiveChain: 'Switch chain',
     SmartSessionCreated: undefined,
     SmartSessionList: 'Smart Sessions',
-    SIWXSignMessage: 'Sign In'
+    SIWXSignMessage: 'Sign In',
+    PayLoading: 'Payment in progress'
   }
 }
 
@@ -111,8 +112,6 @@ export class W3mHeader extends LitElement {
   @state() private network = ChainController.state.activeCaipNetwork
 
   @state() private networkImage = AssetUtil.getNetworkImage(this.network)
-
-  @state() private buffering = false
 
   @state() private showBack = false
 
@@ -138,7 +137,6 @@ export class W3mHeader extends LitElement {
         this.onViewChange()
         this.onHistoryChange()
       }),
-      ConnectionController.subscribeKey('buffering', val => (this.buffering = val)),
       ChainController.subscribeKey('activeCaipNetwork', val => {
         this.network = val
         this.networkImage = AssetUtil.getNetworkImage(this.network)
@@ -168,13 +166,7 @@ export class W3mHeader extends LitElement {
   }
 
   private async onClose() {
-    const isUnsupportedChain = RouterController.state.view === 'UnsupportedChain'
-
-    if (isUnsupportedChain || (await SIWXUtil.isSIWXCloseDisabled())) {
-      ModalController.shake()
-    } else {
-      ModalController.close()
-    }
+    await ModalUtil.safeClose()
   }
 
   private rightHeaderTemplate() {
@@ -197,7 +189,6 @@ export class W3mHeader extends LitElement {
   private closeButtonTemplate() {
     return html`
       <wui-icon-link
-        ?disabled=${this.buffering}
         icon="close"
         @click=${this.onClose.bind(this)}
         data-testid="w3m-header-close"
@@ -230,11 +221,12 @@ export class W3mHeader extends LitElement {
     const isApproveTransaction = view === 'ApproveTransaction'
     const isConnectingSIWEView = view === 'ConnectingSiwe'
     const isAccountView = view === 'Account'
+    const enableNetworkSwitch = OptionsController.state.enableNetworkSwitch
 
     const shouldHideBack =
       isApproveTransaction || isConnectingSIWEView || (isConnectHelp && isEmbeddedEnable)
 
-    if (isAccountView) {
+    if (isAccountView && enableNetworkSwitch) {
       return html`<wui-select
         id="dynamic"
         data-testid="w3m-account-select-network"
@@ -249,7 +241,6 @@ export class W3mHeader extends LitElement {
         data-testid="header-back"
         id="dynamic"
         icon="chevronLeft"
-        ?disabled=${this.buffering}
         @click=${this.onGoBack.bind(this)}
       ></wui-icon-link>`
     }

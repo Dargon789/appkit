@@ -1,6 +1,7 @@
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 
+import type { ChainNamespace } from '@reown/appkit-common'
 import {
   AccountController,
   BlockchainApiController,
@@ -80,12 +81,15 @@ export class W3mOnRampProvidersView extends LitElement {
               this.onClickProvider(provider)
             }}
             ?disabled=${!provider.url}
+            data-testid=${`onramp-provider-${provider.name}`}
           ></w3m-onramp-provider-item>
         `
       )
   }
 
   private onClickProvider(provider: OnRampProvider) {
+    const activeChainNamespace = ChainController.state.activeChain as ChainNamespace
+
     OnRampController.setSelectedProvider(provider)
     RouterController.push('BuyInProgress')
     CoreHelperUtil.openHref(provider.url, 'popupWindow', 'width=600,height=800,scrollbars=yes')
@@ -95,7 +99,7 @@ export class W3mOnRampProvidersView extends LitElement {
       properties: {
         provider: provider.name,
         isSmartAccount:
-          AccountController.state.preferredAccountType ===
+          AccountController.state.preferredAccountTypes?.[activeChainNamespace] ===
           W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT
       }
     })

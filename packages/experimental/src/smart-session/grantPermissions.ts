@@ -5,7 +5,7 @@ import {
   OptionsController,
   RouterController
 } from '@reown/appkit-controllers'
-import { ProviderUtil } from '@reown/appkit/store'
+import { ProviderUtil } from '@reown/appkit-utils'
 
 import {
   assertWalletGrantPermissionsResponse,
@@ -80,8 +80,9 @@ export async function grantPermissions(
   updateRequestSigner(request, addPermissionResponse.key)
 
   RouterController.pushTransactionStack({
-    view: 'SmartSessionCreated',
-    goBack: false
+    onSuccess() {
+      RouterController.replace('SmartSessionCreated')
+    }
   })
 
   const rawResponse = await connectionControllerClient?.grantPermissions([request])

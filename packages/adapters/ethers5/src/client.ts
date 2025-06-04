@@ -5,20 +5,20 @@ import { formatEther } from 'ethers/lib/utils.js'
 import { type AppKitOptions, WcConstantsUtil } from '@reown/appkit'
 import { ConstantsUtil as CommonConstantsUtil, ParseUtil } from '@reown/appkit-common'
 import {
+  AccountController,
   type CombinedProvider,
   type Connector,
   type ConnectorType,
   CoreHelperUtil,
-  OptionsController,
   type Provider,
   StorageUtil
 } from '@reown/appkit-controllers'
 import { ConstantsUtil, PresetsUtil } from '@reown/appkit-utils'
-import { EthersHelpersUtil, type ProviderType } from '@reown/appkit-utils/ethers'
+import { ProviderUtil } from '@reown/appkit-utils'
+import { type Address, EthersHelpersUtil, type ProviderType } from '@reown/appkit-utils/ethers'
 import type { W3mFrameProvider } from '@reown/appkit-wallet'
 import { AdapterBlueprint } from '@reown/appkit/adapters'
 import { WalletConnectConnector } from '@reown/appkit/connectors'
-import { ProviderUtil } from '@reown/appkit/store'
 
 import { Ethers5Methods } from './utils/Ethers5Methods.js'
 
@@ -29,12 +29,13 @@ export interface EIP6963ProviderDetail {
 
 export class Ethers5Adapter extends AdapterBlueprint {
   private ethersConfig?: ProviderType
-  public adapterType = 'ethers'
   private balancePromises: Record<string, Promise<AdapterBlueprint.GetBalanceResult>> = {}
 
   constructor() {
-    super({})
-    this.namespace = CommonConstantsUtil.CHAIN.EVM
+    super({
+      adapterType: CommonConstantsUtil.ADAPTER_TYPES.ETHERS5,
+      namespace: CommonConstantsUtil.CHAIN.EVM
+    })
   }
 
   private async createEthersConfig(options: AppKitOptions) {
@@ -60,6 +61,22 @@ export class Ethers5Adapter extends AdapterBlueprint {
       injectedProvider = window.ethereum
 
       return injectedProvider
+    }
+
+    async function getSafeProvider() {
+      const { SafeProvider } = await import('./utils/SafeProvider.js')
+      const { default: SafeAppsSDK } = await import('@safe-global/safe-apps-sdk')
+      const appsSdk = new SafeAppsSDK()
+      const info = await appsSdk.safe.getInfo()
+
+      const provider = new SafeProvider(info, appsSdk)
+
+      await provider.connect().catch(error => {
+        // eslint-disable-next-line no-console
+        console.info('Failed to auto-connect to Safe:', error)
+      })
+
+      return provider
     }
 
     async function getCoinbaseProvider() {
@@ -102,6 +119,13 @@ export class Ethers5Adapter extends AdapterBlueprint {
       }
     }
 
+    if (CoreHelperUtil.isSafeApp()) {
+      const safeProvider = await getSafeProvider()
+      if (safeProvider) {
+        providers.safe = safeProvider
+      }
+    }
+
     providers.EIP6963 = options.enableEIP6963 !== false
 
     return providers
@@ -133,15 +157,15 @@ export class Ethers5Adapter extends AdapterBlueprint {
 
     const tx = await Ethers5Methods.sendTransaction(
       {
-        value: params.value as bigint,
-        to: params.to as `0x${string}`,
-        data: params.data as `0x${string}`,
-        gas: params.gas as bigint,
-        gasPrice: params.gasPrice as bigint,
-        address: params.address
+        value: Number.isNaN(Number(params.value)) ? BigInt(0) : BigInt(params.value),
+        to: params.to as Address,
+        data: params.data ? (params.data as Address) : '0x',
+        gas: params.gas ? BigInt(params.gas) : undefined,
+        gasPrice: params.gasPrice ? BigInt(params.gasPrice) : undefined,
+        address: AccountController.state.address as Address
       },
       params.provider as Provider,
-      params.address,
+      AccountController.state.address as Address,
       Number(params.caipNetwork?.id)
     )
 
@@ -177,12 +201,12 @@ export class Ethers5Adapter extends AdapterBlueprint {
     try {
       const result = await Ethers5Methods.estimateGas(
         {
-          data: params.data as `0x${string}`,
-          to: params.to as `0x${string}`,
-          address: address as `0x${string}`
+          data: params.data as Address,
+          to: params.to as Address,
+          address: address as Address
         },
         provider as Provider,
-        address as `0x${string}`,
+        address as Address,
         Number(caipNetwork?.id)
       )
 
@@ -190,19 +214,6 @@ export class Ethers5Adapter extends AdapterBlueprint {
     } catch (error) {
       throw new Error('EthersAdapter:estimateGas - Estimate gas failed')
     }
-  }
-
-  public async getEnsAddress(
-    params: AdapterBlueprint.GetEnsAddressParams
-  ): Promise<AdapterBlueprint.GetEnsAddressResult> {
-    const { name, caipNetwork } = params
-    if (caipNetwork) {
-      const result = await Ethers5Methods.getEnsAddress(name, caipNetwork)
-
-      return { address: result as string }
-    }
-
-    return { address: '' }
   }
 
   public parseUnits(params: AdapterBlueprint.ParseUnitsParams): AdapterBlueprint.ParseUnitsResult {
@@ -291,7 +302,7 @@ export class Ethers5Adapter extends AdapterBlueprint {
     this.addConnector(
       new WalletConnectConnector({
         provider: universalProvider,
-        caipNetworks: this.caipNetworks || [],
+        caipNetworks: this.getCaipNetworks(),
         namespace: 'eip155'
       })
     )
@@ -333,7 +344,8 @@ export class Ethers5Adapter extends AdapterBlueprint {
   public async connect({
     id,
     type,
-    chainId
+    chainId,
+    socialUri
   }: AdapterBlueprint.ConnectParams): Promise<AdapterBlueprint.ConnectResult> {
     const connector = this.connectors.find(c => c.id === id)
     const selectedProvider = connector?.provider as Provider
@@ -348,10 +360,14 @@ export class Ethers5Adapter extends AdapterBlueprint {
     if (type === 'AUTH') {
       const { address } = await (selectedProvider as unknown as W3mFrameProvider).connect({
         chainId,
-        preferredAccountType: OptionsController.state.defaultAccountTypes.eip155
+        socialUri,
+        preferredAccountType: AccountController.state.preferredAccountTypes?.eip155
       })
 
-      accounts = [address]
+      this.emit('accountChanged', {
+        address: address as Address,
+        chainId: Number(chainId)
+      })
     } else {
       accounts = await selectedProvider.request({
         method: 'eth_requestAccounts'
@@ -362,7 +378,7 @@ export class Ethers5Adapter extends AdapterBlueprint {
       })
 
       if (requestChainId !== chainId) {
-        const caipNetwork = this.caipNetworks?.find(n => n.id === chainId)
+        const caipNetwork = this.getCaipNetworks().find(n => n.id === chainId)
 
         if (!caipNetwork) {
           throw new Error('Ethers5Adapter:connect - could not find the caipNetwork to switch')
@@ -379,11 +395,16 @@ export class Ethers5Adapter extends AdapterBlueprint {
         }
       }
 
+      this.emit('accountChanged', {
+        address: accounts[0] as Address,
+        chainId: Number(chainId)
+      })
+
       this.listenProviderEvents(selectedProvider)
     }
 
     return {
-      address: accounts[0] as `0x${string}`,
+      address: accounts[0] as Address,
       chainId: Number(chainId),
       provider: selectedProvider,
       type: type as ConnectorType,
@@ -403,7 +424,11 @@ export class Ethers5Adapter extends AdapterBlueprint {
 
     if (params.id === CommonConstantsUtil.CONNECTOR_ID.AUTH) {
       const provider = connector['provider'] as W3mFrameProvider
-      const { address, accounts } = await provider.connect()
+
+      if (!provider.user) {
+        return { accounts: [] }
+      }
+      const { accounts, address } = provider.user
 
       return Promise.resolve({
         accounts: (accounts || [{ address, type: 'eoa' }]).map(account =>
@@ -429,7 +454,7 @@ export class Ethers5Adapter extends AdapterBlueprint {
     if (connector && connector.type === 'AUTH' && chainId) {
       await (connector.provider as W3mFrameProvider).connect({
         chainId,
-        preferredAccountType: OptionsController.state.defaultAccountTypes.eip155
+        preferredAccountType: AccountController.state.preferredAccountTypes?.eip155
       })
     }
   }
@@ -461,7 +486,7 @@ export class Ethers5Adapter extends AdapterBlueprint {
     params: AdapterBlueprint.GetBalanceParams
   ): Promise<AdapterBlueprint.GetBalanceResult> {
     const address = params.address
-    const caipNetwork = this.caipNetworks?.find(network => network.id === params.chainId)
+    const caipNetwork = this.getCaipNetworks().find(network => network.id === params.chainId)
 
     if (!address) {
       return Promise.resolve({ balance: '0.00', symbol: 'ETH' })
@@ -519,20 +544,6 @@ export class Ethers5Adapter extends AdapterBlueprint {
     return { balance: '0.00', symbol: 'ETH' }
   }
 
-  public async getProfile(
-    params: AdapterBlueprint.GetProfileParams
-  ): Promise<AdapterBlueprint.GetProfileResult> {
-    if (params.chainId === 1) {
-      const ensProvider = new ethers.providers.InfuraProvider('mainnet')
-      const name = await ensProvider.lookupAddress(params.address)
-      const avatar = await ensProvider.getAvatar(params.address)
-
-      return { profileName: name || undefined, profileImage: avatar || undefined }
-    }
-
-    return { profileName: undefined, profileImage: undefined }
-  }
-
   private providerHandlers: {
     disconnect: () => void
     accountsChanged: (accounts: string[]) => void
@@ -548,7 +559,7 @@ export class Ethers5Adapter extends AdapterBlueprint {
     const accountsChangedHandler = (accounts: string[]) => {
       if (accounts.length > 0) {
         this.emit('accountChanged', {
-          address: accounts[0] as `0x${string}`
+          address: accounts[0] as Address
         })
       } else {
         disconnect()
@@ -671,7 +682,7 @@ export class Ethers5Adapter extends AdapterBlueprint {
 
   public async revokePermissions(
     params: AdapterBlueprint.RevokePermissionsParams
-  ): Promise<`0x${string}`> {
+  ): Promise<Address> {
     const provider = ProviderUtil.getProvider(CommonConstantsUtil.CHAIN.EVM)
 
     if (!provider) {

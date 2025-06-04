@@ -1,9 +1,12 @@
 import { proxy, subscribe as sub } from 'valtio/vanilla'
 import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 
-import type { ChainNamespace } from '@reown/appkit-common'
+import { type ChainNamespace } from '@reown/appkit-common'
 
 import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'
+import { NetworkUtil } from '../utils/NetworkUtil.js'
+import { withErrorBoundary } from '../utils/withErrorBoundary.js'
+import { AccountController } from './AccountController.js'
 import { ApiController } from './ApiController.js'
 import { ChainController } from './ChainController.js'
 import { ConnectionController } from './ConnectionController.js'
@@ -27,6 +30,7 @@ export interface ModalControllerArguments {
   open: {
     view?: RouterControllerState['view']
     namespace?: ChainNamespace
+    data?: RouterControllerState['data']
   }
 }
 
@@ -42,7 +46,7 @@ const state = proxy<ModalControllerState>({
 })
 
 // -- Controller ---------------------------------------- //
-export const ModalController = {
+const controller = {
   state,
 
   subscribe(callback: (newState: ModalControllerState) => void) {
@@ -54,36 +58,50 @@ export const ModalController = {
   },
 
   async open(options?: ModalControllerArguments['open']) {
+    const isConnected = AccountController.state.status === 'connected'
+    const namespace = options?.namespace
+    const currentNamespace = ChainController.state.activeChain
+    const isSwitchingNamespace = namespace && namespace !== currentNamespace
+    const caipAddress = ChainController.getAccountData(options?.namespace)?.caipAddress
+
     if (ConnectionController.state.wcBasic) {
       // No need to add an await here if we are use basic
       ApiController.prefetch({ fetchNetworkImages: false, fetchConnectorImages: false })
     } else {
-      await ApiController.prefetch()
+      await ApiController.prefetch({
+        fetchConnectorImages: !isConnected,
+        fetchFeaturedWallets: !isConnected,
+        fetchRecommendedWallets: !isConnected
+      })
     }
 
-    if (options?.namespace) {
-      ConnectorController.setFilterByNamespace(options.namespace)
-      await ChainController.switchActiveNamespace(options.namespace)
-      ModalController.setLoading(true, options.namespace)
-    } else {
-      ModalController.setLoading(true)
-    }
+    ConnectorController.setFilterByNamespace(options?.namespace)
+    ModalController.setLoading(true, namespace)
 
-    const caipAddress = ChainController.getAccountData(options?.namespace)?.caipAddress
-    const hasNoAdapters = ChainController.state.noAdapters
+    if (namespace && isSwitchingNamespace) {
+      const namespaceNetwork =
+        ChainController.getNetworkData(namespace)?.caipNetwork ||
+        ChainController.getRequestedCaipNetworks(namespace as ChainNamespace)[0]
 
-    if (hasNoAdapters && !caipAddress) {
-      if (CoreHelperUtil.isMobile()) {
-        RouterController.reset('AllWallets')
-      } else {
-        RouterController.reset('ConnectingWalletConnectBasic')
+      if (namespaceNetwork) {
+        NetworkUtil.onSwitchNetwork({ network: namespaceNetwork, ignoreSwitchConfirmation: true })
       }
-    } else if (options?.view) {
-      RouterController.reset(options.view)
-    } else if (caipAddress) {
-      RouterController.reset('Account')
     } else {
-      RouterController.reset('Connect')
+      const hasNoAdapters = ChainController.state.noAdapters
+
+      if (OptionsController.state.manualWCControl || (hasNoAdapters && !caipAddress)) {
+        if (CoreHelperUtil.isMobile()) {
+          RouterController.reset('AllWallets')
+        } else {
+          RouterController.reset('ConnectingWalletConnectBasic')
+        }
+      } else if (options?.view) {
+        RouterController.reset(options.view, options.data)
+      } else if (caipAddress) {
+        RouterController.reset('Account')
+      } else {
+        RouterController.reset('Connect')
+      }
     }
 
     state.open = true
@@ -109,6 +127,7 @@ export const ModalController = {
     }
 
     state.open = false
+    RouterController.reset('Connect')
     ModalController.clearLoading()
 
     if (isEmbeddedEnabled) {
@@ -121,7 +140,6 @@ export const ModalController = {
       PublicStateController.set({ open: false })
     }
 
-    ConnectorController.clearNamespaceFilter()
     ConnectionController.resetUri()
   },
 
@@ -148,3 +166,6 @@ export const ModalController = {
     }, 500)
   }
 }
+
+// Export the controller wrapped with our error boundary
+export const ModalController = withErrorBoundary(controller)

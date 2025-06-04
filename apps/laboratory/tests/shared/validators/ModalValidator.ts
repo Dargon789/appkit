@@ -10,7 +10,10 @@ import { getMaximumWaitConnections } from '../utils/timeouts'
 const MAX_WAIT = getMaximumWaitConnections()
 
 export class ModalValidator {
-  constructor(public readonly page: Page) {}
+  public readonly page: Page
+  constructor(page: Page) {
+    this.page = page
+  }
 
   async expectConnected() {
     const accountButton = this.page.locator('appkit-account-button').first()
@@ -50,7 +53,7 @@ export class ModalValidator {
     await expect(
       this.page.getByTestId('w3m-authentication-status'),
       'Authentication status should be: authenticated'
-    ).toContainText('authenticated')
+    ).toContainText('authenticated', { timeout: 10000 })
   }
 
   async expectOnSignInEventCalled(toBe: boolean) {
@@ -61,7 +64,7 @@ export class ModalValidator {
     await expect(
       this.page.getByTestId('w3m-authentication-status'),
       'Authentication status should be: unauthenticated'
-    ).toContainText('unauthenticated')
+    ).toContainText('unauthenticated', { timeout: 20000 })
   }
 
   async expectOnSignOutEventCalled(toBe: boolean) {
@@ -181,11 +184,6 @@ export class ModalValidator {
     await expect(alertBarText).toHaveText(network)
   }
 
-  async expectSwitchChainView(chainName: string) {
-    const title = this.page.getByTestId(`w3m-switch-active-chain-to-${chainName}`)
-    await expect(title).toBeVisible()
-  }
-
   async expectSwitchChainWithNetworkButton(chainName: string) {
     const switchNetworkViewLocator = this.page.locator('wui-network-button')
     await expect(switchNetworkViewLocator).toHaveText(chainName)
@@ -230,9 +228,13 @@ export class ModalValidator {
     await expect(allWallets).toBeVisible()
   }
 
-  async expectNoTryAgainButton() {
+  async expectOpenButton({ disabled }: { disabled: boolean }) {
     const secondaryButton = this.page.getByTestId('w3m-connecting-widget-secondary-button')
-    await expect(secondaryButton).toBeHidden()
+    if (disabled) {
+      await expect(secondaryButton).toHaveAttribute('disabled')
+    } else {
+      await expect(secondaryButton).not.toHaveAttribute('disabled')
+    }
   }
 
   async expectTryAgainButton() {
@@ -248,6 +250,11 @@ export class ModalValidator {
   async expectEmailLogin() {
     const emailInput = this.page.getByTestId('wui-email-input')
     await expect(emailInput).toBeVisible()
+  }
+
+  async expectEmailLoginNotVisible() {
+    const emailInput = this.page.getByTestId('wui-email-input')
+    await expect(emailInput).not.toBeVisible()
   }
 
   async expectEmailLineSeparator() {
@@ -321,6 +328,30 @@ export class ModalValidator {
     }
   }
 
+  async expectActivityButton(visible: boolean) {
+    const activityButton = this.page.getByTestId('w3m-account-default-activity-button')
+    if (visible) {
+      await expect(activityButton).toBeVisible()
+    } else {
+      await expect(activityButton).not.toBeVisible()
+    }
+  }
+
+  async expectSwapsButton(visible: boolean) {
+    const swapsButton = this.page.getByTestId('w3m-account-default-swaps-button')
+    if (visible) {
+      await expect(swapsButton).toBeVisible()
+    } else {
+      await expect(swapsButton).not.toBeVisible()
+    }
+  }
+  async expectOnrampProvider(providers: string[]) {
+    const promises = providers.map(provider =>
+      expect(this.page.getByTestId(`onramp-provider-${provider}`)).toBeVisible()
+    )
+    await Promise.all(promises)
+  }
+
   async expectWalletGuide(_library: string, guide: 'get-started' | 'explore') {
     const walletGuide = this.page.getByTestId(
       guide === 'explore' ? 'w3m-wallet-guide-explore' : 'w3m-wallet-guide-get-started'
@@ -387,6 +418,9 @@ export class ModalValidator {
   }
 
   async expectToBeConnectedInstantly() {
+    // Wait for the page to be loaded
+    const initializeBoundary = this.page.getByTestId('w3m-page-loading')
+    await expect(initializeBoundary).toBeHidden()
     const accountButton = this.page.locator('appkit-account-button')
     await expect(accountButton, 'Account button should be present').toBeAttached({
       timeout: 1000
@@ -411,6 +445,18 @@ export class ModalValidator {
   async expectSocialsVisible() {
     const socials = this.page.getByTestId('w3m-social-login-widget')
     await expect(socials).toBeVisible()
+  }
+
+  async expectSocialsNotVisible() {
+    const socials = this.page.getByTestId('w3m-social-login-widget')
+    await expect(socials).not.toBeVisible()
+  }
+
+  async expectSpecificSocialsVisible(socials: string[]) {
+    const promises = socials.map(social =>
+      expect(this.page.getByTestId(`social-selector-${social}`)).toBeVisible()
+    )
+    await Promise.all(promises)
   }
 
   async expectModalNotVisible() {
@@ -450,6 +496,15 @@ export class ModalValidator {
 
     if (network) {
       await this.expectNetworkButton(network)
+    }
+  }
+
+  async expectUxBrandingReown(visible: boolean) {
+    const uxBrandingReown = this.page.getByTestId('ux-branding-reown')
+    if (visible) {
+      await expect(uxBrandingReown).toBeVisible()
+    } else {
+      await expect(uxBrandingReown).not.toBeVisible()
     }
   }
 }

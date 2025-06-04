@@ -27,6 +27,8 @@ export class W3mConnectingWcView extends LitElement {
   // -- Members ------------------------------------------- //
   private wallet = RouterController.state.data?.wallet
 
+  private unsubscribe: (() => void)[] = []
+
   // -- State & Properties -------------------------------- //
   @state() private platform?: Platform = undefined
 
@@ -34,10 +36,20 @@ export class W3mConnectingWcView extends LitElement {
 
   @state() private isSiwxEnabled = Boolean(OptionsController.state.siwx)
 
+  @state() private remoteFeatures = OptionsController.state.remoteFeatures
+
   public constructor() {
     super()
     this.determinePlatforms()
     this.initializeConnection()
+
+    this.unsubscribe.push(
+      OptionsController.subscribeKey('remoteFeatures', val => (this.remoteFeatures = val))
+    )
+  }
+
+  public override disconnectedCallback() {
+    this.unsubscribe.forEach(unsubscribe => unsubscribe())
   }
 
   // -- Render -------------------------------------------- //
@@ -45,11 +57,19 @@ export class W3mConnectingWcView extends LitElement {
     return html`
       ${this.headerTemplate()}
       <div>${this.platformTemplate()}</div>
-      <wui-ux-by-reown></wui-ux-by-reown>
+      ${this.reownBrandingTemplate()}
     `
   }
 
   // -- Private ------------------------------------------- //
+  private reownBrandingTemplate() {
+    if (!this.remoteFeatures?.reownBranding) {
+      return null
+    }
+
+    return html`<wui-ux-by-reown></wui-ux-by-reown>`
+  }
+
   private async initializeConnection(retry = false) {
     /*
      * If the platform is browser it means the user is using a browser wallet,
@@ -65,7 +85,12 @@ export class W3mConnectingWcView extends LitElement {
     try {
       const { wcPairingExpiry, status } = ConnectionController.state
 
-      if (retry || CoreHelperUtil.isPairingExpired(wcPairingExpiry) || status === 'connecting') {
+      if (
+        retry ||
+        OptionsController.state.enableEmbedded ||
+        CoreHelperUtil.isPairingExpired(wcPairingExpiry) ||
+        status === 'connecting'
+      ) {
         await ConnectionController.connectWalletConnect()
         if (!this.isSiwxEnabled) {
           ModalController.close()
@@ -100,7 +125,7 @@ export class W3mConnectingWcView extends LitElement {
     const injectedIds = injected?.map(({ injected_id }) => injected_id).filter(Boolean) as string[]
     const browserIds = [...(rdns ? [rdns] : (injectedIds ?? []))]
     const isBrowser = OptionsController.state.isUniversalProvider ? false : browserIds.length
-    const isMobileWc = mobile_link
+    const hasMobileWCLink = mobile_link
     const isWebWc = webapp_link
     const isBrowserInstalled = ConnectionController.checkInstalled(browserIds)
     const isBrowserWc = isBrowser && isBrowserInstalled
@@ -110,7 +135,7 @@ export class W3mConnectingWcView extends LitElement {
     if (isBrowserWc && !ChainController.state.noAdapters) {
       this.platforms.push('browser')
     }
-    if (isMobileWc) {
+    if (hasMobileWCLink) {
       this.platforms.push(CoreHelperUtil.isMobile() ? 'mobile' : 'qrcode')
     }
     if (isWebWc) {

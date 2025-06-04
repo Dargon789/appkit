@@ -2,7 +2,7 @@ import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
+import { type ChainNamespace, ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
 import {
   AccountController,
   AssetController,
@@ -24,7 +24,7 @@ import '@reown/appkit-ui/wui-tabs'
 import '@reown/appkit-ui/wui-tooltip'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet/utils'
 
-import { ConstantsUtil } from '../../utils/ConstantsUtil.js'
+import { HelpersUtil } from '../../utils/HelpersUtil.js'
 import '../w3m-account-activity-widget/index.js'
 import '../w3m-account-nfts-widget/index.js'
 import '../w3m-account-tokens-widget/index.js'
@@ -32,7 +32,6 @@ import '../w3m-tooltip-trigger/index.js'
 import '../w3m-tooltip/index.js'
 import styles from './styles.js'
 
-const TABS = 3
 const TABS_PADDING = 48
 const MODAL_MOBILE_VIEW_PX = 430
 
@@ -60,6 +59,8 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
 
   @state() private features = OptionsController.state.features
 
+  @state() private remoteFeatures = OptionsController.state.remoteFeatures
+
   @state() private networkImage = AssetUtil.getNetworkImage(this.network)
 
   public constructor() {
@@ -81,8 +82,12 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
           }
         })
       ],
-      ChainController.subscribeKey('activeCaipNetwork', val => (this.network = val)),
-      OptionsController.subscribeKey('features', val => (this.features = val))
+      ChainController.subscribeKey('activeCaipNetwork', val => {
+        this.network = val
+        this.networkImage = AssetUtil.getNetworkImage(this.network)
+      }),
+      OptionsController.subscribeKey('features', val => (this.features = val)),
+      OptionsController.subscribeKey('remoteFeatures', val => (this.remoteFeatures = val))
     )
     this.watchSwapValues()
   }
@@ -119,16 +124,7 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
         data-testid="w3m-profile-button"
       ></wui-profile-button>
 
-      ${this.tokenBalanceTemplate()} ${this.orderedWalletFeatures()}
-
-      <wui-tabs
-        .onTabChange=${this.onTabChange.bind(this)}
-        .activeTab=${this.currentTab}
-        localTabWidth=${CoreHelperUtil.isMobile() && window.innerWidth < MODAL_MOBILE_VIEW_PX
-          ? `${(window.innerWidth - TABS_PADDING) / TABS}px`
-          : '104px'}
-        .tabs=${ConstantsUtil.ACCOUNT_TABS}
-      ></wui-tabs>
+      ${this.tokenBalanceTemplate()} ${this.orderedWalletFeatures()} ${this.tabsTemplate()}
       ${this.listContentTemplate()}
     </wui-flex>`
   }
@@ -137,7 +133,16 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
   private orderedWalletFeatures() {
     const walletFeaturesOrder =
       this.features?.walletFeaturesOrder || CoreConstantsUtil.DEFAULT_FEATURES.walletFeaturesOrder
-    const isAllDisabled = walletFeaturesOrder.every(feature => !this.features?.[feature])
+    const isAllDisabled = walletFeaturesOrder.every(feature => {
+      if (feature === 'send' || feature === 'receive') {
+        return !this.features?.[feature]
+      }
+      if (feature === 'swaps' || feature === 'onramp') {
+        return !this.remoteFeatures?.[feature]
+      }
+
+      return true
+    })
 
     if (isAllDisabled) {
       return null
@@ -162,9 +167,9 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
   }
 
   private onrampTemplate() {
-    const onramp = this.features?.onramp
+    const isOnrampEnabled = this.remoteFeatures?.onramp
 
-    if (!onramp) {
+    if (!isOnrampEnabled) {
       return null
     }
 
@@ -180,10 +185,10 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
   }
 
   private swapsTemplate() {
-    const swaps = this.features?.swaps
+    const isSwapsEnabled = this.remoteFeatures?.swaps
     const isEvm = ChainController.state.activeChain === CommonConstantsUtil.CHAIN.EVM
 
-    if (!swaps || !isEvm) {
+    if (!isSwapsEnabled || !isEvm) {
       return null
     }
 
@@ -200,9 +205,9 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
   }
 
   private receiveTemplate() {
-    const receive = this.features?.receive
+    const isReceiveEnabled = this.features?.receive
 
-    if (!receive) {
+    if (!isReceiveEnabled) {
       return null
     }
 
@@ -219,10 +224,11 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
   }
 
   private sendTemplate() {
-    const send = this.features?.send
-    const isEvm = ChainController.state.activeChain === CommonConstantsUtil.CHAIN.EVM
+    const isSendEnabled = this.features?.send
+    const activeNamespace = ChainController.state.activeChain as ChainNamespace
+    const isSendSupported = CoreConstantsUtil.SEND_SUPPORTED_NAMESPACES.includes(activeNamespace)
 
-    if (!send || !isEvm) {
+    if (!isSendEnabled || !isSendSupported) {
       return null
     }
 
@@ -279,6 +285,32 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
     return html`<wui-balance dollars="0" pennies="00"></wui-balance>`
   }
 
+  private tabsTemplate() {
+    const tabsByNamespace = HelpersUtil.getTabsByNamespace(ChainController.state.activeChain)
+
+    if (tabsByNamespace.length === 0) {
+      return null
+    }
+
+    const isMobileAndSmall = CoreHelperUtil.isMobile() && window.innerWidth < MODAL_MOBILE_VIEW_PX
+    let localTabWidth = '104px'
+
+    if (isMobileAndSmall) {
+      localTabWidth = `${(window.innerWidth - TABS_PADDING) / tabsByNamespace.length}px`
+    } else if (tabsByNamespace.length === 2) {
+      localTabWidth = '156px'
+    } else {
+      localTabWidth = '104px'
+    }
+
+    return html`<wui-tabs
+      .onTabChange=${this.onTabChange.bind(this)}
+      .activeTab=${this.currentTab}
+      localTabWidth=${localTabWidth}
+      .tabs=${tabsByNamespace}
+    ></wui-tabs>`
+  }
+
   private onTabChange(index: number) {
     AccountController.setCurrentTab(index)
   }
@@ -298,6 +330,8 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
   }
 
   private onSwapClick() {
+    const activeChainNamespace = ChainController.state.activeChain as ChainNamespace
+
     if (
       this.network?.caipNetworkId &&
       !CoreConstantsUtil.SWAP_SUPPORTED_NETWORKS.includes(this.network?.caipNetworkId)
@@ -312,7 +346,7 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
         properties: {
           network: this.network?.caipNetworkId || '',
           isSmartAccount:
-            AccountController.state.preferredAccountType ===
+            AccountController.state.preferredAccountTypes?.[activeChainNamespace] ===
             W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT
         }
       })
@@ -325,13 +359,15 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
   }
 
   private onSendClick() {
+    const activeChainNamespace = ChainController.state.activeChain as ChainNamespace
+
     EventsController.sendEvent({
       type: 'track',
       event: 'OPEN_SEND',
       properties: {
         network: this.network?.caipNetworkId || '',
         isSmartAccount:
-          AccountController.state.preferredAccountType ===
+          AccountController.state.preferredAccountTypes?.[activeChainNamespace] ===
           W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT
       }
     })
