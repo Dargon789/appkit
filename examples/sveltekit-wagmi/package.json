@@ -18,7 +18,7 @@
     "wagmi": "2.15.2"
   },
   "devDependencies": {
-    "@eslint/compat": "1.2.7",
+    "@eslint/compat": "1.2.9",
     "@sveltejs/adapter-auto": "3.0.0",
     "@sveltejs/kit": "2.19.0",
     "@sveltejs/vite-plugin-svelte": "5.0.3",
