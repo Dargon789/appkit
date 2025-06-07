@@ -270,8 +270,8 @@ importers:
         specifier: 3.2.2
         version: 3.2.2(react@19.1.0)
       '@hookform/resolvers':
-        specifier: 3.9.0
-        version: 3.9.0(react-hook-form@7.56.4(react@19.1.0))
+        specifier: 3.10.0
+        version: 3.10.0(react-hook-form@7.56.4(react@19.1.0))
       '@next/third-parties':
         specifier: 15.2.1
         version: 15.2.1(next@14.2.28(@opentelemetry/api@1.9.0)(@playwright/test@1.48.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)
@@ -5231,8 +5231,8 @@ packages:
   '@hapi/bourne@3.0.0':
     resolution: {integrity: sha512-Waj1cwPXJDucOib4a3bAISsKJVb15MKi9IvmTI/7ssVEm6sywXGjVJDhl6/umt1pK1ZS7PacXU3A1PmFKHEZ2w==}
 
-  '@hookform/resolvers@3.9.0':
-    resolution: {integrity: sha512-bU0Gr4EepJ/EQsH/IwEzYLsT/PEj5C0ynLQ4m+GSHS+xKH4TfSelhluTgOaoc4kA5s7eCsQbM4wvZLzELmWzUg==}
+  '@hookform/resolvers@3.10.0':
+    resolution: {integrity: sha512-79Dv+3mDF7i+2ajj7SkypSKHhl1cbln1OGavqrsF7p6mbUv11xpqpacPsGDCTRvCSjEEIez2ef1NveSVL3b0Ag==}
     peerDependencies:
       react-hook-form: ^7.0.0
 
@@ -21297,7 +21297,7 @@ snapshots:
 
   '@hapi/bourne@3.0.0': {}
 
-  '@hookform/resolvers@3.9.0(react-hook-form@7.56.4(react@19.1.0))':
+  '@hookform/resolvers@3.10.0(react-hook-form@7.56.4(react@19.1.0))':
     dependencies:
       react-hook-form: 7.56.4(react@19.1.0)
 
