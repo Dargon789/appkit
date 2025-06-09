@@ -1,5 +1,5 @@
 ---
-'@reown/appkit-wallet': patch
+'@reown/appkit-wallet-button': patch
 '@reown/appkit-adapter-bitcoin': patch
 '@reown/appkit-adapter-ethers': patch
 '@reown/appkit-adapter-ethers5': patch
@@ -19,7 +19,7 @@
 '@reown/appkit-siwe': patch
 '@reown/appkit-siwx': patch
 '@reown/appkit-ui': patch
-'@reown/appkit-wallet-button': patch
+'@reown/appkit-wallet': patch
 ---
 
-Add `chainId` to connectSocial app event to solve cases where user is connecting to the wrong network
+increase wallet button coverage

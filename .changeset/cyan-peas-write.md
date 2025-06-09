@@ -22,4 +22,4 @@
 '@reown/appkit-wallet-button': patch
 ---
 
-Modified the fetchFeaturedWallets() function in ApiController.ts to create a new sorted array instead of sorting the array in place, ensuring the wallet order is preserved.
+Fix OKX Wallet Bitcoin issue where it was not able to connect properly in Bitcoin environments
