@@ -1,9 +1,9 @@
 ---
+'@reown/appkit-adapter-wagmi': patch
 '@reown/appkit-adapter-bitcoin': patch
 '@reown/appkit-adapter-ethers': patch
 '@reown/appkit-adapter-ethers5': patch
 '@reown/appkit-adapter-solana': patch
-'@reown/appkit-adapter-wagmi': patch
 '@reown/appkit': patch
 '@reown/appkit-utils': patch
 '@reown/appkit-cdn': patch
@@ -22,4 +22,4 @@
 '@reown/appkit-wallet-button': patch
 ---
 
-Fix OKX Wallet Bitcoin issue where it was not able to connect properly in Bitcoin environments
+Fix an issue where SIWX sign message view was opening in One-Click-Auth flows
