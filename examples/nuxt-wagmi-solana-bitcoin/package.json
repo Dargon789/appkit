@@ -15,7 +15,7 @@
     "@reown/appkit-adapter-solana": "workspace:*",
     "@reown/appkit-adapter-wagmi": "workspace:*",
     "@tanstack/vue-query": "5.75.5",
-    "@vue/devtools-api": "7.7.2",
+    "@vue/devtools-api": "7.7.7",
     "@wagmi/core": "2.17.3",
     "@wagmi/vue": "0.1.22",
     "@walletconnect/logger": "2.1.2",
