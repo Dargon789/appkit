@@ -2607,8 +2607,8 @@ importers:
         specifier: 1.8.0
         version: 1.8.0
       inquirer:
-        specifier: 12.4.2
-        version: 12.4.2(@types/node@22.13.9)
+        specifier: 12.6.3
+        version: 12.6.3(@types/node@22.13.9)
       tiged:
         specifier: 2.12.7
         version: 2.12.7
@@ -13781,8 +13781,8 @@ packages:
     resolution: {integrity: sha512-QQnnxNyfvmHFIsj7gkPcYymR8Jdw/o7mp5ZFihxn6h8Ci6fh3Dx4E1gPjpQEpIuPo9XVNY/ZUwh4BPMjGyL01g==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
 
-  inquirer@12.4.2:
-    resolution: {integrity: sha512-reyjHcwyK2LObXgTJH4T1Dpfhwu88LNPTZmg/KenmTsy3T8lN/kZT8Oo7UwwkB9q8+ss2qjjN7GV8oFAfyz9Xg==}
+  inquirer@12.6.3:
+    resolution: {integrity: sha512-eX9beYAjr1MqYsIjx1vAheXsRk1jbZRvHLcBu5nA9wX0rXR1IfCZLnVLp4Ym4mrhqmh7AuANwcdtgQ291fZDfQ==}
     engines: {node: '>=18'}
     peerDependencies:
       '@types/node': '>=18'
@@ -37264,7 +37264,7 @@ snapshots:
 
   ini@4.1.1: {}
 
-  inquirer@12.4.2(@types/node@22.13.9):
+  inquirer@12.6.3(@types/node@22.13.9):
     dependencies:
       '@inquirer/core': 10.1.13(@types/node@22.13.9)
       '@inquirer/prompts': 7.5.3(@types/node@22.13.9)
