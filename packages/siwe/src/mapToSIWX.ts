@@ -37,32 +37,27 @@ export function mapToSIWX(siwe: AppKitSIWEClient): SIWXConfig {
     }
   }
 
+  let signingOut: Promise<void> | undefined = undefined
+
   async function signOut() {
-    await siwe.methods.signOut()
-    siwe.methods.onSignOut?.()
+    if (signingOut) {
+      return signingOut
+    }
+
+    signingOut = (async () => {
+      try {
+        await siwe.methods.signOut()
+        siwe.methods.onSignOut?.()
+      } finally {
+        signingOut = undefined
+      }
+    })()
+
+    return signingOut
   }
 
   subscriptions.forEach(unsubscribe => unsubscribe())
   subscriptions.push(
-    ChainController.subscribeKey('activeCaipNetwork', async activeCaipNetwork => {
-      if (!siwe.options.signOutOnNetworkChange) {
-        return
-      }
-
-      const session = await getSession()
-      const isDifferentNetwork =
-        session &&
-        session.chainId !== NetworkUtil.caipNetworkIdToNumber(activeCaipNetwork?.caipNetworkId)
-
-      if (isDifferentNetwork) {
-        await signOut()
-        // If signOut doesn't delete the cookie, we need to sign out again
-        const siweSession = await getSession()
-        if (siweSession) {
-          await signOut()
-        }
-      }
-    }),
     ChainController.subscribeKey('activeCaipAddress', async activeCaipAddress => {
       if (siwe.options.signOutOnDisconnect && !activeCaipAddress) {
         const session = await getSession()
@@ -73,17 +68,17 @@ export function mapToSIWX(siwe: AppKitSIWEClient): SIWXConfig {
         return
       }
 
-      if (siwe.options.signOutOnAccountChange) {
+      if (activeCaipAddress) {
         const session = await getSession()
 
-        const lowercaseSessionAddress = session?.address?.toLowerCase()
-        const lowercaseCaipAddress =
-          CoreHelperUtil?.getPlainAddress(activeCaipAddress)?.toLowerCase()
+        if (session && siwe.options.signOutOnAccountChange) {
+          const sessionAddress = session?.address
+          const caipAddress = CoreHelperUtil?.getPlainAddress(activeCaipAddress)
+          const isDifferentAddress = !HelpersUtil.isLowerCaseMatch(sessionAddress, caipAddress)
 
-        const isDifferentAddress = session && lowercaseSessionAddress !== lowercaseCaipAddress
-
-        if (isDifferentAddress) {
-          await signOut()
+          if (isDifferentAddress) {
+            await signOut()
+          }
         }
       }
     })
@@ -135,9 +130,11 @@ export function mapToSIWX(siwe: AppKitSIWEClient): SIWXConfig {
       }
 
       if (await siwe.methods.verifyMessage(session)) {
+        const address = session.data.accountAddress
+        const network = NetworkUtil.parseEvmChainId(session.data.chainId)
         siwe.methods.onSignIn?.({
-          address: session.data.accountAddress,
-          chainId: NetworkUtil.parseEvmChainId(session.data.chainId) as number
+          address,
+          chainId: network as number
         })
 
         return Promise.resolve()
@@ -229,6 +226,8 @@ export function mapToSIWX(siwe: AppKitSIWEClient): SIWXConfig {
 
     getRequired() {
       return siwe.options.required ?? true
-    }
+    },
+
+    signOutOnDisconnect: siwe.options.signOutOnDisconnect
   }
 }
