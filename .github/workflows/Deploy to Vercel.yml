@@ -19,6 +19,10 @@ env:
   # such as API keys for the Coinbase SDK.
   # Example: VITE_COINBASE_API_KEY: ${{ secrets.VITE_COINBASE_API_KEY }}
 
+# Set minimal permissions for this workflow.
+permissions:
+  contents: read
+
 # Defines a job named 'deploy'.
 jobs:
   deploy:
