@@ -2,21 +2,9 @@
 # See: https://circleci.com/docs/configuration-reference
 version: 2.1
 
-# Orbs are reusable packages of CircleCI configuration that you may share across projects, enabling you to create encapsulated, parameterized commands, jobs, and executors that can be used across multiple projects.
-# See: https://circleci.com/docs/orb-intro/
-orbs:
-  # See the Node orb documentation here: https://circleci.com/developer/orbs/orb/circleci/node
-  node: circleci/node@5.2
 
 # Orchestrate jobs using workflows
 # See: https://circleci.com/docs/workflows/ & https://circleci.com/docs/configuration-reference/#workflows
 workflows:
-  sample: # This is the name of the workflow, feel free to change it to better match your workflow.
     # Inside the workflow, you define the jobs you want to run.
     jobs:
-      - node/test:
-          # Matrix allows for a parameterized job to run multiple times with different arguments
-          # See: https://circleci.com/blog/circleci-matrix-jobs/ & https://circleci.com/docs/configuration-reference/#matrix
-          matrix:
-            parameters:
-              version: ["15.1", "lts", "12.21"]
