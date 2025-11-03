@@ -52,6 +52,7 @@ export type InternalChainNamespace =
   | 'cosmos'
   | 'sui'
   | 'stacks'
+  | 'ton'
 
 export type ChainNamespace<T extends string = InternalChainNamespace> = T | InternalChainNamespace
 
@@ -63,6 +64,7 @@ export type AdapterType =
   | 'universal'
   | 'bip122'
   | 'polkadot'
+  | 'ton'
 
 export type TransactionStatus = 'confirmed' | 'failed' | 'pending'
 
@@ -221,7 +223,7 @@ export type Connection = {
   name?: string
   icon?: string
   networkIcon?: string
-  accounts: { type?: string; address: string }[]
+  accounts: { type?: string; address: string; publicKey?: string }[]
   caipNetwork?: CaipNetwork
   connectorId: string
   auth?: {

@@ -14,11 +14,12 @@ export const ConstantsUtil = {
     WALLET_STANDARD: 'announced',
     COINBASE: 'coinbaseWallet',
     COINBASE_SDK: 'coinbaseWalletSDK',
+    BASE_ACCOUNT: 'baseAccount',
     SAFE: 'safe',
     LEDGER: 'ledger',
     OKX: 'okx',
     EIP6963: 'eip6963',
-    AUTH: 'ID_AUTH'
+    AUTH: 'AUTH'
   },
   CONNECTOR_NAMES: {
     AUTH: 'Auth'
@@ -31,7 +32,8 @@ export const ConstantsUtil = {
     EVM: 'eip155',
     SOLANA: 'solana',
     POLKADOT: 'polkadot',
-    BITCOIN: 'bip122'
+    BITCOIN: 'bip122',
+    TON: 'ton'
   } as const satisfies Record<string, ChainNamespace>,
   CHAIN_NAME_MAP: {
     eip155: 'EVM Networks',
@@ -40,14 +42,16 @@ export const ConstantsUtil = {
     bip122: 'Bitcoin',
     cosmos: 'Cosmos',
     sui: 'Sui',
-    stacks: 'Stacks'
+    stacks: 'Stacks',
+    ton: 'TON'
   } as const satisfies Record<ChainNamespace, string>,
   ADAPTER_TYPES: {
     BITCOIN: 'bitcoin',
     SOLANA: 'solana',
     WAGMI: 'wagmi',
     ETHERS: 'ethers',
-    ETHERS5: 'ethers5'
+    ETHERS5: 'ethers5',
+    TON: 'ton'
   } as const satisfies Record<string, string>,
   USDT_CONTRACT_ADDRESSES: [
     // Mainnet
@@ -65,6 +69,9 @@ export const ConstantsUtil = {
     // Arbitrum
     '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9'
   ],
+  SOLANA_SPL_TOKEN_ADDRESSES: {
+    SOL: 'So11111111111111111111111111111111111111112'
+  },
   HTTP_STATUS_CODES: {
     SERVER_ERROR: 500,
     TOO_MANY_REQUESTS: 429,
@@ -94,5 +101,17 @@ export const ConstantsUtil = {
           'Multi-wallet support is not enabled. Please enable it in your AppKit configuration at cloud.reown.com to use the useAppKitConnection hook.'
       }
     }
-  }
+  },
+  IS_DEVELOPMENT: typeof process !== 'undefined' && process.env['NODE_ENV'] === 'development',
+  DEFAULT_ALLOWED_ANCESTORS: [
+    'http://localhost:*',
+    'https://localhost:*',
+    'http://127.0.0.1:*',
+    'https://127.0.0.1:*',
+    'https://*.pages.dev',
+    'https://*.vercel.app',
+    'https://*.ngrok-free.app',
+    'https://secure-mobile.walletconnect.com',
+    'https://secure-mobile.walletconnect.org'
+  ] as string[]
 } as const

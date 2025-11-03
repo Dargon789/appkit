@@ -8,6 +8,7 @@ import {
   baseSepolia,
   berachain,
   bitcoin,
+  bitcoinSignet,
   bitcoinTestnet,
   gnosis,
   hedera,
@@ -20,6 +21,8 @@ import {
   solana,
   solanaDevnet,
   solanaTestnet,
+  ton,
+  tonTestnet,
   unichainSepolia,
   zkSync
 } from '@reown/appkit/networks'
@@ -103,7 +106,12 @@ const SolanaNetworks = [solana, solanaTestnet, solanaDevnet, solanaNotExist] as 
   ...AppKitNetwork[]
 ]
 
-const BitcoinNetworks = [bitcoin, bitcoinTestnet] as [AppKitNetwork, ...AppKitNetwork[]]
+const BitcoinNetworks = [bitcoin, bitcoinTestnet, bitcoinSignet] as [
+  AppKitNetwork,
+  ...AppKitNetwork[]
+]
+
+const TonNetworks = [ton, tonTestnet] as [AppKitNetwork, ...AppKitNetwork[]]
 
 export const ConstantsUtil = {
   SigningSucceededToastTitle: 'Signing Succeeded',
@@ -160,7 +168,8 @@ export const ConstantsUtil = {
   EvmNetworks,
   SolanaNetworks,
   BitcoinNetworks,
-  AllNetworks: [...EvmNetworks, ...SolanaNetworks, ...BitcoinNetworks] as [
+  TonNetworks,
+  AllNetworks: [...EvmNetworks, ...SolanaNetworks, ...BitcoinNetworks, ...TonNetworks] as [
     AppKitNetwork,
     ...AppKitNetwork[]
   ],

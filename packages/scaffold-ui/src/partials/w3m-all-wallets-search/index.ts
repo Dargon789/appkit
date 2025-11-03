@@ -2,7 +2,7 @@ import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 
 import type { BadgeType, WcWallet } from '@reown/appkit-controllers'
-import { ApiController, ConnectorController } from '@reown/appkit-controllers'
+import { ApiController, ConnectorController, OptionsController } from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
 import '@reown/appkit-ui/wui-flex'
 import '@reown/appkit-ui/wui-grid'
@@ -26,16 +26,22 @@ export class W3mAllWalletsSearch extends LitElement {
   // -- State & Properties -------------------------------- //
   @state() private loading = true
 
+  @state() private mobileFullScreen = OptionsController.state.enableMobileFullScreen
+
   @property() private query = ''
 
   @property() private badge?: BadgeType
 
   // -- Render -------------------------------------------- //
   public override render() {
+    if (this.mobileFullScreen) {
+      this.setAttribute('data-mobile-fullscreen', 'true')
+    }
+
     this.onSearch()
 
     return this.loading
-      ? html`<wui-loading-spinner color="accent-100"></wui-loading-spinner>`
+      ? html`<wui-loading-spinner color="accent-primary"></wui-loading-spinner>`
       : this.walletsTemplate()
   }
 
@@ -60,17 +66,11 @@ export class W3mAllWalletsSearch extends LitElement {
           data-testid="no-wallet-found"
           justifyContent="center"
           alignItems="center"
-          gap="s"
+          gap="3"
           flexDirection="column"
         >
-          <wui-icon-box
-            size="lg"
-            iconColor="fg-200"
-            backgroundColor="fg-300"
-            icon="wallet"
-            background="transparent"
-          ></wui-icon-box>
-          <wui-text data-testid="no-wallet-found-text" color="fg-200" variant="paragraph-500">
+          <wui-icon-box size="lg" color="default" icon="wallet"></wui-icon-box>
+          <wui-text data-testid="no-wallet-found-text" color="secondary" variant="md-medium">
             No Wallet found
           </wui-text>
         </wui-flex>
@@ -80,17 +80,21 @@ export class W3mAllWalletsSearch extends LitElement {
     return html`
       <wui-grid
         data-testid="wallet-list"
-        .padding=${['0', 's', 's', 's'] as const}
-        rowGap="l"
-        columnGap="xs"
+        .padding=${['0', '3', '3', '3'] as const}
+        rowGap="4"
+        columngap="2"
         justifyContent="space-between"
       >
         ${wallets.map(
-          wallet => html`
+          (wallet, index) => html`
             <w3m-all-wallets-list-item
               @click=${() => this.onConnectWallet(wallet)}
               .wallet=${wallet}
               data-testid="wallet-search-item-${wallet.id}"
+              explorerId=${wallet.id}
+              certified=${this.badge === 'certified'}
+              walletQuery=${this.query}
+              displayIndex=${index}
             ></w3m-all-wallets-list-item>
           `
         )}

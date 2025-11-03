@@ -1,24 +1,23 @@
 import UniversalProvider from '@walletconnect/universal-provider'
-import { providers } from 'ethers'
-import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest'
+import { providers, utils } from 'ethers'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { WcHelpersUtil } from '@reown/appkit'
 import {
   type CaipAddress,
   ConstantsUtil as CommonConstantsUtil,
   Emitter
 } from '@reown/appkit-common'
 import {
-  AccountController,
   ChainController,
   type ConnectionControllerClient,
-  type NetworkControllerClient,
+  ConnectorController,
   type Provider,
-  SIWXUtil
+  ProviderController,
+  SIWXUtil,
+  WcHelpersUtil
 } from '@reown/appkit-controllers'
 import { ConnectorUtil } from '@reown/appkit-scaffold-ui/utils'
-import { CaipNetworksUtil } from '@reown/appkit-utils'
-import { ProviderUtil } from '@reown/appkit-utils'
+import { CaipNetworksUtil, HelpersUtil } from '@reown/appkit-utils'
 import type { W3mFrameProvider } from '@reown/appkit-wallet'
 import { mainnet, polygon } from '@reown/appkit/networks'
 
@@ -65,7 +64,9 @@ const mockAuthProvider = {
   connect: vi.fn().mockResolvedValue({ address: '0x123' }),
   disconnect: vi.fn(),
   switchNetwork: vi.fn(),
-  getUser: vi.fn()
+  getUser: vi.fn(),
+  syncDappData: vi.fn(),
+  syncTheme: vi.fn()
 } as unknown as W3mFrameProvider
 
 const mockNetworks = [mainnet, polygon]
@@ -81,8 +82,7 @@ describe('Ethers5Adapter', () => {
     vi.clearAllMocks()
     adapter = new Ethers5Adapter()
     ChainController.initialize([adapter], mockCaipNetworks, {
-      connectionControllerClient: vi.fn() as unknown as ConnectionControllerClient,
-      networkControllerClient: vi.fn() as unknown as NetworkControllerClient
+      connectionControllerClient: vi.fn() as unknown as ConnectionControllerClient
     })
     ChainController.setRequestedCaipNetworks(mockCaipNetworks, 'eip155')
   })
@@ -142,9 +142,13 @@ describe('Ethers5Adapter', () => {
   describe('Ethers5Adapter -sendTransaction', () => {
     it('should send transaction successfully', async () => {
       const mockTxHash = '0xtxhash'
-      vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
-        ...AccountController.state,
-        caipAddress: 'eip155:1:0x123'
+      vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
+        address: '0x123',
+        currentTab: 0,
+        tokenBalance: [],
+        smartAccountDeployed: false,
+        addressLabels: new Map(),
+        user: undefined
       })
       vi.spyOn(Ethers5Methods, 'sendTransaction').mockResolvedValue(mockTxHash)
 
@@ -162,9 +166,13 @@ describe('Ethers5Adapter', () => {
     })
 
     it('should throw error when provider is undefined', async () => {
-      vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
-        ...AccountController.state,
-        caipAddress: 'eip155:1:0x123'
+      vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
+        address: '0x123',
+        currentTab: 0,
+        tokenBalance: [],
+        smartAccountDeployed: false,
+        addressLabels: new Map(),
+        user: undefined
       })
       await expect(
         adapter.sendTransaction({
@@ -220,6 +228,10 @@ describe('Ethers5Adapter', () => {
         value: connectors
       })
 
+      // Set up provider in ProviderController for switchNetwork call in connect
+      ProviderController.setProvider('eip155', mockProvider)
+      ProviderController.setProviderId('eip155', 'EXTERNAL')
+
       const result = await adapter.connect({
         id: 'test',
         provider: mockProvider,
@@ -253,6 +265,10 @@ describe('Ethers5Adapter', () => {
         value: connectors
       })
 
+      // Set up provider in ProviderController for switchNetwork call in connect
+      ProviderController.setProvider('eip155', mockProvider)
+      ProviderController.setProviderId('eip155', 'EXTERNAL')
+
       const result = await adapter.connect({
         id: 'test',
         provider: mockProvider,
@@ -270,8 +286,13 @@ describe('Ethers5Adapter', () => {
     })
 
     it('should respect preferredAccountType when calling connect with AUTH provider', async () => {
-      vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
-        ...AccountController.state,
+      vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
+        address: '0x123',
+        currentTab: 0,
+        tokenBalance: [],
+        smartAccountDeployed: false,
+        addressLabels: new Map(),
+        user: undefined,
         preferredAccountType: 'smartAccount'
       })
 
@@ -336,7 +357,7 @@ describe('Ethers5Adapter', () => {
       Object.defineProperty(ethers5Adapter, 'connectors', {
         value: [
           {
-            id: 'ID_AUTH',
+            id: 'AUTH',
             provider: mockAuthProvider,
             type: 'AUTH'
           }
@@ -344,7 +365,7 @@ describe('Ethers5Adapter', () => {
       })
 
       await ethers5Adapter.disconnect({
-        id: 'ID_AUTH'
+        id: 'AUTH'
       })
 
       expect(mockAuthProvider.disconnect).toHaveBeenCalled()
@@ -465,13 +486,14 @@ describe('Ethers5Adapter', () => {
 
   describe('Ethers5Adapter -reconnect', () => {
     it('should call SIWXUtil.authConnectorAuthenticate when reconnecting with AUTH provider', async () => {
+      ChainController.setAccountProp('preferredAccountType', 'smartAccount', 'eip155')
       const ethers5Adapter = new Ethers5Adapter()
       const authConnectorAuthenticateSpy = vi.spyOn(SIWXUtil, 'authConnectorAuthenticate')
 
       Object.defineProperty(ethers5Adapter, 'connectors', {
         value: [
           {
-            id: 'ID_AUTH',
+            id: 'AUTH',
             type: 'AUTH',
             provider: mockAuthProvider
           }
@@ -479,7 +501,7 @@ describe('Ethers5Adapter', () => {
       })
 
       await ethers5Adapter.reconnect({
-        id: 'ID_AUTH',
+        id: 'AUTH',
         type: 'AUTH',
         chainId: 1
       })
@@ -494,11 +516,9 @@ describe('Ethers5Adapter', () => {
   })
 
   describe('Ethers5Adapter -syncConnections', () => {
-    let mockGetConnectorStorageInfo: Mock
     let mockEmitFirstAvailableConnection: any
 
     beforeEach(() => {
-      mockGetConnectorStorageInfo = vi.fn()
       mockEmitFirstAvailableConnection = vi
         .spyOn(adapter as any, 'emitFirstAvailableConnection')
         .mockImplementation(() => {})
@@ -519,7 +539,7 @@ describe('Ethers5Adapter', () => {
         value: [connector]
       })
 
-      mockGetConnectorStorageInfo.mockReturnValue({
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValueOnce({
         hasDisconnected: false,
         hasConnected: true
       })
@@ -534,8 +554,7 @@ describe('Ethers5Adapter', () => {
         .mockImplementation(() => {})
 
       await adapter.syncConnections({
-        connectToFirstConnector: false,
-        getConnectorStorageInfo: mockGetConnectorStorageInfo
+        connectToFirstConnector: false
       })
 
       expect(fetchProviderDataSpy).toHaveBeenCalledWith(connector)
@@ -555,7 +574,7 @@ describe('Ethers5Adapter', () => {
         value: [connector]
       })
 
-      mockGetConnectorStorageInfo.mockReturnValue({
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValueOnce({
         hasDisconnected: true,
         hasConnected: true
       })
@@ -563,8 +582,7 @@ describe('Ethers5Adapter', () => {
       const fetchProviderDataSpy = vi.spyOn(ConnectorUtil, 'fetchProviderData')
 
       await adapter.syncConnections({
-        connectToFirstConnector: false,
-        getConnectorStorageInfo: mockGetConnectorStorageInfo
+        connectToFirstConnector: false
       })
 
       expect(fetchProviderDataSpy).not.toHaveBeenCalled()
@@ -586,14 +604,13 @@ describe('Ethers5Adapter', () => {
         }
       ])
 
-      mockGetConnectorStorageInfo.mockReturnValue({
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValueOnce({
         hasDisconnected: false,
         hasConnected: true
       })
 
       await adapter.syncConnections({
-        connectToFirstConnector: false,
-        getConnectorStorageInfo: mockGetConnectorStorageInfo
+        connectToFirstConnector: false
       })
 
       const wcConnection = adapter.connections.find(c => c.connectorId === 'walletConnect')
@@ -612,7 +629,7 @@ describe('Ethers5Adapter', () => {
         value: [connector]
       })
 
-      mockGetConnectorStorageInfo.mockReturnValue({
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValueOnce({
         hasDisconnected: false,
         hasConnected: true
       })
@@ -623,8 +640,7 @@ describe('Ethers5Adapter', () => {
       })
 
       await adapter.syncConnections({
-        connectToFirstConnector: true,
-        getConnectorStorageInfo: mockGetConnectorStorageInfo
+        connectToFirstConnector: true
       })
 
       expect(mockEmitFirstAvailableConnection).toHaveBeenCalled()
@@ -641,7 +657,7 @@ describe('Ethers5Adapter', () => {
         value: [connector]
       })
 
-      mockGetConnectorStorageInfo.mockReturnValue({
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValueOnce({
         hasDisconnected: false,
         hasConnected: true
       })
@@ -652,8 +668,7 @@ describe('Ethers5Adapter', () => {
       })
 
       await adapter.syncConnections({
-        connectToFirstConnector: false,
-        getConnectorStorageInfo: mockGetConnectorStorageInfo
+        connectToFirstConnector: false
       })
 
       expect(mockEmitFirstAvailableConnection).not.toHaveBeenCalled()
@@ -675,7 +690,7 @@ describe('Ethers5Adapter', () => {
         value: [connector1, connector2]
       })
 
-      mockGetConnectorStorageInfo.mockReturnValue({
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValue({
         hasDisconnected: false,
         hasConnected: true
       })
@@ -689,13 +704,14 @@ describe('Ethers5Adapter', () => {
 
       await expect(
         adapter.syncConnections({
-          connectToFirstConnector: false,
-          getConnectorStorageInfo: mockGetConnectorStorageInfo
+          connectToFirstConnector: false
         })
       ).rejects.toThrow('Connection failed')
 
       expect(adapter.connections).toHaveLength(1)
       expect(adapter.connections[0]?.connectorId).toBe(connector2.id)
+
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockRestore()
     })
 
     it('should not add connection if no accounts returned', async () => {
@@ -709,7 +725,7 @@ describe('Ethers5Adapter', () => {
         value: [connector]
       })
 
-      mockGetConnectorStorageInfo.mockReturnValue({
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValueOnce({
         hasDisconnected: false,
         hasConnected: true
       })
@@ -720,8 +736,7 @@ describe('Ethers5Adapter', () => {
       })
 
       await adapter.syncConnections({
-        connectToFirstConnector: false,
-        getConnectorStorageInfo: mockGetConnectorStorageInfo
+        connectToFirstConnector: false
       })
 
       expect(adapter.connections).toHaveLength(0)
@@ -738,7 +753,7 @@ describe('Ethers5Adapter', () => {
         value: [connector]
       })
 
-      mockGetConnectorStorageInfo.mockReturnValue({
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValueOnce({
         hasDisconnected: false,
         hasConnected: true
       })
@@ -749,8 +764,7 @@ describe('Ethers5Adapter', () => {
       })
 
       await adapter.syncConnections({
-        connectToFirstConnector: false,
-        getConnectorStorageInfo: mockGetConnectorStorageInfo
+        connectToFirstConnector: false
       })
 
       expect(adapter.connections).toHaveLength(0)
@@ -758,7 +772,7 @@ describe('Ethers5Adapter', () => {
 
     it('should not listen to provider events for AUTH and WALLET_CONNECT connectors', async () => {
       const authConnector = {
-        id: 'ID_AUTH',
+        id: 'AUTH',
         type: 'AUTH',
         provider: mockAuthProvider
       }
@@ -772,7 +786,7 @@ describe('Ethers5Adapter', () => {
         value: [authConnector, wcConnector]
       })
 
-      mockGetConnectorStorageInfo.mockReturnValue({
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValueOnce({
         hasDisconnected: false,
         hasConnected: true
       })
@@ -787,8 +801,7 @@ describe('Ethers5Adapter', () => {
         .mockImplementation(() => {})
 
       await adapter.syncConnections({
-        connectToFirstConnector: false,
-        getConnectorStorageInfo: mockGetConnectorStorageInfo
+        connectToFirstConnector: false
       })
 
       expect(listenProviderEventsSpy).not.toHaveBeenCalled()
@@ -878,11 +891,21 @@ describe('Ethers5Adapter', () => {
   })
 
   describe('Ethers5Adapter - switchNetwork', () => {
+    beforeEach(() => {
+      ChainController.setAccountProp('preferredAccountType', 'smartAccount', 'eip155')
+    })
     it('should switch network with Auth provider', async () => {
+      // Set up provider in ProviderController
+      ProviderController.setProvider(mockCaipNetworks[0].chainNamespace, mockAuthProvider)
+      ProviderController.setProviderId(mockCaipNetworks[0].chainNamespace, 'AUTH')
+
+      // Mock ConnectorController.getAuthConnector to return our mock provider
+      vi.spyOn(ConnectorController, 'getAuthConnector').mockReturnValue({
+        provider: mockAuthProvider
+      } as any)
+
       await adapter.switchNetwork({
-        caipNetwork: mockCaipNetworks[0],
-        provider: mockAuthProvider,
-        providerType: 'AUTH'
+        caipNetwork: mockCaipNetworks[0]
       })
 
       expect(mockAuthProvider.switchNetwork).toHaveBeenCalledWith({ chainId: 'eip155:1' })
@@ -903,18 +926,18 @@ describe('Ethers5Adapter', () => {
       const params = {
         caipNetwork: {
           id: 1,
-          caipNetworkId: 'eip155:1'
-        },
-        provider: mockProvider,
-        providerType: 'WALLET_CONNECT'
+          caipNetworkId: 'eip155:1',
+          chainNamespace: 'eip155'
+        }
       } as unknown as any
+
+      // Set up provider in ProviderController
+      ProviderController.setProvider('eip155', mockProvider)
+      ProviderController.setProviderId('eip155', 'WALLET_CONNECT')
 
       await adapter.switchNetwork(params)
 
-      expect(mockProvider.request).toHaveBeenCalledWith({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x1' }]
-      })
+      expect(mockProvider.setDefaultChain).toHaveBeenCalledWith('eip155:1')
     })
   })
 
@@ -977,7 +1000,7 @@ describe('Ethers5Adapter', () => {
     } as unknown as UniversalProvider
 
     beforeEach(() => {
-      vi.spyOn(ProviderUtil, 'getProvider').mockImplementation(() => mockProvider)
+      vi.spyOn(ProviderController, 'getProvider').mockImplementation(() => mockProvider)
     })
 
     it('should call wallet_getCapabilities', async () => {
@@ -1042,6 +1065,10 @@ describe('Ethers5Adapter', () => {
         value: [{ id: 'test', provider: mockProvider }]
       })
 
+      // Set up provider in ProviderController for switchNetwork call in connect
+      ProviderController.setProvider('eip155', mockProvider)
+      ProviderController.setProviderId('eip155', 'EXTERNAL')
+
       await adapter.connect({
         id: 'test',
         type: 'EXTERNAL',
@@ -1056,6 +1083,45 @@ describe('Ethers5Adapter', () => {
 
       expect(disconnect).toHaveBeenCalled()
       expect(mockProvider.removeListener).toHaveBeenCalledWith('disconnect', expect.any(Function))
+    })
+
+    it('should emit accountChanged event when connected', async () => {
+      const emitter = new Emitter()
+
+      const mockAddress = '0xdadb0d80178819f2319190d340ce9a924f783711'
+      const mockProvider = {
+        connect: vi.fn(),
+        request: vi.fn().mockResolvedValue([mockAddress]),
+        removeListener: vi.fn(),
+        on: emitter.on.bind(emitter),
+        off: emitter.off.bind(emitter),
+        emit: emitter.emit.bind(emitter)
+      } as unknown as Provider
+
+      Object.defineProperty(adapter, 'connectors', {
+        value: [{ id: 'test', provider: mockProvider }]
+      })
+
+      // Set up provider in ProviderController for switchNetwork call in connect
+      ProviderController.setProvider('eip155', mockProvider)
+      ProviderController.setProviderId('eip155', 'EXTERNAL')
+
+      const accountChangedSpy = vi.fn()
+
+      adapter.on('accountChanged', accountChangedSpy)
+
+      await adapter.connect({
+        id: 'test',
+        type: 'EXTERNAL',
+        chainId: 1
+      })
+
+      expect(accountChangedSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: utils.getAddress(mockAddress),
+          chainId: 1
+        })
+      )
     })
   })
 })
