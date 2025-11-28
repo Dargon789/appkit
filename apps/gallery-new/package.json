@@ -13,7 +13,7 @@
     "@reown/appkit-ui-new": "workspace:*",
     "lit": "3.1.0",
     "react": "18.3.1",
-    "storybook": "7.6.7"
+    "storybook": "7.6.20"
   },
   "devDependencies": {
     "@storybook/manager-api": "7.6.7",
@@ -22,7 +22,7 @@
     "@storybook/blocks": "7.6.7",
     "@storybook/theming": "7.6.7",
     "@storybook/web-components": "7.6.7",
-    "@storybook/web-components-vite": "7.6.7",
+    "@storybook/web-components-vite": "7.6.20",
     "file-system-cache": "2.4.4"
   }
 }
