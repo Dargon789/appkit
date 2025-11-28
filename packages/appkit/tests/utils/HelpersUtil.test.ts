@@ -462,14 +462,14 @@ describe('WcHelpersUtil', () => {
   describe('isOriginAllowed', () => {
     const defaultOrigins = [
       'https://default.com',
-      'https://*.safe\.org',
+      'https://*.safe\\.org',
       'https://reown.com/appkit',
-      'https://demo\.reown\.com'
+      'https://demo\\.reown\\.com'
     ]
     const allowedPatterns = [
       'https://explicit.com',
       'http://localhost:*',
-      'https://sub.*.example\.net'
+      'https://sub.*.example\\.net'
     ]
 
     test('should allow exact match from allowedPatterns', () => {
