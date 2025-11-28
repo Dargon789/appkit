@@ -7,21 +7,28 @@ import {
   AssetController,
   AssetUtil,
   ChainController,
-  ConnectionController,
   ConnectorController,
   EventsController,
-  ModalController,
+  ModalUtil,
   OptionsController,
-  RouterController,
-  SIWXUtil
-} from '@reown/appkit-core'
-import { customElement } from '@reown/appkit-ui'
+  RouterController
+} from '@reown/appkit-controllers'
+import { customElement, vars } from '@reown/appkit-ui'
+import '@reown/appkit-ui/wui-flex'
+import '@reown/appkit-ui/wui-icon-button'
+import '@reown/appkit-ui/wui-select'
+import '@reown/appkit-ui/wui-tag'
+import '@reown/appkit-ui/wui-text'
 
 import { ConstantsUtil } from '../../utils/ConstantsUtil.js'
 import styles from './styles.js'
 
 // -- Constants ----------------------------------------- //
 const BETA_SCREENS: string[] = ['SmartSessionList']
+const BACKGROUND_OVERRIDES: Record<string, string> = {
+  PayWithExchange: vars.tokens.theme.foregroundPrimary,
+  PayWithExchangeSelectAsset: vars.tokens.theme.foregroundPrimary
+}
 
 // -- Helpers ------------------------------------------- //
 function headings() {
@@ -47,49 +54,58 @@ function headings() {
     ConnectingSiwe: 'Sign In',
     Convert: 'Convert',
     ConvertSelectToken: 'Select token',
-    ConvertPreview: 'Preview convert',
+    ConvertPreview: 'Preview Convert',
     Downloads: name ? `Get ${name}` : 'Downloads',
+    EmailLogin: 'Email Login',
     EmailVerifyOtp: 'Confirm Email',
     EmailVerifyDevice: 'Register Device',
-    GetWallet: 'Get a wallet',
+    GetWallet: 'Get a Wallet',
     Networks: 'Choose Network',
     OnRampProviders: 'Choose Provider',
     OnRampActivity: 'Activity',
     OnRampTokenSelect: 'Select Token',
     OnRampFiatSelect: 'Select Currency',
-    Profile: undefined,
+    Pay: 'How you pay',
+    ProfileWallets: 'Wallets',
     SwitchNetwork: networkName ?? 'Switch Network',
-    SwitchAddress: 'Switch Address',
     Transactions: 'Activity',
     UnsupportedChain: 'Switch Network',
-    UpgradeEmailWallet: 'Upgrade your Wallet',
+    UpgradeEmailWallet: 'Upgrade Your Wallet',
     UpdateEmailWallet: 'Edit Email',
     UpdateEmailPrimaryOtp: 'Confirm Current Email',
     UpdateEmailSecondaryOtp: 'Confirm New Email',
     WhatIsABuy: 'What is Buy?',
-    RegisterAccountName: 'Choose name',
+    RegisterAccountName: 'Choose Name',
     RegisterAccountNameSuccess: '',
     WalletReceive: 'Receive',
     WalletCompatibleNetworks: 'Compatible Networks',
     Swap: 'Swap',
-    SwapSelectToken: 'Select token',
-    SwapPreview: 'Preview swap',
+    SwapSelectToken: 'Select Token',
+    SwapPreview: 'Preview Swap',
     WalletSend: 'Send',
-    WalletSendPreview: 'Review send',
+    WalletSendPreview: 'Review Send',
     WalletSendSelectToken: 'Select Token',
+    WalletSendConfirmed: 'Confirmed',
     WhatIsANetwork: 'What is a network?',
-    WhatIsAWallet: 'What is a wallet?',
-    ConnectWallets: 'Connect wallet',
-    ConnectSocials: 'All socials',
+    WhatIsAWallet: 'What is a Wallet?',
+    ConnectWallets: 'Connect Wallet',
+    ConnectSocials: 'All Socials',
     ConnectingSocial: AccountController.state.socialProvider
-      ? AccountController.state.socialProvider
+      ? AccountController.state.socialProvider.charAt(0).toUpperCase() +
+        AccountController.state.socialProvider.slice(1)
       : 'Connect Social',
-    ConnectingMultiChain: 'Select chain',
+    ConnectingMultiChain: 'Select Chain',
     ConnectingFarcaster: 'Farcaster',
-    SwitchActiveChain: 'Switch chain',
+    SwitchActiveChain: 'Switch Chain',
     SmartSessionCreated: undefined,
     SmartSessionList: 'Smart Sessions',
-    SIWXSignMessage: 'Sign In'
+    SIWXSignMessage: 'Sign In',
+    PayLoading: 'Payment in Progress',
+    DataCapture: 'Profile',
+    DataCaptureOtpConfirm: 'Confirm Email',
+    FundWallet: 'Fund Wallet',
+    PayWithExchange: 'Deposit from Exchange',
+    PayWithExchangeSelectAsset: 'Select Asset'
   }
 }
 
@@ -107,8 +123,6 @@ export class W3mHeader extends LitElement {
 
   @state() private networkImage = AssetUtil.getNetworkImage(this.network)
 
-  @state() private buffering = false
-
   @state() private showBack = false
 
   @state() private prevHistoryLength = 1
@@ -116,8 +130,6 @@ export class W3mHeader extends LitElement {
   @state() private view = RouterController.state.view
 
   @state() private viewDirection = ''
-
-  @state() private headerText = headings()[RouterController.state.view]
 
   public constructor() {
     super()
@@ -128,12 +140,11 @@ export class W3mHeader extends LitElement {
       RouterController.subscribeKey('view', val => {
         setTimeout(() => {
           this.view = val
-          this.headerText = headings()[val]
+          this.heading = headings()[val]
         }, ConstantsUtil.ANIMATION_DURATIONS.HeaderText)
         this.onViewChange()
         this.onHistoryChange()
       }),
-      ConnectionController.subscribeKey('buffering', val => (this.buffering = val)),
       ChainController.subscribeKey('activeCaipNetwork', val => {
         this.network = val
         this.networkImage = AssetUtil.getNetworkImage(this.network)
@@ -147,8 +158,17 @@ export class W3mHeader extends LitElement {
 
   // -- Render -------------------------------------------- //
   public override render() {
+    const backgroundColor =
+      BACKGROUND_OVERRIDES[RouterController.state.view] ?? vars.tokens.theme.backgroundPrimary
+
+    this.style.setProperty('--local-header-background-color', backgroundColor)
+
     return html`
-      <wui-flex .padding=${this.getPadding()} justifyContent="space-between" alignItems="center">
+      <wui-flex
+        .padding=${['0', '4', '0', '4'] as const}
+        justifyContent="space-between"
+        alignItems="center"
+      >
         ${this.leftHeaderTemplate()} ${this.titleTemplate()} ${this.rightHeaderTemplate()}
       </wui-flex>
     `
@@ -163,13 +183,7 @@ export class W3mHeader extends LitElement {
   }
 
   private async onClose() {
-    const isUnsupportedChain = RouterController.state.view === 'UnsupportedChain'
-
-    if (isUnsupportedChain || (await SIWXUtil.isSIWXCloseDisabled())) {
-      ModalController.shake()
-    } else {
-      ModalController.close()
-    }
+    await ModalUtil.safeClose()
   }
 
   private rightHeaderTemplate() {
@@ -180,23 +194,28 @@ export class W3mHeader extends LitElement {
     }
 
     return html`<wui-flex>
-      <wui-icon-link
+      <wui-icon-button
         icon="clock"
+        size="lg"
+        type="neutral"
+        variant="primary"
         @click=${() => RouterController.push('SmartSessionList')}
         data-testid="w3m-header-smart-sessions"
-      ></wui-icon-link>
+      ></wui-icon-button>
       ${this.closeButtonTemplate()}
     </wui-flex> `
   }
 
   private closeButtonTemplate() {
     return html`
-      <wui-icon-link
-        ?disabled=${this.buffering}
+      <wui-icon-button
         icon="close"
+        size="lg"
+        type="neutral"
+        variant="primary"
         @click=${this.onClose.bind(this)}
         data-testid="w3m-header-close"
-      ></wui-icon-link>
+      ></wui-icon-button>
     `
   }
 
@@ -208,12 +227,12 @@ export class W3mHeader extends LitElement {
         view-direction="${this.viewDirection}"
         class="w3m-header-title"
         alignItems="center"
-        gap="xs"
+        gap="2"
       >
-        <wui-text variant="paragraph-700" color="fg-100" data-testid="w3m-header-text"
-          >${this.headerText}</wui-text
-        >
-        ${isBeta ? html`<wui-tag variant="main">Beta</wui-tag>` : null}
+        <wui-text variant="lg-regular" color="primary" data-testid="w3m-header-text">
+          ${this.heading}
+        </wui-text>
+        ${isBeta ? html`<wui-tag variant="accent" size="md">Beta</wui-tag>` : null}
       </wui-flex>
     `
   }
@@ -225,11 +244,12 @@ export class W3mHeader extends LitElement {
     const isApproveTransaction = view === 'ApproveTransaction'
     const isConnectingSIWEView = view === 'ConnectingSiwe'
     const isAccountView = view === 'Account'
+    const enableNetworkSwitch = OptionsController.state.enableNetworkSwitch
 
     const shouldHideBack =
       isApproveTransaction || isConnectingSIWEView || (isConnectHelp && isEmbeddedEnable)
 
-    if (isAccountView) {
+    if (isAccountView && enableNetworkSwitch) {
       return html`<wui-select
         id="dynamic"
         data-testid="w3m-account-select-network"
@@ -240,21 +260,26 @@ export class W3mHeader extends LitElement {
     }
 
     if (this.showBack && !shouldHideBack) {
-      return html`<wui-icon-link
+      return html`<wui-icon-button
         data-testid="header-back"
         id="dynamic"
         icon="chevronLeft"
-        ?disabled=${this.buffering}
+        size="lg"
+        type="neutral"
+        variant="primary"
         @click=${this.onGoBack.bind(this)}
-      ></wui-icon-link>`
+      ></wui-icon-button>`
     }
 
-    return html`<wui-icon-link
+    return html`<wui-icon-button
       data-hidden=${!isConnectHelp}
       id="dynamic"
       icon="helpCircle"
+      size="lg"
+      type="neutral"
+      variant="primary"
       @click=${this.onWalletHelp.bind(this)}
-    ></wui-icon-link>`
+    ></wui-icon-button>`
   }
 
   private onNetworks() {
@@ -270,14 +295,6 @@ export class W3mHeader extends LitElement {
     const isValidNetwork = requestedCaipNetworks?.find(({ id }) => id === this.network?.id)
 
     return isMultiNetwork || !isValidNetwork
-  }
-
-  private getPadding() {
-    if (this.heading) {
-      return ['l', '2l', 'l', '2l'] as const
-    }
-
-    return ['0', '2l', '0', '2l'] as const
   }
 
   private onViewChange() {

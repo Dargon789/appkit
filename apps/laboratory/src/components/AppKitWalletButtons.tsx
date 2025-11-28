@@ -8,33 +8,54 @@ import {
   Flex,
   Heading,
   Stack,
-  StackDivider
+  StackDivider,
+  Text
 } from '@chakra-ui/react'
 
+import type { ChainNamespace } from '@reown/appkit-common'
 import type { Wallet } from '@reown/appkit-wallet-button'
-import * as AppKitWalletButton from '@reown/appkit-wallet-button/react'
+import {
+  AppKitWalletButton,
+  useAppKitUpdateEmail,
+  useAppKitWallet
+} from '@reown/appkit-wallet-button/react'
 import { type SocialProvider, useAppKitAccount } from '@reown/appkit/react'
 
-import { ConstantsUtil } from '../utils/ConstantsUtil'
+import { ConstantsUtil } from '@/src/utils/ConstantsUtil'
+
 import { useChakraToast } from './Toast'
 
 interface AppKitWalletButtonsProps {
+  title?: string
+  namespace?: ChainNamespace
   wallets: Wallet[]
+  showActions?: boolean
 }
 
 interface WalletButtonHooksProps {
+  namespace?: ChainNamespace
   wallets: Wallet[]
 }
 
 interface WalletButtonComponentsProps {
+  namespace?: ChainNamespace
   wallets: Wallet[]
 }
 
-export function AppKitWalletButtons({ wallets }: AppKitWalletButtonsProps) {
+export function AppKitWalletButtons({
+  title = 'Wallet Buttons',
+  namespace,
+  wallets,
+  showActions = true
+}: AppKitWalletButtonsProps) {
+  const { embeddedWalletInfo, caipAddress } = useAppKitAccount()
+
+  const isEmailConnected = caipAddress && embeddedWalletInfo?.authProvider === 'email'
+
   return (
     <Card marginTop={10} marginBottom={10}>
       <CardHeader>
-        <Heading size="md">Wallet Buttons</Heading>
+        <Heading size="md">{title}</Heading>
       </CardHeader>
 
       <CardBody>
@@ -45,7 +66,7 @@ export function AppKitWalletButtons({ wallets }: AppKitWalletButtonsProps) {
             </Heading>
 
             <Flex display="flex" flexWrap="wrap" gap="4">
-              <WalletButtonComponents wallets={wallets} />
+              <WalletButtonComponents namespace={namespace} wallets={wallets} />
             </Flex>
           </Flex>
 
@@ -55,31 +76,56 @@ export function AppKitWalletButtons({ wallets }: AppKitWalletButtonsProps) {
             </Heading>
 
             <Flex display="flex" flexWrap="wrap" gap="4">
-              <WalletButtonHooks wallets={wallets} />
+              <WalletButtonHooks namespace={namespace} wallets={wallets} />
             </Flex>
           </Flex>
+
+          {showActions && (
+            <Flex flexDirection="column" gap="4">
+              <Heading size="xs" textTransform="uppercase">
+                Actions
+              </Heading>
+
+              {isEmailConnected ? (
+                <Flex display="flex" flexWrap="wrap" gap="4">
+                  <UpdateEmail />
+                </Flex>
+              ) : (
+                <Text textAlign="left" color="neutrals400" fontSize="16">
+                  No actions available
+                </Text>
+              )}
+            </Flex>
+          )}
         </Stack>
       </CardBody>
     </Card>
   )
 }
 
-function WalletButtonComponents({ wallets }: WalletButtonComponentsProps) {
-  return wallets.map(wallet => (
-    <Fragment key={`wallet-button-${wallet}`}>
-      <appkit-wallet-button wallet={wallet} data-testid={`wallet-button-${wallet}`} />
-    </Fragment>
-  ))
+function WalletButtonComponents({ namespace, wallets }: WalletButtonComponentsProps) {
+  return wallets.map(wallet => {
+    let key = `wallet-button-${wallet}`
+
+    if (namespace) {
+      key = `${key}-${namespace}`
+    }
+
+    return (
+      <Fragment key={key}>
+        <AppKitWalletButton wallet={wallet} namespace={namespace} data-testid={key} />
+      </Fragment>
+    )
+  })
 }
 
-function WalletButtonHooks({ wallets }: WalletButtonHooksProps) {
+function WalletButtonHooks({ namespace, wallets }: WalletButtonHooksProps) {
   const [pendingWallet, setPendingWallet] = useState<Wallet>()
-
   const toast = useChakraToast()
+  const { caipAddress } = useAppKitAccount({ namespace })
 
-  const { caipAddress } = useAppKitAccount()
-
-  const { isReady, isPending, connect } = AppKitWalletButton.useAppKitWallet({
+  const { isReady, isPending, connect } = useAppKitWallet({
+    namespace,
     onSuccess() {
       setPendingWallet(undefined)
     },
@@ -96,12 +142,20 @@ function WalletButtonHooks({ wallets }: WalletButtonHooksProps) {
   return wallets.map(wallet => {
     const isSocial = ConstantsUtil.Socials.includes(wallet as SocialProvider)
     const isWalletConnect = wallet === 'walletConnect'
+    const isEmail = wallet === 'email'
 
-    const isWalletButtonDisabled = !isWalletConnect && !isSocial && !isReady
+    const isWalletButtonDisabled = !isWalletConnect && !isSocial && !isReady && !isEmail
+    const shouldCapitlize = wallet === 'okx'
+
+    let key = `wallet-button-hook-${wallet}`
+
+    if (namespace) {
+      key = `${key}-${namespace}`
+    }
 
     return (
       <Button
-        key={`wallet-button-hook-${wallet}`}
+        key={key}
         onClick={() => {
           setPendingWallet(wallet)
           connect(wallet)
@@ -110,11 +164,38 @@ function WalletButtonHooks({ wallets }: WalletButtonHooksProps) {
         size="md"
         isLoading={isPending && pendingWallet === wallet}
         isDisabled={Boolean(caipAddress) || isWalletButtonDisabled}
-        textTransform="capitalize"
-        data-testid={`wallet-button-hook-${wallet}`}
+        textTransform={shouldCapitlize ? 'uppercase' : 'capitalize'}
+        data-testid={key}
       >
         {wallet}
       </Button>
     )
   })
+}
+
+function UpdateEmail() {
+  const toast = useChakraToast()
+
+  const { updateEmail, isPending } = useAppKitUpdateEmail({
+    onSuccess() {
+      toast({
+        title: 'Update Email',
+        description: 'Email updated successfully',
+        type: 'success'
+      })
+    },
+    onError(error) {
+      toast({
+        title: 'Update Email',
+        description: error.message,
+        type: 'error'
+      })
+    }
+  })
+
+  return (
+    <Button onClick={() => updateEmail()} isLoading={isPending}>
+      Update Email
+    </Button>
+  )
 }

@@ -1,11 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { Button, Input, Stack, Text, Tooltip } from '@chakra-ui/react'
-import { UniversalProvider } from '@walletconnect/universal-provider'
 import { ethers } from 'ethers5'
-import { parseGwei } from 'viem'
+import { type WalletCapabilities, parseGwei, toHex } from 'viem'
 
-import { W3mFrameProvider } from '@reown/appkit-wallet'
 import {
   type Provider,
   useAppKitAccount,
@@ -13,51 +11,33 @@ import {
   useAppKitProvider
 } from '@reown/appkit/react'
 
-import { vitalikEthAddress } from '../../utils/DataUtil'
-import { abi, address as donutAddress } from '../../utils/DonutContract'
-import {
-  EIP_5792_RPC_METHODS,
-  WALLET_CAPABILITIES,
-  getCapabilitySupportedChainInfo
-} from '../../utils/EIP5792Utils'
-import { useChakraToast } from '../Toast'
+import { useChakraToast } from '@/src/components/Toast'
+import { useCapabilities } from '@/src/hooks/useCapabilities'
+import { useEthersActiveCapabilities } from '@/src/hooks/useEthersActiveCapabilities'
+import { vitalikEthAddress } from '@/src/utils/DataUtil'
+import { abi, address as donutAddress } from '@/src/utils/DonutContract'
+import { EIP_5792_RPC_METHODS, WALLET_CAPABILITIES } from '@/src/utils/EIP5792Utils'
 
-export function Ethers5SendCallsWithPaymasterServiceTest() {
+export function Ethers5SendCallsWithPaymasterServiceTest({
+  capabilities
+}: {
+  capabilities: WalletCapabilities
+}) {
   const [paymasterServiceUrl, setPaymasterServiceUrl] = useState<string>('')
   const [isLoading, setLoading] = useState(false)
 
   const { chainId } = useAppKitNetwork()
-  const { address, isConnected } = useAppKitAccount()
+  const { address, isConnected } = useAppKitAccount({ namespace: 'eip155' })
   const { walletProvider } = useAppKitProvider<Provider>('eip155')
   const toast = useChakraToast()
 
-  const [paymasterServiceSupportedChains, setPaymasterServiceSupportedChains] = useState<
-    Awaited<ReturnType<typeof getCapabilitySupportedChainInfo>>
-  >([])
+  const { isMethodSupported } = useEthersActiveCapabilities()
+  const { currentChainsInfo, supportedChains, supportedChainsName } = useCapabilities({
+    capabilities,
+    capability: WALLET_CAPABILITIES.PAYMASTER_SERVICE,
+    chainId: chainId ? toHex(chainId) : undefined
+  })
 
-  useEffect(() => {
-    if (
-      address &&
-      (walletProvider instanceof UniversalProvider || walletProvider instanceof W3mFrameProvider)
-    ) {
-      getCapabilitySupportedChainInfo(
-        WALLET_CAPABILITIES.PAYMASTER_SERVICE,
-        walletProvider,
-        address
-      ).then(capabilities => {
-        setPaymasterServiceSupportedChains(capabilities)
-      })
-    } else {
-      setPaymasterServiceSupportedChains([])
-    }
-  }, [address, walletProvider])
-
-  const paymasterServiceSupportedChainNames = paymasterServiceSupportedChains
-    .map(ci => ci.chainName)
-    .join(', ')
-  const currentChainsInfo = paymasterServiceSupportedChains.find(
-    chainInfo => chainInfo.chainId === Number(chainId)
-  )
   async function onSendCalls(donut?: boolean) {
     try {
       setLoading(true)
@@ -124,19 +104,6 @@ export function Ethers5SendCallsWithPaymasterServiceTest() {
     }
   }
 
-  function isSendCallsSupported(): boolean {
-    // We are currently checking capabilities above. We should use those capabilities instead of this check.
-    if (walletProvider instanceof UniversalProvider) {
-      return Boolean(
-        walletProvider?.session?.namespaces['eip155']?.methods?.includes(
-          EIP_5792_RPC_METHODS.WALLET_SEND_CALLS
-        )
-      )
-    }
-
-    return walletProvider instanceof W3mFrameProvider
-  }
-
   if (!isConnected || !walletProvider || !address) {
     return (
       <Text fontSize="md" color="yellow">
@@ -144,14 +111,14 @@ export function Ethers5SendCallsWithPaymasterServiceTest() {
       </Text>
     )
   }
-  if (!isSendCallsSupported()) {
+  if (!isMethodSupported(EIP_5792_RPC_METHODS.WALLET_SEND_CALLS)) {
     return (
       <Text fontSize="md" color="yellow">
         Wallet does not support wallet_sendCalls rpc
       </Text>
     )
   }
-  if (paymasterServiceSupportedChains.length === 0) {
+  if (supportedChains.length === 0) {
     return (
       <Text fontSize="md" color="yellow">
         Account does not support paymaster service feature
@@ -163,7 +130,7 @@ export function Ethers5SendCallsWithPaymasterServiceTest() {
     <Stack direction={['column', 'column', 'column']}>
       <Tooltip label="Paymaster Service URL should be of ERC-7677 paymaster service proxy">
         <Input
-          placeholder="http://api.pimlico.io/v2/sepolia/rpc?apikey=..."
+          placeholder="https://paymaster-api.reown.com/11155111/rpc?projectId=..."
           onChange={e => setPaymasterServiceUrl(e.target.value)}
           value={paymasterServiceUrl}
           isDisabled={isLoading}
@@ -190,7 +157,7 @@ export function Ethers5SendCallsWithPaymasterServiceTest() {
     </Stack>
   ) : (
     <Text fontSize="md" color="yellow">
-      Switch to {paymasterServiceSupportedChainNames} to test paymaster service feature
+      Switch to {supportedChainsName} to test paymaster service feature
     </Text>
   )
 }

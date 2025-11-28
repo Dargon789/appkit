@@ -6,11 +6,16 @@ import {
   AssetController,
   ModalController,
   OnRampController,
-  OptionsController
-} from '@reown/appkit-core'
-import type { PurchaseCurrency } from '@reown/appkit-core'
+  OptionsController,
+  OptionsStateController
+} from '@reown/appkit-controllers'
+import type { PurchaseCurrency } from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
+import '@reown/appkit-ui/wui-flex'
+import '@reown/appkit-ui/wui-list-item'
+import '@reown/appkit-ui/wui-text'
 
+import '../../partials/w3m-legal-footer/index.js'
 import styles from './styles.js'
 
 @customElement('w3m-onramp-token-select-view')
@@ -24,7 +29,7 @@ export class W3mOnrampTokensView extends LitElement {
   @state() public selectedCurrency = OnRampController.state.purchaseCurrencies
   @state() public tokens = OnRampController.state.purchaseCurrencies
   @state() private tokenImages = AssetController.state.tokenImages
-  @state() private checked = false
+  @state() private checked = OptionsStateController.state.isLegalCheckboxChecked
 
   public constructor() {
     super()
@@ -34,7 +39,10 @@ export class W3mOnrampTokensView extends LitElement {
           this.selectedCurrency = val.purchaseCurrencies
           this.tokens = val.purchaseCurrencies
         }),
-        AssetController.subscribeKey('tokenImages', val => (this.tokenImages = val))
+        AssetController.subscribeKey('tokenImages', val => (this.tokenImages = val)),
+        OptionsStateController.subscribeKey('isLegalCheckboxChecked', val => {
+          this.checked = val
+        })
       ]
     )
   }
@@ -55,16 +63,15 @@ export class W3mOnrampTokensView extends LitElement {
     const disabled = showLegalCheckbox && !this.checked
 
     return html`
-      <w3m-legal-checkbox @checkboxChange=${this.onCheckboxChange.bind(this)}></w3m-legal-checkbox>
+      <w3m-legal-checkbox></w3m-legal-checkbox>
       <wui-flex
         flexDirection="column"
-        .padding=${['0', 's', 's', 's']}
-        gap="xs"
+        .padding=${['0', '3', '3', '3']}
+        gap="2"
         class=${ifDefined(disabled ? 'disabled' : undefined)}
       >
         ${this.currenciesTemplate(disabled)}
       </wui-flex>
-      <w3m-legal-footer></w3m-legal-footer>
     `
   }
 
@@ -78,9 +85,9 @@ export class W3mOnrampTokensView extends LitElement {
           variant="image"
           tabIdx=${ifDefined(disabled ? -1 : undefined)}
         >
-          <wui-flex gap="3xs" alignItems="center">
-            <wui-text variant="paragraph-500" color="fg-100">${token.name}</wui-text>
-            <wui-text variant="small-400" color="fg-200">${token.symbol}</wui-text>
+          <wui-flex gap="1" alignItems="center">
+            <wui-text variant="md-medium" color="primary">${token.name}</wui-text>
+            <wui-text variant="sm-regular" color="secondary">${token.symbol}</wui-text>
           </wui-flex>
         </wui-list-item>
       `
@@ -94,11 +101,6 @@ export class W3mOnrampTokensView extends LitElement {
 
     OnRampController.setPurchaseCurrency(currency)
     ModalController.close()
-  }
-
-  // -- Private Methods ----------------------------------- //
-  private onCheckboxChange(event: CustomEvent<string>) {
-    this.checked = Boolean(event.detail)
   }
 }
 

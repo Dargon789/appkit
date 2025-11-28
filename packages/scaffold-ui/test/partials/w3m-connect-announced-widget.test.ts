@@ -4,13 +4,13 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { html } from 'lit'
 
 import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
-import type { ConnectorType, ConnectorWithProviders } from '@reown/appkit-core'
+import type { ConnectorType, ConnectorWithProviders } from '@reown/appkit-controllers'
 import {
   ApiController,
   ConnectorController,
   CoreHelperUtil,
   RouterController
-} from '@reown/appkit-core'
+} from '@reown/appkit-controllers'
 import { ConstantsUtil } from '@reown/appkit-utils'
 
 import { W3mConnectAnnouncedWidget } from '../../src/partials/w3m-connect-announced-widget'
@@ -44,7 +44,7 @@ describe('W3mConnectAnnouncedWidget', () => {
   beforeEach(() => {
     vi.spyOn(ApiController, 'state', 'get').mockReturnValue({
       ...ApiController.state,
-      excludedRDNS: []
+      excludedWallets: []
     })
   })
 
@@ -72,7 +72,9 @@ describe('W3mConnectAnnouncedWidget', () => {
     })
 
     const element: W3mConnectAnnouncedWidget = await fixture(
-      html`<w3m-connect-announced-widget></w3m-connect-announced-widget>`
+      html`<w3m-connect-announced-widget
+        .connectors=${[MOCK_CONNECTOR]}
+      ></w3m-connect-announced-widget>`
     )
 
     element.requestUpdate()
@@ -93,11 +95,13 @@ describe('W3mConnectAnnouncedWidget', () => {
 
     vi.spyOn(ApiController, 'state', 'get').mockReturnValue({
       ...ApiController.state,
-      excludedRDNS: ['mock.wallet']
+      excludedWallets: [{ name: 'Mock Wallet', rdns: 'mock.wallet' }]
     })
 
     const element: W3mConnectAnnouncedWidget = await fixture(
-      html`<w3m-connect-announced-widget></w3m-connect-announced-widget>`
+      html`<w3m-connect-announced-widget
+        .connectors=${[MOCK_CONNECTOR]}
+      ></w3m-connect-announced-widget>`
     )
 
     element.requestUpdate()
@@ -116,13 +120,19 @@ describe('W3mConnectAnnouncedWidget', () => {
     const pushSpy = vi.spyOn(RouterController, 'push')
 
     const element: W3mConnectAnnouncedWidget = await fixture(
-      html`<w3m-connect-announced-widget></w3m-connect-announced-widget>`
+      html`<w3m-connect-announced-widget
+        .connectors=${[WALLET_CONNECT_CONNECTOR]}
+      ></w3m-connect-announced-widget>`
     )
+
+    element.requestUpdate()
+    await elementUpdated(element)
 
     const walletSelector = HelpersUtil.getByTestId(
       element,
       `wallet-selector-${WALLET_CONNECT_CONNECTOR.id}`
     )
+    expect(walletSelector).not.toBeNull()
     walletSelector.click()
 
     expect(pushSpy).toHaveBeenCalledWith('AllWallets')
@@ -137,13 +147,19 @@ describe('W3mConnectAnnouncedWidget', () => {
     const pushSpy = vi.spyOn(RouterController, 'push')
 
     const element: W3mConnectAnnouncedWidget = await fixture(
-      html`<w3m-connect-announced-widget></w3m-connect-announced-widget>`
+      html`<w3m-connect-announced-widget
+        .connectors=${[WALLET_CONNECT_CONNECTOR]}
+      ></w3m-connect-announced-widget>`
     )
+
+    element.requestUpdate()
+    await elementUpdated(element)
 
     const walletSelector = HelpersUtil.getByTestId(
       element,
       `wallet-selector-${WALLET_CONNECT_CONNECTOR.id}`
     )
+    expect(walletSelector).not.toBeNull()
     walletSelector.click()
 
     expect(pushSpy).toHaveBeenCalledWith('ConnectingWalletConnect')
@@ -157,13 +173,49 @@ describe('W3mConnectAnnouncedWidget', () => {
     const pushSpy = vi.spyOn(RouterController, 'push')
 
     const element: W3mConnectAnnouncedWidget = await fixture(
-      html`<w3m-connect-announced-widget></w3m-connect-announced-widget>`
+      html`<w3m-connect-announced-widget
+        .connectors=${[MOCK_CONNECTOR]}
+      ></w3m-connect-announced-widget>`
     )
 
+    element.requestUpdate()
+    await elementUpdated(element)
+
     const walletSelector = HelpersUtil.getByTestId(element, `wallet-selector-${MOCK_CONNECTOR.id}`)
+    expect(walletSelector).not.toBeNull()
     walletSelector.click()
 
     expect(pushSpy).toHaveBeenCalledWith('ConnectingExternal', { connector: MOCK_CONNECTOR })
+  })
+
+  it('should route to ConnectingExternal with wallet parameter when available', async () => {
+    const CONNECTOR_WITH_WALLET = {
+      ...MOCK_CONNECTOR,
+      explorerWallet: { id: 'mockConnector', name: 'Mock Wallet' }
+    }
+
+    const pushSpy = vi.spyOn(RouterController, 'push')
+
+    const element: W3mConnectAnnouncedWidget = await fixture(
+      html`<w3m-connect-announced-widget
+        .connectors=${[CONNECTOR_WITH_WALLET]}
+      ></w3m-connect-announced-widget>`
+    )
+
+    element.requestUpdate()
+    await elementUpdated(element)
+
+    const walletSelector = HelpersUtil.getByTestId(
+      element,
+      `wallet-selector-${CONNECTOR_WITH_WALLET.id}`
+    )
+    expect(walletSelector).not.toBeNull()
+    walletSelector.click()
+
+    expect(pushSpy).toHaveBeenCalledWith('ConnectingExternal', {
+      connector: CONNECTOR_WITH_WALLET,
+      wallet: CONNECTOR_WITH_WALLET.explorerWallet
+    })
   })
 
   it('should handle unknown wallet names', async () => {
@@ -177,10 +229,19 @@ describe('W3mConnectAnnouncedWidget', () => {
     })
 
     const element: W3mConnectAnnouncedWidget = await fixture(
-      html`<w3m-connect-announced-widget></w3m-connect-announced-widget>`
+      html`<w3m-connect-announced-widget
+        .connectors=${[unknownConnector]}
+      ></w3m-connect-announced-widget>`
     )
 
-    const walletSelector = HelpersUtil.getByTestId(element, `wallet-selector-${MOCK_CONNECTOR.id}`)
+    element.requestUpdate()
+    await elementUpdated(element)
+
+    const walletSelector = HelpersUtil.getByTestId(
+      element,
+      `wallet-selector-${unknownConnector.id}`
+    )
+    expect(walletSelector).not.toBeNull()
     expect(walletSelector.getAttribute('name')).toBe('Unknown')
   })
 })

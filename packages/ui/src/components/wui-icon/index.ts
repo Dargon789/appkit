@@ -1,188 +1,291 @@
 import type { TemplateResult } from 'lit'
-import { LitElement, html } from 'lit'
+import { LitElement } from 'lit'
 import { property } from 'lit/decorators.js'
+import { html, unsafeStatic } from 'lit/static-html.js'
 
-// -- Svg's-------------------------------- //
-import { addSvg } from '../../assets/svg/add.js'
-import { allWalletsSvg } from '../../assets/svg/all-wallets.js'
 import { appStoreSvg } from '../../assets/svg/app-store.js'
 import { appleSvg } from '../../assets/svg/apple.js'
-import { arrowBottomCircleSvg } from '../../assets/svg/arrow-bottom-circle.js'
-import { arrowBottomSvg } from '../../assets/svg/arrow-bottom.js'
-import { arrowLeftSvg } from '../../assets/svg/arrow-left.js'
-import { arrowRightSvg } from '../../assets/svg/arrow-right.js'
-import { arrowTopSvg } from '../../assets/svg/arrow-top.js'
-import { bankSvg } from '../../assets/svg/bank.js'
-import { browserSvg } from '../../assets/svg/browser.js'
-import { cardSvg } from '../../assets/svg/card.js'
-import { checkmarkBoldSvg } from '../../assets/svg/checkmark-bold.js'
-import { checkmarkSvg } from '../../assets/svg/checkmark.js'
-import { chevronBottomSvg } from '../../assets/svg/chevron-bottom.js'
-import { chevronLeftSvg } from '../../assets/svg/chevron-left.js'
-import { chevronRightSvg } from '../../assets/svg/chevron-right.js'
-import { chevronTopSvg } from '../../assets/svg/chevron-top.js'
+import { bitcoinSvg } from '../../assets/svg/bitcoin.js'
 import { chromeStoreSvg } from '../../assets/svg/chrome-store.js'
-import { clockSvg } from '../../assets/svg/clock.js'
-import { closeSvg } from '../../assets/svg/close.js'
-import { coinPlaceholderSvg } from '../../assets/svg/coinPlaceholder.js'
-import { compassSvg } from '../../assets/svg/compass.js'
-import { copySvg } from '../../assets/svg/copy.js'
-import { cursorTransparentSvg } from '../../assets/svg/cursor-transparent.js'
 import { cursorSvg } from '../../assets/svg/cursor.js'
-import { desktopSvg } from '../../assets/svg/desktop.js'
-import { disconnectSvg } from '../../assets/svg/disconnect.js'
 import { discordSvg } from '../../assets/svg/discord.js'
+import { ethereumSvg } from '../../assets/svg/ethereum.js'
 import { etherscanSvg } from '../../assets/svg/etherscan.js'
-import { exclamationTriangleSvg } from '../../assets/svg/exclamation-triangle.js'
-import { extensionSvg } from '../../assets/svg/extension.js'
-import { externalLinkSvg } from '../../assets/svg/external-link.js'
 import { facebookSvg } from '../../assets/svg/facebook.js'
 import { farcasterSvg } from '../../assets/svg/farcaster.js'
-import { filtersSvg } from '../../assets/svg/filters.js'
 import { githubSvg } from '../../assets/svg/github.js'
 import { googleSvg } from '../../assets/svg/google.js'
-import { helpCircleSvg } from '../../assets/svg/help-circle.js'
-import { idSvg } from '../../assets/svg/id.js'
-import { imageSvg } from '../../assets/svg/image.js'
-import { infoCircleSvg } from '../../assets/svg/info-circle.js'
-import { infoSvg } from '../../assets/svg/info.js'
-import { lightbulbSvg } from '../../assets/svg/lightbulb.js'
-import { mailSvg } from '../../assets/svg/mail.js'
-import { mobileSvg } from '../../assets/svg/mobile.js'
-import { moreSvg } from '../../assets/svg/more.js'
-import { networkPlaceholderSvg } from '../../assets/svg/network-placeholder.js'
-import { nftPlaceholderSvg } from '../../assets/svg/nftPlaceholder.js'
-import { offSvg } from '../../assets/svg/off.js'
 import { playStoreSvg } from '../../assets/svg/play-store.js'
-import { plusSvg } from '../../assets/svg/plus.js'
-import { qrCodeIcon } from '../../assets/svg/qr-code.js'
-import { recycleHorizontalSvg } from '../../assets/svg/recycle-horizontal.js'
-import { refreshSvg } from '../../assets/svg/refresh.js'
-import { searchSvg } from '../../assets/svg/search.js'
-import { sendSvg } from '../../assets/svg/send.js'
-import { swapHorizontalSvg } from '../../assets/svg/swapHorizontal.js'
-import { swapHorizontalBoldSvg } from '../../assets/svg/swapHorizontalBold.js'
-import { swapHorizontalMediumSvg } from '../../assets/svg/swapHorizontalMedium.js'
-import { swapHorizontalRoundedBoldSvg } from '../../assets/svg/swapHorizontalRoundedBold.js'
-import { swapVerticalSvg } from '../../assets/svg/swapVertical.js'
+import { reownSvg } from '../../assets/svg/reown-logo.js'
+import { solanaSvg } from '../../assets/svg/solana.js'
 import { telegramSvg } from '../../assets/svg/telegram.js'
-import { threeDotsSvg } from '../../assets/svg/three-dots.js'
 import { twitchSvg } from '../../assets/svg/twitch.js'
 import { twitterIconSvg } from '../../assets/svg/twitterIcon.js'
-import { verifyFilledSvg } from '../../assets/svg/verify-filled.js'
-import { verifySvg } from '../../assets/svg/verify.js'
-import { walletPlaceholderSvg } from '../../assets/svg/wallet-placeholder.js'
 import { walletSvg } from '../../assets/svg/wallet.js'
 import {
   walletConnectBrownSvg,
+  walletConnectInvertSvg,
   walletConnectLightBrownSvg,
   walletConnectSvg
 } from '../../assets/svg/walletconnect.js'
-import { warningCircleSvg } from '../../assets/svg/warning-circle.js'
 import { xSvg } from '../../assets/svg/x.js'
-import { colorStyles, resetStyles } from '../../utils/ThemeUtil.js'
-import type { ColorType, IconType, SizeType } from '../../utils/TypeUtil.js'
+import { vars } from '../../utils/ThemeHelperUtil.js'
+import { resetStyles } from '../../utils/ThemeUtil.js'
+import type { IconColorType, IconSizeType, IconType, IconWeightType } from '../../utils/TypeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-const svgOptions: Record<IconType, TemplateResult<2>> = {
-  add: addSvg,
-  allWallets: allWalletsSvg,
-  arrowBottomCircle: arrowBottomCircleSvg,
+// -- Phosphor Icons Mapping -------------------------------- //
+const phosphorIconsMap: Record<string, string> = {
+  add: 'ph-plus',
+  allWallets: 'ph-dots-three',
+  arrowBottom: 'ph-arrow-down',
+  arrowBottomCircle: 'ph-arrow-circle-down',
+  arrowClockWise: 'ph-arrow-clockwise',
+  arrowLeft: 'ph-arrow-left',
+  arrowRight: 'ph-arrow-right',
+  arrowTop: 'ph-arrow-up',
+  arrowTopRight: 'ph-arrow-up-right',
+  bank: 'ph-bank',
+  bin: 'ph-trash',
+  browser: 'ph-browser',
+  card: 'ph-credit-card',
+  checkmark: 'ph-check',
+  checkmarkBold: 'ph-check',
+  chevronBottom: 'ph-caret-down',
+  chevronLeft: 'ph-caret-left',
+  chevronRight: 'ph-caret-right',
+  chevronTop: 'ph-caret-up',
+  clock: 'ph-clock',
+  close: 'ph-x',
+  coinPlaceholder: 'ph-circle-half',
+  compass: 'ph-compass',
+  copy: 'ph-copy',
+  desktop: 'ph-desktop',
+  dollar: 'ph-currency-dollar',
+  download: 'ph-vault',
+  exclamationCircle: 'ph-warning-circle',
+  extension: 'ph-puzzle-piece',
+  externalLink: 'ph-arrow-square-out',
+  filters: 'ph-funnel-simple',
+  helpCircle: 'ph-question',
+  id: 'ph-identification-card',
+  image: 'ph-image',
+  info: 'ph-info',
+  lightbulb: 'ph-lightbulb',
+  mail: 'ph-envelope',
+  mobile: 'ph-device-mobile',
+  more: 'ph-dots-three',
+  networkPlaceholder: 'ph-globe',
+  nftPlaceholder: 'ph-image',
+  plus: 'ph-plus',
+  power: 'ph-power',
+  qrCode: 'ph-qr-code',
+  questionMark: 'ph-question',
+  refresh: 'ph-arrow-clockwise',
+  recycleHorizontal: 'ph-arrows-clockwise',
+  search: 'ph-magnifying-glass',
+  sealCheck: 'ph-seal-check',
+  send: 'ph-paper-plane-right',
+  signOut: 'ph-sign-out',
+  spinner: 'ph-spinner',
+  swapHorizontal: 'ph-arrows-left-right',
+  swapVertical: 'ph-arrows-down-up',
+  threeDots: 'ph-dots-three',
+  user: 'ph-user',
+  verify: 'ph-seal-check',
+  verifyFilled: 'ph-seal-check',
+  warning: 'ph-warning',
+  warningCircle: 'ph-warning-circle',
+
+  /*
+   * Icons keeping as SVG (no direct Phosphor equivalents or brand-specific)
+   */
+  appStore: '',
+  apple: '',
+  bitcoin: '',
+  chromeStore: '',
+  cursor: '',
+  discord: '',
+  ethereum: '',
+  etherscan: '',
+  facebook: '',
+  farcaster: '',
+  github: '',
+  google: '',
+  playStore: '',
+  reown: '',
+  solana: '',
+  telegram: '',
+  twitch: '',
+  twitterIcon: '',
+  twitter: '',
+  walletConnect: '',
+  walletConnectBrown: '',
+  walletConnectLightBrown: '',
+  x: '',
+  wallet: ''
+}
+
+// Dynamic imports for Phosphor components
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const phosphorImports: Record<string, () => Promise<any>> = {
+  'ph-arrow-circle-down': () => import('@phosphor-icons/webcomponents/PhArrowCircleDown'),
+  'ph-arrow-clockwise': () => import('@phosphor-icons/webcomponents/PhArrowClockwise'),
+  'ph-arrow-down': () => import('@phosphor-icons/webcomponents/PhArrowDown'),
+  'ph-arrow-left': () => import('@phosphor-icons/webcomponents/PhArrowLeft'),
+  'ph-arrow-right': () => import('@phosphor-icons/webcomponents/PhArrowRight'),
+  'ph-arrow-square-out': () => import('@phosphor-icons/webcomponents/PhArrowSquareOut'),
+  'ph-arrows-down-up': () => import('@phosphor-icons/webcomponents/PhArrowsDownUp'),
+  'ph-arrows-left-right': () => import('@phosphor-icons/webcomponents/PhArrowsLeftRight'),
+  'ph-arrow-up': () => import('@phosphor-icons/webcomponents/PhArrowUp'),
+  'ph-arrow-up-right': () => import('@phosphor-icons/webcomponents/PhArrowUpRight'),
+  'ph-arrows-clockwise': () => import('@phosphor-icons/webcomponents/PhArrowsClockwise'),
+  'ph-bank': () => import('@phosphor-icons/webcomponents/PhBank'),
+  'ph-browser': () => import('@phosphor-icons/webcomponents/PhBrowser'),
+  'ph-caret-down': () => import('@phosphor-icons/webcomponents/PhCaretDown'),
+  'ph-caret-left': () => import('@phosphor-icons/webcomponents/PhCaretLeft'),
+  'ph-caret-right': () => import('@phosphor-icons/webcomponents/PhCaretRight'),
+  'ph-caret-up': () => import('@phosphor-icons/webcomponents/PhCaretUp'),
+  'ph-check': () => import('@phosphor-icons/webcomponents/PhCheck'),
+  'ph-circle-half': () => import('@phosphor-icons/webcomponents/PhCircleHalf'),
+  'ph-clock': () => import('@phosphor-icons/webcomponents/PhClock'),
+  'ph-compass': () => import('@phosphor-icons/webcomponents/PhCompass'),
+  'ph-copy': () => import('@phosphor-icons/webcomponents/PhCopy'),
+  'ph-credit-card': () => import('@phosphor-icons/webcomponents/PhCreditCard'),
+  'ph-currency-dollar': () => import('@phosphor-icons/webcomponents/PhCurrencyDollar'),
+  'ph-desktop': () => import('@phosphor-icons/webcomponents/PhDesktop'),
+  'ph-device-mobile': () => import('@phosphor-icons/webcomponents/PhDeviceMobile'),
+  'ph-dots-three': () => import('@phosphor-icons/webcomponents/PhDotsThree'),
+  'ph-vault': () => import('@phosphor-icons/webcomponents/PhVault'),
+  'ph-envelope': () => import('@phosphor-icons/webcomponents/PhEnvelope'),
+  'ph-funnel-simple': () => import('@phosphor-icons/webcomponents/PhFunnelSimple'),
+  'ph-globe': () => import('@phosphor-icons/webcomponents/PhGlobe'),
+  'ph-identification-card': () => import('@phosphor-icons/webcomponents/PhIdentificationCard'),
+  'ph-image': () => import('@phosphor-icons/webcomponents/PhImage'),
+  'ph-info': () => import('@phosphor-icons/webcomponents/PhInfo'),
+  'ph-lightbulb': () => import('@phosphor-icons/webcomponents/PhLightbulb'),
+  'ph-magnifying-glass': () => import('@phosphor-icons/webcomponents/PhMagnifyingGlass'),
+  'ph-paper-plane-right': () => import('@phosphor-icons/webcomponents/PhPaperPlaneRight'),
+  'ph-plus': () => import('@phosphor-icons/webcomponents/PhPlus'),
+  'ph-power': () => import('@phosphor-icons/webcomponents/PhPower'),
+  'ph-puzzle-piece': () => import('@phosphor-icons/webcomponents/PhPuzzlePiece'),
+  'ph-qr-code': () => import('@phosphor-icons/webcomponents/PhQrCode'),
+  'ph-question': () => import('@phosphor-icons/webcomponents/PhQuestion'),
+  'ph-question-circle': () => import('@phosphor-icons/webcomponents/PhQuestionMark'),
+  'ph-seal-check': () => import('@phosphor-icons/webcomponents/PhSealCheck'),
+  'ph-sign-out': () => import('@phosphor-icons/webcomponents/PhSignOut'),
+  'ph-spinner': () => import('@phosphor-icons/webcomponents/PhSpinner'),
+  'ph-trash': () => import('@phosphor-icons/webcomponents/PhTrash'),
+  'ph-user': () => import('@phosphor-icons/webcomponents/PhUser'),
+  'ph-warning': () => import('@phosphor-icons/webcomponents/PhWarning'),
+  'ph-warning-circle': () => import('@phosphor-icons/webcomponents/PhWarningCircle'),
+  'ph-x': () => import('@phosphor-icons/webcomponents/PhX')
+}
+
+// -- SVG Options ------------------------------------------ //
+const svgOptions: Partial<Record<IconType, TemplateResult<2>>> = {
   appStore: appStoreSvg,
   apple: appleSvg,
-  arrowBottom: arrowBottomSvg,
-  arrowLeft: arrowLeftSvg,
-  arrowRight: arrowRightSvg,
-  arrowTop: arrowTopSvg,
-  bank: bankSvg,
-  browser: browserSvg,
-  card: cardSvg,
-  checkmark: checkmarkSvg,
-  checkmarkBold: checkmarkBoldSvg,
-  chevronBottom: chevronBottomSvg,
-  chevronLeft: chevronLeftSvg,
-  chevronRight: chevronRightSvg,
-  chevronTop: chevronTopSvg,
+  bitcoin: bitcoinSvg,
   chromeStore: chromeStoreSvg,
-  clock: clockSvg,
-  close: closeSvg,
-  compass: compassSvg,
-  coinPlaceholder: coinPlaceholderSvg,
-  copy: copySvg,
   cursor: cursorSvg,
-  cursorTransparent: cursorTransparentSvg,
-  desktop: desktopSvg,
-  disconnect: disconnectSvg,
   discord: discordSvg,
+  ethereum: ethereumSvg,
   etherscan: etherscanSvg,
-  extension: extensionSvg,
-  externalLink: externalLinkSvg,
   facebook: facebookSvg,
   farcaster: farcasterSvg,
-  filters: filtersSvg,
   github: githubSvg,
   google: googleSvg,
-  helpCircle: helpCircleSvg,
-  image: imageSvg,
-  id: idSvg,
-  infoCircle: infoCircleSvg,
-  lightbulb: lightbulbSvg,
-  mail: mailSvg,
-  mobile: mobileSvg,
-  more: moreSvg,
-  networkPlaceholder: networkPlaceholderSvg,
-  nftPlaceholder: nftPlaceholderSvg,
-  off: offSvg,
   playStore: playStoreSvg,
-  plus: plusSvg,
-  qrCode: qrCodeIcon,
-  recycleHorizontal: recycleHorizontalSvg,
-  refresh: refreshSvg,
-  search: searchSvg,
-  send: sendSvg,
-  swapHorizontal: swapHorizontalSvg,
-  swapHorizontalMedium: swapHorizontalMediumSvg,
-  swapHorizontalBold: swapHorizontalBoldSvg,
-  swapHorizontalRoundedBold: swapHorizontalRoundedBoldSvg,
-  swapVertical: swapVerticalSvg,
+  reown: reownSvg,
+  solana: solanaSvg,
   telegram: telegramSvg,
-  threeDots: threeDotsSvg,
   twitch: twitchSvg,
   twitter: xSvg,
   twitterIcon: twitterIconSvg,
-  verify: verifySvg,
-  verifyFilled: verifyFilledSvg,
-  wallet: walletSvg,
   walletConnect: walletConnectSvg,
-  walletConnectLightBrown: walletConnectLightBrownSvg,
+  walletConnectInvert: walletConnectInvertSvg,
   walletConnectBrown: walletConnectBrownSvg,
-  walletPlaceholder: walletPlaceholderSvg,
-  warningCircle: warningCircleSvg,
+  walletConnectLightBrown: walletConnectLightBrownSvg,
   x: xSvg,
-  info: infoSvg,
-  exclamationTriangle: exclamationTriangleSvg
+  wallet: walletSvg
+}
+
+// -- Constants ------------------------------------------ //
+export const ICON_COLOR = {
+  'accent-primary': vars.tokens.core.iconAccentPrimary,
+  'accent-certified': vars.tokens.core.iconAccentCertified,
+  default: vars.tokens.theme.iconDefault,
+  success: vars.tokens.core.iconSuccess,
+  error: vars.tokens.core.iconError,
+  warning: vars.tokens.core.iconWarning,
+  inverse: vars.tokens.theme.iconInverse
 }
 
 @customElement('wui-icon')
 export class WuiIcon extends LitElement {
-  public static override styles = [resetStyles, colorStyles, styles]
+  public static override styles = [resetStyles, styles]
 
   // -- State & Properties -------------------------------- //
-  @property() public size: SizeType = 'md'
+  @property() public size: IconSizeType = 'md'
 
   @property() public name: IconType = 'copy'
 
-  @property() public color: ColorType = 'fg-300'
+  @property() public weight: IconWeightType = 'bold'
+
+  @property() public color: IconColorType = 'inherit'
 
   // -- Render -------------------------------------------- //
   public override render() {
+    const getSize = {
+      xxs: '2',
+      xs: '3',
+      sm: '3',
+      md: '4',
+      mdl: '5',
+      lg: '5',
+      xl: '6',
+      xxl: '7',
+      inherit: 'inherit'
+    } as const
+
     this.style.cssText = `
-      --local-color: ${`var(--wui-color-${this.color});`}
-      --local-width: ${`var(--wui-icon-size-${this.size});`}
+      --local-width: ${this.size === 'inherit' ? 'inherit' : `var(--apkt-spacing-${getSize[this.size]})`};
+      --local-color: ${this.color === 'inherit' ? 'inherit' : ICON_COLOR[this.color]}
     `
 
-    return html`${svgOptions[this.name]}`
+    // Check if the icon should use Phosphor
+    const phosphorIconTag = phosphorIconsMap[this.name]
+
+    if (phosphorIconTag && phosphorIconTag !== '') {
+      // Import the Phosphor icon component dynamically
+      const importFn = phosphorImports[phosphorIconTag]
+      if (importFn) {
+        importFn()
+      }
+
+      const tag = unsafeStatic(phosphorIconTag)
+
+      const getPhosphorSize = {
+        xxs: '0.5em',
+        xs: '0.75em',
+        sm: '0.75em',
+        md: '1em',
+        mdl: '1.25em',
+        lg: '1.25em',
+        xl: '1.5em',
+        xxl: '1.75em'
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any
+
+      // Return the Phosphor icon with dynamic tag
+      // eslint-disable-next-line lit/binding-positions, lit/no-invalid-html
+      return html`<${tag} size=${getPhosphorSize[this.size]} weight="${this.weight}"></${tag}>`
+    }
+
+    // Fallback to regular SVG
+    return svgOptions[this.name] || html``
   }
 }
 

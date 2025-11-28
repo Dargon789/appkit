@@ -2,47 +2,48 @@ import { LitElement, html } from 'lit'
 import { property } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import type { WcWallet } from '@reown/appkit-core'
-import { ApiController, AssetUtil, ConnectorController } from '@reown/appkit-core'
+import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
+import type { WcWallet } from '@reown/appkit-controllers'
+import { AssetUtil, ConnectionController, ConnectorController } from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
-
-import { WalletUtil } from '../../utils/WalletUtil.js'
+import '@reown/appkit-ui/wui-flex'
+import '@reown/appkit-ui/wui-list-wallet'
 
 @customElement('w3m-connect-featured-widget')
 export class W3mConnectFeaturedWidget extends LitElement {
-  // -- Members ------------------------------------------- //
-  private unsubscribe: (() => void)[] = []
-
   // -- State & Properties -------------------------------- //
   @property() public tabIdx?: number = undefined
 
-  public override disconnectedCallback() {
-    this.unsubscribe.forEach(unsubscribe => unsubscribe())
-  }
+  @property() public wallets: WcWallet[] = []
 
   // -- Render -------------------------------------------- //
   public override render() {
-    const { featured } = ApiController.state
-    if (!featured.length) {
+    if (!this.wallets.length) {
       this.style.cssText = `display: none`
 
       return null
     }
 
-    const wallets = WalletUtil.filterOutDuplicateWallets(featured)
+    const hasWcConnection = ConnectionController.hasAnyConnection(
+      CommonConstantsUtil.CONNECTOR_ID.WALLET_CONNECT
+    )
 
     return html`
-      <wui-flex flexDirection="column" gap="xs">
-        ${wallets.map(
+      <wui-flex flexDirection="column" gap="2">
+        ${this.wallets.map(
           wallet => html`
-            <wui-list-wallet
+            <w3m-list-wallet
               data-testid=${`wallet-selector-featured-${wallet.id}`}
               imageSrc=${ifDefined(AssetUtil.getWalletImage(wallet))}
               name=${wallet.name ?? 'Unknown'}
               @click=${() => this.onConnectWallet(wallet)}
               tabIdx=${ifDefined(this.tabIdx)}
+              size="sm"
+              ?disabled=${hasWcConnection}
+              rdnsId=${wallet.rdns}
+              walletRank=${wallet.order}
             >
-            </wui-list-wallet>
+            </w3m-list-wallet>
           `
         )}
       </wui-flex>

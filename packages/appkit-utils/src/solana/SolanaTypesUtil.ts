@@ -10,8 +10,8 @@ import type {
 import UniversalProvider from '@walletconnect/universal-provider'
 
 import type { CaipNetwork, ChainNamespace } from '@reown/appkit-common'
-import type { ConnectorType } from '@reown/appkit-core'
-import type { Provider as CoreProvider } from '@reown/appkit-core'
+import type { ConnectorType } from '@reown/appkit-controllers'
+import type { Provider as CoreProvider } from '@reown/appkit-controllers'
 import type { W3mFrameProvider, W3mFrameTypes } from '@reown/appkit-wallet'
 
 export type Connection = SolanaConnection
@@ -51,6 +51,7 @@ export interface Provider
   connect: (params?: {
     chainId?: string
     onUri?: ((uri: string) => void) | undefined
+    socialUri?: string
   }) => Promise<string>
   disconnect: () => Promise<void>
   signMessage: (message: Uint8Array) => Promise<Uint8Array>
@@ -113,3 +114,11 @@ export type Metadata = {
 export type AnyTransaction = SolanaWeb3Transaction | VersionedTransaction
 
 export type GetActiveChain = () => CaipNetwork | undefined
+
+export type SPLTokenTransactionArgs = {
+  provider: Provider
+  connection: Connection
+  to: string
+  amount: number
+  tokenMint: string
+}

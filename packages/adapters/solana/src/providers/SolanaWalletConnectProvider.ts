@@ -12,6 +12,7 @@ import base58 from 'bs58'
 
 import { type RequestArguments, WcHelpersUtil } from '@reown/appkit'
 import { type CaipAddress, type CaipNetwork, ParseUtil } from '@reown/appkit-common'
+import { AssetController } from '@reown/appkit-controllers'
 import { SolConstantsUtil } from '@reown/appkit-utils/solana'
 import type {
   AnyTransaction,
@@ -34,11 +35,11 @@ export class SolanaWalletConnectProvider
   implements Omit<Provider, 'connect'>, ProviderEventEmitterMethods
 {
   private readonly getActiveChain: WalletConnectProviderConfig['getActiveChain']
-
-  private eventEmitter = new ProviderEventEmitter()
+  private readonly eventEmitter = new ProviderEventEmitter()
   public readonly emit = this.eventEmitter.emit.bind(this.eventEmitter)
   public readonly on = this.eventEmitter.on.bind(this.eventEmitter)
   public readonly removeListener = this.eventEmitter.removeListener.bind(this.eventEmitter)
+  readonly #version = '1.0.0' as const
 
   constructor({ provider, chains, getActiveChain }: WalletConnectProviderConfig) {
     super({ caipNetworks: chains, namespace: 'solana', provider })
@@ -64,6 +65,14 @@ export class SolanaWalletConnectProvider
         return this.caipNetworks.find(chain => chain.caipNetworkId === chainId)
       })
       .filter(Boolean) as CaipNetwork[]
+  }
+
+  public get icon() {
+    return AssetController.state.connectorImages[this.id]
+  }
+
+  public get version() {
+    return this.#version
   }
 
   public get publicKey() {
@@ -115,9 +124,10 @@ export class SolanaWalletConnectProvider
 
     // If the result contains signature is the old RPC response
     if ('signature' in result) {
+      const decoded = base58.decode(result.signature)
       transaction.addSignature(
         new PublicKey(this.getAccount(true).publicKey),
-        Buffer.from(base58.decode(result.signature))
+        Buffer.from(decoded) as Buffer & Uint8Array
       )
 
       return transaction
@@ -126,7 +136,7 @@ export class SolanaWalletConnectProvider
     const decodedTransaction = Buffer.from(result.transaction, 'base64')
 
     if (isVersionedTransaction(transaction)) {
-      return VersionedTransaction.deserialize(decodedTransaction) as T
+      return VersionedTransaction.deserialize(new Uint8Array(decodedTransaction)) as T
     }
 
     return Transaction.from(decodedTransaction) as T
@@ -182,7 +192,7 @@ export class SolanaWalletConnectProvider
         const decodedTransaction = Buffer.from(serializedTransaction, 'base64')
 
         if (isVersionedTransaction(transaction)) {
-          return VersionedTransaction.deserialize(decodedTransaction)
+          return VersionedTransaction.deserialize(new Uint8Array(decodedTransaction))
         }
 
         this.emit('pendingTransaction', undefined)
@@ -266,7 +276,9 @@ export class SolanaWalletConnectProvider
      * But our specs requires base64 right now:
      * https://docs.reown.com/advanced/multichain/rpc-reference/solana-rpc#solana_signtransaction
      */
-    return Buffer.from(transaction.serialize({ verifySignatures: false })).toString('base64')
+    return Buffer.from(new Uint8Array(transaction.serialize({ verifySignatures: false }))).toString(
+      'base64'
+    )
   }
 
   private getAccount<Required extends boolean>(
@@ -314,7 +326,7 @@ export class SolanaWalletConnectProvider
     return {
       feePayer: transaction.feePayer?.toBase58() ?? '',
       instructions: transaction.instructions.map(instruction => ({
-        data: base58.encode(instruction.data),
+        data: base58.encode(new Uint8Array(instruction.data)),
         keys: instruction.keys.map(key => ({
           isWritable: key.isWritable,
           isSigner: key.isSigner,

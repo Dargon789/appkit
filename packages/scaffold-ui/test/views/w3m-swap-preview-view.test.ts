@@ -1,6 +1,7 @@
 import { expect as expectChai, fixture, html } from '@open-wc/testing'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { Address, Hex } from '@reown/appkit-common'
 import {
   AccountController,
   type AccountControllerState,
@@ -10,9 +11,9 @@ import {
   SwapController,
   type SwapControllerState,
   type SwapTokenWithBalance
-} from '@reown/appkit-core'
+} from '@reown/appkit-controllers'
 
-import { W3mSwapPreviewView } from '../../exports'
+import { W3mSwapPreviewView } from '../../src/views/w3m-swap-preview-view/index.js'
 
 const mockToken: SwapTokenWithBalance = {
   address: 'eip155:1:0x123',
@@ -59,6 +60,7 @@ const mockChainState: ChainControllerState = {
       reconnectExternal: vi.fn(),
       checkInstalled: vi.fn(),
       disconnect: vi.fn(),
+      disconnectConnector: vi.fn(),
       signMessage: vi.fn(),
       sendTransaction: vi.fn(),
       estimateGas: vi.fn(),
@@ -69,7 +71,9 @@ const mockChainState: ChainControllerState = {
       getEnsAvatar: vi.fn(),
       grantPermissions: vi.fn(),
       revokePermissions: vi.fn(),
-      getCapabilities: vi.fn()
+      getCapabilities: vi.fn(),
+      walletGetAssets: vi.fn(),
+      updateBalance: vi.fn()
     }
   },
   noAdapters: false,
@@ -123,8 +127,7 @@ const mockAccountState: AccountControllerState = {
   balanceSymbol: 'ETH',
   address: '0x123',
   currentTab: 0,
-  addressLabels: new Map(),
-  allAccounts: []
+  addressLabels: new Map()
 }
 
 describe('W3mSwapPreviewView', () => {
@@ -198,8 +201,8 @@ describe('W3mSwapPreviewView', () => {
 
   it('should handle approval transaction', async () => {
     const approvalTransaction = {
-      data: '0x789',
-      to: '0xabc',
+      data: '0x789' as Hex,
+      to: '0xabc' as Address,
       gas: BigInt(21000),
       gasPrice: BigInt(1000000000),
       value: BigInt(0),

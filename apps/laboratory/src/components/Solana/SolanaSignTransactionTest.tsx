@@ -13,7 +13,7 @@ import bs58 from 'bs58'
 import { type Provider, useAppKitConnection } from '@reown/appkit-adapter-solana/react'
 import { useAppKitProvider } from '@reown/appkit/react'
 
-import { useChakraToast } from '../Toast'
+import { useChakraToast } from '@/src/components/Toast'
 
 const PHANTOM_DEVNET_ADDRESS = '8vCyX7oB6Pc3pbWMGYYZF5pbSnAdQ7Gyr32JqxqCy8ZR'
 const recipientAddress = new PublicKey(PHANTOM_DEVNET_ADDRESS)
@@ -23,11 +23,11 @@ export function SolanaSignTransactionTest() {
   const toast = useChakraToast()
   const { walletProvider } = useAppKitProvider<Provider>('solana')
   const { connection } = useAppKitConnection()
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   async function onSignTransaction() {
     try {
-      setLoading(true)
+      setIsLoading(true)
       if (!walletProvider?.publicKey) {
         throw Error('user is disconnected')
       }
@@ -68,13 +68,13 @@ export function SolanaSignTransactionTest() {
         type: 'error'
       })
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
   async function onSignVersionedTransaction() {
     try {
-      setLoading(true)
+      setIsLoading(true)
       if (!walletProvider?.publicKey) {
         throw Error('user is disconnected')
       }
@@ -120,7 +120,7 @@ export function SolanaSignTransactionTest() {
         type: 'error'
       })
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
@@ -129,14 +129,14 @@ export function SolanaSignTransactionTest() {
       <Button
         data-testid="sign-transaction-button"
         onClick={onSignTransaction}
-        isDisabled={loading}
+        isDisabled={isLoading}
       >
         Sign Transaction
       </Button>
       <Button
         data-test-id="sign-transaction-button"
         onClick={onSignVersionedTransaction}
-        isDisabled={loading}
+        isDisabled={isLoading}
       >
         Sign Versioned Transaction
       </Button>

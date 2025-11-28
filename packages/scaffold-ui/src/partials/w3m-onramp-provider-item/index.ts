@@ -2,8 +2,14 @@ import { LitElement, html } from 'lit'
 import { property } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import { AssetUtil, ChainController, type OnRampProvider } from '@reown/appkit-core'
+import { AssetUtil, ChainController, type OnRampProvider } from '@reown/appkit-controllers'
 import { type ColorType, customElement } from '@reown/appkit-ui'
+import '@reown/appkit-ui/wui-flex'
+import '@reown/appkit-ui/wui-icon'
+import '@reown/appkit-ui/wui-image'
+import '@reown/appkit-ui/wui-loading-spinner'
+import '@reown/appkit-ui/wui-text'
+import '@reown/appkit-ui/wui-visual'
 
 import styles from './styles.js'
 
@@ -29,25 +35,25 @@ export class W3mOnRampProviderItem extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <button ?disabled=${this.disabled}>
+      <button ?disabled=${this.disabled} @click=${this.onClick} ontouchstart>
         <wui-visual name=${ifDefined(this.name)} class="provider-image"></wui-visual>
-        <wui-flex flexDirection="column" gap="4xs">
-          <wui-text variant="paragraph-500" color="fg-100">${this.label}</wui-text>
-          <wui-flex alignItems="center" justifyContent="flex-start" gap="l">
-            <wui-text variant="tiny-500" color="fg-100">
-              <wui-text variant="tiny-400" color="fg-200">Fees</wui-text>
+        <wui-flex flexDirection="column" gap="01">
+          <wui-text variant="md-regular" color="primary">${this.label}</wui-text>
+          <wui-flex alignItems="center" justifyContent="flex-start" gap="4">
+            <wui-text variant="sm-medium" color="primary">
+              <wui-text variant="sm-regular" color="secondary">Fees</wui-text>
               ${this.feeRange}
             </wui-text>
-            <wui-flex gap="xxs">
-              <wui-icon name="bank" size="xs" color="fg-150"></wui-icon>
-              <wui-icon name="card" size="xs" color="fg-150"></wui-icon>
+            <wui-flex gap="2">
+              <wui-icon name="bank" size="sm" color="default"></wui-icon>
+              <wui-icon name="card" size="sm" color="default"></wui-icon>
             </wui-flex>
             ${this.networksTemplate()}
           </wui-flex>
         </wui-flex>
         ${this.loading
-          ? html`<wui-loading-spinner color="fg-200" size="md"></wui-loading-spinner>`
-          : html`<wui-icon name="chevronRight" color="fg-200" size="sm"></wui-icon>`}
+          ? html`<wui-loading-spinner color="secondary" size="md"></wui-loading-spinner>`
+          : html`<wui-icon name="chevronRight" color="default" size="sm"></wui-icon>`}
       </button>
     `
   }

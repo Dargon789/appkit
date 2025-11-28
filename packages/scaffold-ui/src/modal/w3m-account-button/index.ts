@@ -2,17 +2,21 @@ import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
+import type { CaipAddress, CaipNetwork, ChainNamespace } from '@reown/appkit-common'
 import {
   AccountController,
+  type AccountControllerState,
+  type AdapterNetworkState,
   AssetController,
   AssetUtil,
   ChainController,
   CoreHelperUtil,
   ModalController,
   OptionsController
-} from '@reown/appkit-core'
+} from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
-import type { WuiAccountButton } from '@reown/appkit-ui'
+import type { WuiAccountButton } from '@reown/appkit-ui/wui-account-button'
+import '@reown/appkit-ui/wui-account-button'
 
 class W3mAccountButtonBase extends LitElement {
   // -- Members ------------------------------------------- //
@@ -27,19 +31,21 @@ class W3mAccountButtonBase extends LitElement {
 
   @property() public charsEnd?: WuiAccountButton['charsEnd'] = 6
 
-  @state() private caipAddress = ChainController.state.activeCaipAddress
+  @property() public namespace?: ChainNamespace = undefined
 
-  @state() private balanceVal = AccountController.state.balance
+  @state() private caipAddress: CaipAddress | undefined
 
-  @state() private balanceSymbol = AccountController.state.balanceSymbol
+  @state() private balanceVal: string | undefined
 
-  @state() private profileName = AccountController.state.profileName
+  @state() private balanceSymbol: string | undefined
 
-  @state() private profileImage = AccountController.state.profileImage
+  @state() private profileName: string | null | undefined
 
-  @state() private network = ChainController.state.activeCaipNetwork
+  @state() private profileImage: string | null | undefined
 
-  @state() private networkImage = AssetUtil.getNetworkImage(this.network)
+  @state() private network: CaipNetwork | undefined
+
+  @state() private networkImage: string | undefined
 
   // eslint-disable-next-line no-nested-ternary
   @state() private isSupported = OptionsController.state.allowUnsupportedChain
@@ -49,10 +55,38 @@ class W3mAccountButtonBase extends LitElement {
       : true
 
   // -- Lifecycle ----------------------------------------- //
-  public constructor() {
-    super()
-    this.unsubscribe.push(
-      ...[
+  public override connectedCallback() {
+    super.connectedCallback()
+    this.setAccountData(ChainController.getAccountData(this.namespace))
+    this.setNetworkData(ChainController.getNetworkData(this.namespace))
+  }
+
+  public override firstUpdated() {
+    const namespace = this.namespace
+
+    if (namespace) {
+      this.unsubscribe.push(
+        ChainController.subscribeChainProp(
+          'accountState',
+          val => {
+            this.setAccountData(val)
+          },
+          namespace
+        ),
+        ChainController.subscribeChainProp(
+          'networkState',
+          val => {
+            this.setNetworkData(val)
+            this.isSupported = ChainController.checkIfSupportedNetwork(
+              namespace,
+              val?.caipNetwork?.caipNetworkId
+            )
+          },
+          namespace
+        )
+      )
+    } else {
+      this.unsubscribe.push(
         AssetController.subscribeNetworkImages(() => {
           this.networkImage = AssetUtil.getNetworkImage(this.network)
         }),
@@ -69,9 +103,14 @@ class W3mAccountButtonBase extends LitElement {
           this.isSupported = val?.chainNamespace
             ? ChainController.checkIfSupportedNetwork(val?.chainNamespace)
             : true
+          this.fetchNetworkImage(val)
         })
-      ]
-    )
+      )
+    }
+  }
+
+  public override updated() {
+    this.fetchNetworkImage(this.network)
   }
 
   public override disconnectedCallback() {
@@ -86,6 +125,7 @@ class W3mAccountButtonBase extends LitElement {
 
     const shouldShowBalance = this.balance === 'show'
     const shouldShowLoading = typeof this.balanceVal !== 'string'
+    const { formattedText } = CoreHelperUtil.parseBalance(this.balanceVal, this.balanceSymbol)
 
     return html`
       <wui-account-button
@@ -97,11 +137,9 @@ class W3mAccountButtonBase extends LitElement {
         profileName=${ifDefined(this.profileName)}
         networkSrc=${ifDefined(this.networkImage)}
         avatarSrc=${ifDefined(this.profileImage)}
-        balance=${shouldShowBalance
-          ? CoreHelperUtil.formatBalance(this.balanceVal, this.balanceSymbol)
-          : ''}
+        balance=${shouldShowBalance ? formattedText : ''}
         @click=${this.onClick.bind(this)}
-        data-testid="account-button"
+        data-testid=${`account-button${this.namespace ? `-${this.namespace}` : ''}`}
         .charsStart=${this.charsStart}
         .charsEnd=${this.charsEnd}
         ?loading=${shouldShowLoading}
@@ -113,10 +151,37 @@ class W3mAccountButtonBase extends LitElement {
   // -- Private ------------------------------------------- //
   private onClick() {
     if (this.isSupported || OptionsController.state.allowUnsupportedChain) {
-      ModalController.open()
+      ModalController.open({ namespace: this.namespace })
     } else {
       ModalController.open({ view: 'UnsupportedChain' })
     }
+  }
+
+  private async fetchNetworkImage(network?: CaipNetwork) {
+    if (network?.assets?.imageId) {
+      this.networkImage = await AssetUtil.fetchNetworkImage(network?.assets?.imageId)
+    }
+  }
+
+  private setAccountData(accountState: AccountControllerState | undefined) {
+    if (!accountState) {
+      return
+    }
+
+    this.caipAddress = accountState.caipAddress
+    this.balanceVal = accountState.balance
+    this.balanceSymbol = accountState.balanceSymbol
+    this.profileName = accountState.profileName
+    this.profileImage = accountState.profileImage
+  }
+
+  private setNetworkData(networkState: AdapterNetworkState | undefined) {
+    if (!networkState) {
+      return
+    }
+
+    this.network = networkState.caipNetwork
+    this.networkImage = AssetUtil.getNetworkImage(networkState.caipNetwork)
   }
 }
 

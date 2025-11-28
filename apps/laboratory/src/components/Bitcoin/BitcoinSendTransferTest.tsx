@@ -1,16 +1,18 @@
 import { useState } from 'react'
 
-import { Box, Button, Input, InputGroup, InputLeftAddon, useToast } from '@chakra-ui/react'
+import { Box, Button, Input, InputGroup, InputLeftAddon } from '@chakra-ui/react'
 
 import type { BitcoinConnector } from '@reown/appkit-adapter-bitcoin'
 import { useAppKitAccount, useAppKitProvider } from '@reown/appkit/react'
 
+import { useChakraToast } from '@/src/components/Toast'
+
 export function BitcoinSendTransferTest() {
   const { walletProvider } = useAppKitProvider<BitcoinConnector>('bip122')
-  const { address } = useAppKitAccount()
+  const { address } = useAppKitAccount({ namespace: 'bip122' })
+  const toast = useChakraToast()
 
-  const toast = useToast()
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [recipient, setRecipient] = useState<string>(address || '')
   const [amount, setAmount] = useState<string>('1500')
 
@@ -18,27 +20,27 @@ export function BitcoinSendTransferTest() {
     if (!walletProvider) {
       toast({
         title: 'No wallet provider',
-        status: 'error',
-        isClosable: true
+        description: 'Please connect your wallet',
+        type: 'error'
       })
     }
 
     try {
-      setLoading(true)
+      setIsLoading(true)
       const signature = await walletProvider.sendTransfer({
         recipient,
         amount
       })
 
       toast({
-        title: `Transfer sent: ${signature}`,
-        status: 'success',
-        isClosable: true
+        title: 'Success',
+        description: `Transfer sent: ${signature}`,
+        type: 'success'
       })
     } catch (error) {
-      toast({ title: 'Error', description: (error as Error).message, status: 'error' })
+      toast({ title: 'Error', description: (error as Error).message, type: 'error' })
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
@@ -60,7 +62,7 @@ export function BitcoinSendTransferTest() {
         data-testid="send-transfer-button"
         onClick={onSendTransfer}
         width="auto"
-        isLoading={loading}
+        isLoading={isLoading}
       >
         Send Transfer
       </Button>

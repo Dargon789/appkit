@@ -2,10 +2,10 @@ import { type PublicClient, createPublicClient, http } from 'viem'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import type { CaipNetwork } from '@reown/appkit-common'
-import { ChainController } from '@reown/appkit-core'
+import { ChainController } from '@reown/appkit-controllers'
+import { mockSession } from '@reown/appkit-controllers/testing'
 
 import { EIP155Verifier } from '../../src/index.js'
-import { mockSession } from '../mocks/mockSession.js'
 
 const mockHttp = 'https://mock-rpc.com'
 const mockCaipNetwork = {

@@ -1,3 +1,5 @@
+import { BitcoinNetworkType } from 'sats-connect'
+import type { AddressPurpose, AddressType } from 'sats-connect'
 import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { CaipNetwork } from '@reown/appkit-common'
@@ -108,6 +110,44 @@ describe('LeatherConnector', () => {
     ).rejects.toThrowError('LeatherConnector: unsupported network')
   })
 
+  it('should sign a PSBT with signInputs without broadcast', async () => {
+    const psbt = 'psbt'
+    const requestSpy = vi.spyOn(mocks.wallet, 'request')
+    requestSpy.mockResolvedValue(
+      // @ts-expect-error - mock response without txid for non-broadcast
+      mockSatsConnectProvider.mockRequestResolve({ hex: '70736274', txid: undefined })
+    )
+    const signInputs = [{ index: 0, address: 'mock_address', sighashTypes: [1, 3] }]
+    const res = await connector.signPSBT({ psbt, signInputs, broadcast: false })
+    expect(res).toEqual({ psbt: 'cHNidA==', txid: undefined })
+    expect(requestSpy).toHaveBeenCalledWith('signPsbt', {
+      hex: 'a6c6ed',
+      network: 'mainnet',
+      broadcast: false,
+      signAtIndex: 0,
+      allowedSighash: [1, 3]
+    })
+  })
+
+  it('should sign a PSBT with signInputs with broadcast', async () => {
+    const psbt = 'psbt'
+    const txid = 'txid'
+    const requestSpy = vi.spyOn(mocks.wallet, 'request')
+    requestSpy.mockResolvedValue(
+      mockSatsConnectProvider.mockRequestResolve({ hex: '70736274', txid })
+    )
+    const signInputs = [{ index: 0, address: 'mock_address', sighashTypes: [1, 3] }]
+    const res = await connector.signPSBT({ psbt, signInputs, broadcast: true })
+    expect(res).toEqual({ psbt: 'cHNidA==', txid })
+    expect(requestSpy).toHaveBeenCalledWith('signPsbt', {
+      hex: 'a6c6ed',
+      network: 'mainnet',
+      broadcast: true,
+      signAtIndex: 0,
+      allowedSighash: [1, 3]
+    })
+  })
+
   it('should disconnect', async () => {
     await expect(connector.disconnect()).resolves.not.toThrow()
   })
@@ -120,13 +160,20 @@ describe('LeatherConnector', () => {
         addresses: [
           {
             address: 'mock_address',
-            purpose: 'receive',
-            addressType: 'p2pkh',
+            purpose: 'payment' as AddressPurpose,
+            addressType: 'p2pkh' as AddressType,
             gaiaAppKey: 'mock_gaia_app_key',
             gaiaHubUrl: 'mock_gaia_hub_url',
-            publicKey: 'mock_public_key'
+            publicKey: 'mock_public_key',
+            walletType: 'software'
           }
-        ]
+        ],
+        network: {
+          name: 'Bitcoin',
+          stacks: { name: BitcoinNetworkType.Mainnet },
+          bitcoin: { name: BitcoinNetworkType.Mainnet }
+        },
+        walletType: 'software'
       })
     )
 
@@ -145,13 +192,20 @@ describe('LeatherConnector', () => {
         addresses: [
           {
             address: 'mock_address',
-            purpose: 'receive',
-            addressType: 'p2pkh',
+            purpose: 'payment' as AddressPurpose,
+            addressType: 'p2pkh' as AddressType,
             gaiaAppKey: 'mock_gaia_app_key',
             gaiaHubUrl: 'mock_gaia_hub_url',
-            publicKey: 'mock_public_key'
+            publicKey: 'mock_public_key',
+            walletType: 'software'
           }
-        ]
+        ],
+        network: {
+          name: 'Bitcoin',
+          stacks: { name: BitcoinNetworkType.Mainnet },
+          bitcoin: { name: BitcoinNetworkType.Mainnet }
+        },
+        walletType: 'software'
       })
     )
 
@@ -163,13 +217,20 @@ describe('LeatherConnector', () => {
         addresses: [
           {
             address: 'mock_address_2',
-            purpose: 'receive',
-            addressType: 'p2pkh',
+            purpose: 'payment' as AddressPurpose,
+            addressType: 'p2pkh' as AddressType,
             gaiaAppKey: 'mock_gaia_app_key',
             gaiaHubUrl: 'mock_gaia_hub_url',
-            publicKey: 'mock_public_key'
+            publicKey: 'mock_public_key',
+            walletType: 'software'
           }
-        ]
+        ],
+        network: {
+          name: 'Bitcoin',
+          stacks: { name: BitcoinNetworkType.Mainnet },
+          bitcoin: { name: BitcoinNetworkType.Mainnet }
+        },
+        walletType: 'software'
       })
     )
     const addressesSecondCall = await connector.getAccountAddresses()
@@ -178,5 +239,13 @@ describe('LeatherConnector', () => {
     expect(addressesFirstCall).not.toBe(addressesSecondCall)
 
     requestSpy.mockRestore()
+  })
+
+  it('should replace image/svg with image/svg+xml', () => {
+    const connector = new LeatherConnector({
+      connector: satsConnectConnector
+    })
+
+    expect(connector.imageUrl).toBe('data:image/svg+xml;')
   })
 })

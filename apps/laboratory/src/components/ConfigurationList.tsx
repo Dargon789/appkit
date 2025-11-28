@@ -1,5 +1,7 @@
+'use client'
+
 /* eslint-disable no-negated-condition */
-import type { ReactNode } from 'react'
+import * as React from 'react'
 import { IoArrowForward } from 'react-icons/io5'
 
 import {
@@ -15,11 +17,12 @@ import {
   Text
 } from '@chakra-ui/react'
 
-import type { SdkOption } from '../utils/DataUtil'
+import type { SdkOption } from '@/src/utils/DataUtil'
+
 import { RandomLink } from './RandomLink'
 
 type Props = {
-  title: ReactNode
+  title: React.ReactNode
   sdkOptions: SdkOption[]
 }
 
@@ -48,9 +51,19 @@ export function ConfigurationList({ title, sdkOptions }: Props) {
                       <Button rightIcon={<IoArrowForward />}>Go</Button>
                     </RandomLink>
                   ) : (
-                    <Link href={option.link}>
-                      <Button rightIcon={<IoArrowForward />}>Go</Button>
-                    </Link>
+                    <Box display="flex" gap={2} flexWrap="wrap">
+                      {option.links ? (
+                        option.links.map(link => (
+                          <Link key={link.url} href={link.url}>
+                            <Button>{link.title}</Button>
+                          </Link>
+                        ))
+                      ) : (
+                        <Link href={option.link}>
+                          <Button rightIcon={<IoArrowForward />}>Go</Button>
+                        </Link>
+                      )}
+                    </Box>
                   )}
                 </Stack>
               </Box>

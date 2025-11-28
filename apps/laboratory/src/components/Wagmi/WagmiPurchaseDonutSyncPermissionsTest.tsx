@@ -4,14 +4,15 @@ import { Button, Flex, Stack, Text } from '@chakra-ui/react'
 import { encodeFunctionData, parseEther } from 'viem'
 import { useReadContract } from 'wagmi'
 
+import type { Address } from '@reown/appkit-common'
 import type { SmartSessionGrantPermissionsResponse } from '@reown/appkit-experimental/smart-session'
 
-import { usePasskey } from '../../context/PasskeyContext'
-import { useERC7715Permissions } from '../../hooks/useERC7715Permissions'
-import { abi as donutContractAbi, address as donutContractaddress } from '../../utils/DonutContract'
-import { executeActionsWithPasskey } from '../../utils/ERC7715Utils'
-import { getChain } from '../../utils/NetworksUtil'
-import { useChakraToast } from '../Toast'
+import { useChakraToast } from '@/src/components/Toast'
+import { usePasskey } from '@/src/context/PasskeyContext'
+import { useERC7715Permissions } from '@/src/hooks/useERC7715Permissions'
+import { abi as donutContractAbi, address as donutContractaddress } from '@/src/utils/DonutContract'
+import { executeActionsWithPasskey } from '@/src/utils/ERC7715Utils'
+import { getChain } from '@/src/utils/NetworksUtil'
 
 export function WagmiPurchaseDonutSyncPermissionsTest() {
   const { smartSession } = useERC7715Permissions()
@@ -38,8 +39,8 @@ function ConnectedTestContent({
   const {
     data: donutsOwned,
     refetch: fetchDonutsOwned,
-    isLoading: donutsQueryLoading,
-    isRefetching: donutsQueryRefetching
+    isLoading: isDonutsQueryLoading,
+    isRefetching: isDonutsQueryRefetching
   } = useReadContract({
     abi: donutContractAbi,
     address: donutContractaddress,
@@ -68,7 +69,7 @@ function ConnectedTestContent({
       })
       const purchaseDonutCallDataExecution = [
         {
-          to: donutContractaddress as `0x${string}`,
+          to: donutContractaddress as Address,
           value: parseEther('0.00001'),
           data: purchaseDonutCallData
         }
@@ -108,7 +109,7 @@ function ConnectedTestContent({
         Purchase Donut
       </Button>
       <Flex alignItems="center">
-        {donutsQueryLoading || donutsQueryRefetching ? (
+        {isDonutsQueryLoading || isDonutsQueryRefetching ? (
           <Text>Fetching donuts...</Text>
         ) : (
           <>

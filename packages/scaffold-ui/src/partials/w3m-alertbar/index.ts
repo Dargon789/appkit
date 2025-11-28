@@ -1,8 +1,9 @@
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 
-import { AlertController } from '@reown/appkit-core'
+import { AlertController } from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
+import '@reown/appkit-ui/wui-alertbar'
 
 import styles from './styles.js'
 
@@ -26,7 +27,7 @@ export const presets = {
   error: {
     backgroundColor: 'error-glass-reown-020',
     iconColor: 'error-125',
-    icon: 'exclamationTriangle'
+    icon: 'warning'
   }
 } as const
 
@@ -66,6 +67,7 @@ export class W3mAlertBar extends LitElement {
         backgroundColor=${preset?.backgroundColor}
         iconColor=${preset?.iconColor}
         icon=${preset?.icon}
+        type=${variant}
       ></wui-alertbar>
     `
   }

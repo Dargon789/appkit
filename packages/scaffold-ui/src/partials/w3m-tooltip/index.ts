@@ -1,8 +1,11 @@
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 
-import { TooltipController } from '@reown/appkit-core'
+import { TooltipController } from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
+import '@reown/appkit-ui/wui-flex'
+import '@reown/appkit-ui/wui-icon'
+import '@reown/appkit-ui/wui-text'
 
 import styles from './styles.js'
 
@@ -57,8 +60,8 @@ export class W3mTooltip extends LitElement {
     `
 
     return html`<wui-flex>
-      <wui-icon data-placement="top" color="fg-100" size="inherit" name="cursor"></wui-icon>
-      <wui-text color="inherit" variant="small-500">${this.message}</wui-text>
+      <wui-icon data-placement="top" size="inherit" name="cursor"></wui-icon>
+      <wui-text color="primary" variant="sm-regular">${this.message}</wui-text>
     </wui-flex>`
   }
 }

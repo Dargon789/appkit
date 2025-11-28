@@ -1,11 +1,13 @@
 import {
-  AddressPurpose,
+  BitcoinNetworkType,
   type BitcoinProvider,
   type BtcRequestMethod,
   type BtcRequests,
+  MessageSigningProtocols,
   type Params,
   type RpcErrorResponse,
   type RpcSuccessResponse,
+  AddressPurpose as SatsConnectAddressPurpose,
   type Provider as SatsConnectProvider,
   type Requests as SatsConnectRequests,
   getProviderById,
@@ -13,10 +15,14 @@ import {
 } from 'sats-connect'
 
 import type { CaipNetwork } from '@reown/appkit-common'
-import { CoreHelperUtil } from '@reown/appkit-core'
-import type { RequestArguments } from '@reown/appkit-core'
+import { CoreHelperUtil } from '@reown/appkit-controllers'
+import type { RequestArguments } from '@reown/appkit-controllers'
+import { HelpersUtil, PresetsUtil } from '@reown/appkit-utils'
+import type { BitcoinConnector } from '@reown/appkit-utils/bitcoin'
 
-import type { BitcoinConnector } from '../utils/BitcoinConnector.js'
+import { mapSatsConnectAddressPurpose } from '../utils/BitcoinConnector.js'
+import { AddressPurpose } from '../utils/BitcoinConnector.js'
+import { mapCaipNetworkToXverseName, mapXverseNameToCaipNetwork } from '../utils/HelperUtil.js'
 import { ProviderEventEmitter } from '../utils/ProviderEventEmitter.js'
 
 export class SatsConnectConnector extends ProviderEventEmitter implements BitcoinConnector {
@@ -50,6 +56,10 @@ export class SatsConnectConnector extends ProviderEventEmitter implements Bitcoi
     return this.wallet.name
   }
 
+  public get explorerId(): string | undefined {
+    return PresetsUtil.ConnectorExplorerIds[this.wallet.name]
+  }
+
   public get imageUrl(): string {
     return this.wallet.icon
   }
@@ -66,11 +76,19 @@ export class SatsConnectConnector extends ProviderEventEmitter implements Bitcoi
   }
 
   async connect() {
+    const currentNetwork = this.getActiveNetwork()
+    const networkName = mapCaipNetworkToXverseName(currentNetwork?.caipNetworkId)
+
     const address = await this.getAccountAddresses()
       .then(addresses => addresses[0]?.address)
       .catch(() =>
-        this.internalRequest('wallet_connect', null).then(
-          response => response?.addresses?.find(a => a?.purpose === AddressPurpose.Payment)?.address
+        this.internalRequest('wallet_connect', {
+          network: networkName
+        }).then(
+          response =>
+            response?.addresses
+              .map(add => ({ ...add, purpose: mapSatsConnectAddressPurpose(add.purpose) }))
+              .find(add => add.purpose === AddressPurpose.Payment)?.address
         )
       )
 
@@ -79,6 +97,8 @@ export class SatsConnectConnector extends ProviderEventEmitter implements Bitcoi
     }
 
     this.bindEvents()
+
+    this.emit('accountsChanged', [address])
 
     return address
   }
@@ -90,7 +110,11 @@ export class SatsConnectConnector extends ProviderEventEmitter implements Bitcoi
 
   async getAccountAddresses(): Promise<BitcoinConnector.AccountAddress[]> {
     const response = await this.internalRequest('getAddresses', {
-      purposes: [AddressPurpose.Payment, AddressPurpose.Ordinals, AddressPurpose.Stacks],
+      purposes: [
+        SatsConnectAddressPurpose.Payment,
+        SatsConnectAddressPurpose.Ordinals,
+        SatsConnectAddressPurpose.Stacks
+      ],
       message: 'Connect to your wallet'
     })
 
@@ -98,16 +122,40 @@ export class SatsConnectConnector extends ProviderEventEmitter implements Bitcoi
       throw new Error('No address available')
     }
 
-    return response.addresses as BitcoinConnector.AccountAddress[]
+    return response.addresses.map(address => ({
+      ...address,
+      purpose: mapSatsConnectAddressPurpose(address.purpose)
+    })) as BitcoinConnector.AccountAddress[]
   }
 
-  public static getWallets({
+  private static hasProviders() {
+    if (!CoreHelperUtil.isClient()) {
+      return false
+    }
+
+    const providers = getProviders()
+
+    return providers.length > 0
+  }
+
+  public static async getWallets({
     requestedChains,
     getActiveNetwork
   }: SatsConnectConnector.GetWalletsParams) {
     if (!CoreHelperUtil.isClient()) {
       return []
     }
+
+    /*
+     * Use a retry strategy because some Bitcoin wallets (e.g. Leather)
+     * may delay exposing their provider after page load.
+     * We'll retry every 200ms, up to a maximum of 3 attempts.
+     */
+    await HelpersUtil.withRetry({
+      conditionFn: () => SatsConnectConnector.hasProviders(),
+      intervalMs: 200,
+      maxRetries: 3
+    })
 
     const providers = getProviders()
 
@@ -117,7 +165,8 @@ export class SatsConnectConnector extends ProviderEventEmitter implements Bitcoi
   }
 
   public async signMessage(params: BitcoinConnector.SignMessageParams): Promise<string> {
-    const res = await this.internalRequest('signMessage', params)
+    const protocol = params.protocol?.toUpperCase() as MessageSigningProtocols
+    const res = await this.internalRequest('signMessage', { ...params, protocol })
 
     return res.signature
   }
@@ -139,6 +188,11 @@ export class SatsConnectConnector extends ProviderEventEmitter implements Bitcoi
     })
 
     return res
+  }
+
+  public async switchNetwork(caipNetworkId: string): Promise<void> {
+    const networkName = mapCaipNetworkToXverseName(caipNetworkId)
+    await this.internalRequest('wallet_changeNetwork', { name: networkName })
   }
 
   public async sendTransfer({
@@ -207,7 +261,8 @@ export class SatsConnectConnector extends ProviderEventEmitter implements Bitcoi
       }),
 
       provider.addListener('networkChange', _data => {
-        this.emit('chainChanged', this.chains)
+        const chainId = mapXverseNameToCaipNetwork(_data.stacks.name as BitcoinNetworkType)
+        this.emit('chainChanged', chainId)
       })
     )
   }

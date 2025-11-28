@@ -2,68 +2,95 @@ import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import type { WcWallet } from '@reown/appkit-core'
+import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
+import type { WcWallet } from '@reown/appkit-controllers'
 import {
-  ApiController,
   AssetUtil,
+  ConnectionController,
   ConnectorController,
+  CoreHelperUtil,
   OptionsController,
-  RouterController,
-  StorageUtil
-} from '@reown/appkit-core'
+  RouterController
+} from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
+import '@reown/appkit-ui/wui-flex'
 
 import { WalletUtil } from '../../utils/WalletUtil.js'
+
+// We display maximum 4 recommended wallets
+const DISPLAYED_WALLETS_AMOUNT = 4
 
 @customElement('w3m-connect-recommended-widget')
 export class W3mConnectRecommendedWidget extends LitElement {
   // -- Members ------------------------------------------- //
-
   private unsubscribe: (() => void)[] = []
 
   // -- State & Properties -------------------------------- //
   @property() public tabIdx?: number = undefined
 
-  @state() private connectors = ConnectorController.state.connectors
+  @property() public wallets: WcWallet[] = []
+
+  @state() private loading = false
 
   public constructor() {
     super()
-    this.unsubscribe.push(
-      ConnectorController.subscribeKey('connectors', val => (this.connectors = val))
-    )
-  }
 
-  public override disconnectedCallback() {
-    this.unsubscribe.forEach(unsubscribe => unsubscribe())
+    if (CoreHelperUtil.isTelegram() && CoreHelperUtil.isIos()) {
+      this.loading = !ConnectionController.state.wcUri
+      this.unsubscribe.push(
+        ConnectionController.subscribeKey('wcUri', val => (this.loading = !val))
+      )
+    }
   }
 
   // -- Render -------------------------------------------- //
   public override render() {
-    const connector = this.connectors.find(c => c.id === 'walletConnect')
-    if (!connector) {
-      return null
-    }
-    const { recommended } = ApiController.state
-    const { customWallets, featuredWalletIds } = OptionsController.state
     const { connectors } = ConnectorController.state
-    const recent = StorageUtil.getRecentWallets()
+    const { customWallets, featuredWalletIds } = OptionsController.state
 
-    const injected = connectors.filter(
+    const wcConnector = connectors.find(c => c.id === 'walletConnect')
+    const injectedConnectors = connectors.filter(
       c => c.type === 'INJECTED' || c.type === 'ANNOUNCED' || c.type === 'MULTI_CHAIN'
     )
 
-    const injectedWallets = injected.filter(i => i.name !== 'Browser Wallet')
+    if (!wcConnector && !injectedConnectors.length && !customWallets?.length) {
+      return null
+    }
 
-    if (featuredWalletIds || customWallets || !recommended.length) {
+    const isEmailEnabled = Boolean(
+      OptionsController.state.features?.email || OptionsController.state.remoteFeatures?.email
+    )
+    const isSocialsEnabled =
+      (Array.isArray(OptionsController.state.features?.socials) &&
+        OptionsController.state.features?.socials.length > 0) ||
+      (Array.isArray(OptionsController.state.remoteFeatures?.socials) &&
+        OptionsController.state.remoteFeatures?.socials.length > 0)
+
+    const injectedWallets = injectedConnectors.filter(i => i.name !== 'Browser Wallet')
+
+    const featuredWalletAmount = featuredWalletIds?.length || 0
+    const customWalletAmount = customWallets?.length || 0
+    const injectedWalletAmount = injectedWallets.length || 0
+    const emailWalletAmount = isEmailEnabled ? 1 : 0
+    const socialWalletAmount = isSocialsEnabled ? 1 : 0
+    const walletsDisplayed =
+      featuredWalletAmount +
+      customWalletAmount +
+      injectedWalletAmount +
+      emailWalletAmount +
+      socialWalletAmount
+
+    if (walletsDisplayed >= DISPLAYED_WALLETS_AMOUNT) {
       this.style.cssText = `display: none`
 
       return null
     }
 
-    const overrideLength = injectedWallets.length + recent.length
-
-    const maxRecommended = Math.max(0, 2 - overrideLength)
-    const wallets = WalletUtil.filterOutDuplicateWallets(recommended).slice(0, maxRecommended)
+    // We show maximum 4 recommended wallets, showing 1 less for each already rendered wallet (injected, auth, custom, featured)
+    const wallets = WalletUtil.filterOutDuplicateWallets(this.wallets).slice(
+      0,
+      DISPLAYED_WALLETS_AMOUNT - walletsDisplayed
+    )
 
     if (!wallets.length) {
       this.style.cssText = `display: none`
@@ -71,17 +98,26 @@ export class W3mConnectRecommendedWidget extends LitElement {
       return null
     }
 
+    const hasWcConnection = ConnectionController.hasAnyConnection(
+      CommonConstantsUtil.CONNECTOR_ID.WALLET_CONNECT
+    )
+
     return html`
-      <wui-flex flexDirection="column" gap="xs">
+      <wui-flex flexDirection="column" gap="2">
         ${wallets.map(
           wallet => html`
-            <wui-list-wallet
+            <w3m-list-wallet
               imageSrc=${ifDefined(AssetUtil.getWalletImage(wallet))}
               name=${wallet?.name ?? 'Unknown'}
               @click=${() => this.onConnectWallet(wallet)}
+              size="sm"
               tabIdx=${ifDefined(this.tabIdx)}
+              ?loading=${this.loading}
+              ?disabled=${hasWcConnection}
+              rdnsId=${wallet.rdns}
+              walletRank=${wallet.order}
             >
-            </wui-list-wallet>
+            </w3m-list-wallet>
           `
         )}
       </wui-flex>
@@ -90,7 +126,13 @@ export class W3mConnectRecommendedWidget extends LitElement {
 
   // -- Private Methods ----------------------------------- //
   private onConnectWallet(wallet: WcWallet) {
-    const connector = ConnectorController.getConnector(wallet.id, wallet.rdns)
+    if (this.loading) {
+      return
+    }
+    const connector = ConnectorController.getConnector({
+      id: wallet.id,
+      rdns: wallet.rdns
+    })
     if (connector) {
       RouterController.push('ConnectingExternal', { connector })
     } else {

@@ -4,9 +4,9 @@ import {
   ChainController,
   ConnectionController,
   type ConnectionControllerClient,
-  OptionsController
-} from '@reown/appkit-core'
-import { ProviderUtil } from '@reown/appkit/store'
+  OptionsController,
+  ProviderController
+} from '@reown/appkit-controllers'
 
 import { SmartSessionsController } from '../../src/smart-session/controllers/SmartSessionsController'
 import {
@@ -19,8 +19,7 @@ import { CosignerService } from '../../src/smart-session/utils/CosignerService'
 import type { SmartSessionGrantPermissionsRequest } from '../../src/smart-session/utils/TypeUtils.js'
 import { donutContractAbi } from '../data/abi'
 
-vi.mock('@reown/appkit-core')
-vi.mock('@reown/appkit/store')
+vi.mock('@reown/appkit-controllers')
 vi.mock('../../src/smart-session/utils/CosignerService')
 
 describe('grantPermissions', () => {
@@ -58,7 +57,7 @@ describe('grantPermissions', () => {
     vi.mocked(OptionsController.state).projectId = 'test-project-id'
     vi.mocked(ChainController.state).activeCaipAddress =
       'eip155:1:0x1234567890123456789012345678901234567890'
-    vi.mocked(ProviderUtil).getProvider = vi.fn().mockReturnValue({
+    vi.mocked(ProviderController).getProvider = vi.fn().mockReturnValue({
       session: {
         namespaces: {
           eip155: {
