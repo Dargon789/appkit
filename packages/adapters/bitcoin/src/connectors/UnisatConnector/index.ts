@@ -1,5 +1,5 @@
 import { type CaipNetwork, ConstantsUtil } from '@reown/appkit-common'
-import { ChainController, CoreHelperUtil, type RequestArguments } from '@reown/appkit-controllers'
+import { CoreHelperUtil, type RequestArguments } from '@reown/appkit-controllers'
 import type { BitcoinConnector } from '@reown/appkit-utils/bitcoin'
 import { bitcoin, bitcoinSignet, bitcoinTestnet } from '@reown/appkit/networks'
 
@@ -20,12 +20,14 @@ export class UnisatConnector extends ProviderEventEmitter implements BitcoinConn
 
   private readonly wallet: UnisatConnectorTypes.Wallet
   private readonly requestedChains: CaipNetwork[] = []
+  private readonly getActiveNetwork: () => CaipNetwork | undefined
 
   constructor({
     id,
     name,
     wallet,
     requestedChains,
+    getActiveNetwork,
     imageUrl
   }: UnisatConnectorTypes.ConstructorParams) {
     super()
@@ -33,6 +35,7 @@ export class UnisatConnector extends ProviderEventEmitter implements BitcoinConn
     this.name = name
     this.wallet = wallet
     this.requestedChains = requestedChains
+    this.getActiveNetwork = getActiveNetwork
     this.imageUrl = imageUrl
   }
 
@@ -83,7 +86,7 @@ export class UnisatConnector extends ProviderEventEmitter implements BitcoinConn
   }
 
   public async sendTransfer(params: BitcoinConnector.SendTransferParams): Promise<string> {
-    const network = ChainController.getActiveCaipNetwork(ConstantsUtil.CHAIN.BITCOIN)
+    const network = this.getActiveNetwork()
 
     if (!network) {
       throw new Error('No active network available')

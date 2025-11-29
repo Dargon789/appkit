@@ -4,7 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { html } from 'lit'
 
 import {
-  type AccountState,
+  AccountController,
+  type AccountControllerState,
   type ChainAdapter,
   ChainController,
   CoreHelperUtil,
@@ -46,7 +47,7 @@ describe('W3mOnRampProvidersView', () => {
             accountState: {
               address: '0x123',
               preferredAccountType: W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT
-            } as AccountState
+            } as AccountControllerState
           } as ChainAdapter
         ]
       ]),
@@ -65,10 +66,10 @@ describe('W3mOnRampProvidersView', () => {
       }
     })
 
-    vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-      ...ChainController.getAccountData(),
+    vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
+      ...AccountController.state,
       address: '0x123'
-    } as unknown as AccountState)
+    })
   })
 
   afterEach(() => {
@@ -96,10 +97,6 @@ describe('W3mOnRampProvidersView', () => {
     const routerPushSpy = vi.spyOn(RouterController, 'push')
     const openHrefSpy = vi.spyOn(CoreHelperUtil, 'openHref')
     const sendEventSpy = vi.spyOn(EventsController, 'sendEvent')
-    vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-      ...ChainController.getAccountData(),
-      preferredAccountType: W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT
-    } as unknown as AccountState)
 
     const parameterizedUrl = 'https://meldcrypto.com'
     const mockState = vi.spyOn(OnRampController, 'state', 'get').mockReturnValue({

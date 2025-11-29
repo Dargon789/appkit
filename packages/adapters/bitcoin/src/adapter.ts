@@ -1,12 +1,7 @@
 import type UniversalProvider from '@walletconnect/universal-provider'
 
 import { type AppKitOptions, CoreHelperUtil, type Provider } from '@reown/appkit'
-import {
-  type CaipAddress,
-  type ChainNamespace,
-  ConstantsUtil,
-  UserRejectedRequestError
-} from '@reown/appkit-common'
+import { type ChainNamespace, ConstantsUtil, UserRejectedRequestError } from '@reown/appkit-common'
 import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
 import {
   AdapterBlueprint,
@@ -127,36 +122,32 @@ export class BitcoinAdapter extends AdapterBlueprint<BitcoinConnector> {
       ?.getAccountAddresses()
       .catch(() => [])
 
-    const caipNetwork = ChainController.getActiveCaipNetwork(this.namespace as ChainNamespace)
-
-    let accounts = caipNetwork
-      ? addresses?.map(a =>
-          CoreHelperUtil.createAccount({
-            caipAddress: `${caipNetwork.caipNetworkId}:${a.address}`,
-            type: a.purpose || 'payment',
-            publicKey: a.publicKey,
-            path: a.path
-          })
-        )
-      : undefined
+    let accounts = addresses?.map(a =>
+      CoreHelperUtil.createAccount(
+        ConstantsUtil.CHAIN.BITCOIN,
+        a.address,
+        a.purpose || 'payment',
+        a.publicKey,
+        a.path
+      )
+    )
 
     if (accounts && accounts.length > 1) {
-      const payment = accounts[BitcoinConstantsUtil.ACCOUNT_INDEXES.PAYMENT]
-      const ordinal = accounts[BitcoinConstantsUtil.ACCOUNT_INDEXES.ORDINAL]
-
       accounts = [
-        CoreHelperUtil.createAccount({
-          caipAddress: `${caipNetwork?.caipNetworkId}:${payment?.address ?? ''}` as CaipAddress,
-          type: 'payment',
-          publicKey: payment?.publicKey ?? '',
-          path: payment?.path ?? ''
-        }),
-        CoreHelperUtil.createAccount({
-          caipAddress: `${caipNetwork?.caipNetworkId}:${ordinal?.address ?? ''}` as CaipAddress,
-          type: 'ordinal',
-          publicKey: ordinal?.publicKey ?? '',
-          path: ordinal?.path ?? ''
-        })
+        {
+          namespace: ConstantsUtil.CHAIN.BITCOIN,
+          publicKey: accounts[BitcoinConstantsUtil.ACCOUNT_INDEXES.PAYMENT]?.publicKey ?? '',
+          path: accounts[BitcoinConstantsUtil.ACCOUNT_INDEXES.PAYMENT]?.path ?? '',
+          address: accounts[BitcoinConstantsUtil.ACCOUNT_INDEXES.PAYMENT]?.address ?? '',
+          type: 'payment'
+        },
+        {
+          namespace: ConstantsUtil.CHAIN.BITCOIN,
+          publicKey: accounts[BitcoinConstantsUtil.ACCOUNT_INDEXES.ORDINAL]?.publicKey ?? '',
+          path: accounts[BitcoinConstantsUtil.ACCOUNT_INDEXES.ORDINAL]?.path ?? '',
+          address: accounts[BitcoinConstantsUtil.ACCOUNT_INDEXES.ORDINAL]?.address ?? '',
+          type: 'ordinal'
+        }
       ]
     }
 
@@ -300,36 +291,32 @@ export class BitcoinAdapter extends AdapterBlueprint<BitcoinConnector> {
           const address = await connector.connect()
           const addresses = await connector.getAccountAddresses()
 
-          let accounts = caipNetwork
-            ? addresses?.map(a =>
-                CoreHelperUtil.createAccount({
-                  caipAddress: `${caipNetwork.caipNetworkId}:${a.address}`,
-                  type: a.purpose || 'payment',
-                  publicKey: a.publicKey,
-                  path: a.path
-                })
-              )
-            : undefined
+          let accounts = addresses?.map(a =>
+            CoreHelperUtil.createAccount(
+              CommonConstantsUtil.CHAIN.BITCOIN,
+              a.address,
+              a.purpose || 'payment',
+              a.publicKey,
+              a.path
+            )
+          )
 
           if (accounts && accounts.length > 1) {
-            const payment = accounts[BitcoinConstantsUtil.ACCOUNT_INDEXES.PAYMENT]
-            const ordinal = accounts[BitcoinConstantsUtil.ACCOUNT_INDEXES.ORDINAL]
-
             accounts = [
-              CoreHelperUtil.createAccount({
-                caipAddress:
-                  `${caipNetwork?.caipNetworkId}:${payment?.address ?? ''}` as CaipAddress,
-                type: 'payment',
-                publicKey: payment?.publicKey ?? '',
-                path: payment?.path ?? ''
-              }),
-              CoreHelperUtil.createAccount({
-                caipAddress:
-                  `${caipNetwork?.caipNetworkId}:${ordinal?.address ?? ''}` as CaipAddress,
-                type: 'ordinal',
-                publicKey: ordinal?.publicKey ?? '',
-                path: ordinal?.path ?? ''
-              })
+              {
+                namespace: CommonConstantsUtil.CHAIN.BITCOIN,
+                publicKey: accounts[BitcoinConstantsUtil.ACCOUNT_INDEXES.PAYMENT]?.publicKey ?? '',
+                path: accounts[BitcoinConstantsUtil.ACCOUNT_INDEXES.PAYMENT]?.path ?? '',
+                address: accounts[BitcoinConstantsUtil.ACCOUNT_INDEXES.PAYMENT]?.address ?? '',
+                type: 'payment'
+              },
+              {
+                namespace: CommonConstantsUtil.CHAIN.BITCOIN,
+                publicKey: accounts[BitcoinConstantsUtil.ACCOUNT_INDEXES.ORDINAL]?.publicKey ?? '',
+                path: accounts[BitcoinConstantsUtil.ACCOUNT_INDEXES.ORDINAL]?.path ?? '',
+                address: accounts[BitcoinConstantsUtil.ACCOUNT_INDEXES.ORDINAL]?.address ?? '',
+                type: 'ordinal'
+              }
             ]
           }
 
@@ -343,7 +330,7 @@ export class BitcoinAdapter extends AdapterBlueprint<BitcoinConnector> {
             this.listenProviderEvents(connector.id, connector.provider as BitcoinConnector)
             this.addConnection({
               connectorId: connector.id,
-              accounts: (accounts || []).map(a => ({
+              accounts: accounts.map(a => ({
                 address: a.address,
                 type: a.type,
                 publicKey: a.publicKey,

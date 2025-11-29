@@ -184,7 +184,6 @@ export type IconType =
   | 'telegram'
   | 'threeDots'
   | 'ton'
-  | 'tron'
   | 'twitch'
   | 'twitter'
   | 'twitterIcon'

@@ -65,10 +65,7 @@ export class ModalValidator {
     })
   }
 
-  async expectBalanceFetched(
-    currency: 'SOL' | 'ETH' | 'BTC' | 'POL' | 'TON' | 'TRX',
-    namespace?: string
-  ) {
+  async expectBalanceFetched(currency: 'SOL' | 'ETH' | 'BTC' | 'POL' | 'TON', namespace?: string) {
     const accountButton = namespace
       ? this.page.getByTestId(`account-button-${namespace}`)
       : this.page.locator('appkit-account-button').first()
@@ -365,7 +362,7 @@ export class ModalValidator {
 
   async expectCoinbaseVisible() {
     const coinbaseConnector = this.page.getByTestId(
-      /^wallet-selector-d0ca99ff52b99abc48743dad0f7fc891e041be73574f7fac4afe5d4bb83845c8/u
+      /^wallet-selector-fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa/u
     )
     await expect(coinbaseConnector).toBeVisible({ timeout: 10_000 })
   }

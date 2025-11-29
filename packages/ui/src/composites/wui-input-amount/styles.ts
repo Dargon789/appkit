@@ -11,7 +11,7 @@ export default css`
   }
 
   :host([data-error='false']) > input {
-    color: ${({ tokens }) => tokens.theme.textPrimary};
+    color: ${({ tokens }) => tokens.theme.textSecondary};
   }
 
   input {

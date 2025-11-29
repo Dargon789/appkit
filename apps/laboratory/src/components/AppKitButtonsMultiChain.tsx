@@ -21,9 +21,7 @@ import {
   solana,
   solanaTestnet,
   ton,
-  tonTestnet,
-  tronMainnet,
-  tronShastaTestnet
+  tonTestnet
 } from '@reown/appkit/networks'
 import {
   AppKitButton,
@@ -51,8 +49,6 @@ function getNetworkToSwitch(activeNetwork: CaipNetwork | undefined) {
       return activeNetwork.id === solana.id ? solanaTestnet : solana
     case 'ton':
       return activeNetwork.id === ton.id ? tonTestnet : ton
-    case 'tron':
-      return activeNetwork.id === tronMainnet.id ? tronShastaTestnet : tronMainnet
     default:
       return activeNetwork.id === polygon.id ? mainnet : polygon
   }
@@ -66,14 +62,12 @@ export function AppKitButtonsMultiChain({ adapters }: { adapters: Adapter[] | un
   const solanaAccount = useAppKitAccount({ namespace: 'solana' })
   const bitcoinAccount = useAppKitAccount({ namespace: 'bip122' })
   const tonAccount = useAppKitAccount({ namespace: 'ton' })
-  const tronAccount = useAppKitAccount({ namespace: 'tron' })
   const toast = useChakraToast()
   const isAnyAccountConnected =
     evmAccount.isConnected ||
     solanaAccount.isConnected ||
     bitcoinAccount.isConnected ||
-    tonAccount.isConnected ||
-    tronAccount.isConnected
+    tonAccount.isConnected
 
   function handleConnectToEVM() {
     open({ namespace: 'eip155' })
@@ -91,16 +85,11 @@ export function AppKitButtonsMultiChain({ adapters }: { adapters: Adapter[] | un
     open({ namespace: 'ton' })
   }
 
-  function handleConnectToTron() {
-    open({ namespace: 'tron' })
-  }
-
   const hasEvmAdapter =
     adapters?.includes('wagmi') || adapters?.includes('ethers') || adapters?.includes('ethers5')
   const hasSolanaAdapter = adapters?.includes('solana')
   const hasBitcoinAdapter = adapters?.includes('bitcoin')
   const hasTonAdapter = adapters?.includes('ton')
-  const hasTronAdapter = adapters?.includes('tron')
   const isMultipleAdapter = adapters?.length && adapters.length > 1
 
   function handleOpenSwapWithArguments() {
@@ -211,16 +200,6 @@ export function AppKitButtonsMultiChain({ adapters }: { adapters: Adapter[] | un
                       </Stack>
                     </>
                   ) : null}
-                  {hasTronAdapter ? (
-                    <>
-                      <Stack pb="2">
-                        <Text fontWeight="bold" fontSize="sm" textTransform="uppercase">
-                          TRON Button
-                        </Text>
-                        <AppKitButton namespace="tron" />
-                      </Stack>
-                    </>
-                  ) : null}
                 </>
               ) : null}
             </Stack>
@@ -256,9 +235,6 @@ export function AppKitButtonsMultiChain({ adapters }: { adapters: Adapter[] | un
                   </Button>
                   <Button data-testid="ton-connect-button" onClick={handleConnectToTon}>
                     Open TON Modal
-                  </Button>
-                  <Button data-testid="tron-connect-button" onClick={handleConnectToTron}>
-                    Open TRON Modal
                   </Button>
                   {isMultipleAdapter ? null : (
                     <Button data-testid="switch-network-hook-button" onClick={handleSwitchNetwork}>
@@ -320,13 +296,6 @@ export function AppKitButtonsMultiChain({ adapters }: { adapters: Adapter[] | un
                     onClick={() => disconnect({ namespace: 'ton' })}
                   >
                     Disconnect TON
-                  </Button>
-                  <Button
-                    isDisabled={!tronAccount.isConnected}
-                    data-testid="tron-disconnect-button"
-                    onClick={() => disconnect({ namespace: 'tron' })}
-                  >
-                    Disconnect TRON
                   </Button>
                 </Box>
               </Box>

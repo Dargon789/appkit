@@ -44,11 +44,6 @@ const tokens: Record<ChainNamespace, { title: string; symbol: string; src: strin
     title: 'TON',
     symbol: 'TON',
     src: '/assets/images/ton.png'
-  },
-  tron: {
-    title: 'TRON',
-    symbol: 'TRX',
-    src: '/assets/images/trx.png'
   }
 }
 
