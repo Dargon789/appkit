@@ -5,14 +5,14 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 import {
   ApiController,
   ConnectorController,
-  OptionsController,
-  WalletUtil,
+  CoreHelperUtil,
   type WcWallet
 } from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
 import '@reown/appkit-ui/wui-card-select-loader'
 import '@reown/appkit-ui/wui-grid'
 
+import { WalletUtil } from '../../utils/WalletUtil.js'
 import '../w3m-all-wallets-list-item/index.js'
 import styles from './styles.js'
 
@@ -33,13 +33,24 @@ export class W3mAllWalletsList extends LitElement {
 
   @state() private wallets = ApiController.state.wallets
 
-  @state() private badge?: 'certified' | undefined
+  @state() private recommended = ApiController.state.recommended
 
-  @state() private mobileFullScreen = OptionsController.state.enableMobileFullScreen
+  @state() private featured = ApiController.state.featured
+
+  @state() private filteredWallets = ApiController.state.filteredWallets
+
+  @state() private badge?: 'certified' | undefined
 
   public constructor() {
     super()
-    this.unsubscribe.push(...[ApiController.subscribeKey('wallets', val => (this.wallets = val))])
+    this.unsubscribe.push(
+      ...[
+        ApiController.subscribeKey('wallets', val => (this.wallets = val)),
+        ApiController.subscribeKey('recommended', val => (this.recommended = val)),
+        ApiController.subscribeKey('featured', val => (this.featured = val)),
+        ApiController.subscribeKey('filteredWallets', val => (this.filteredWallets = val))
+      ]
+    )
   }
 
   public override firstUpdated() {
@@ -54,10 +65,6 @@ export class W3mAllWalletsList extends LitElement {
 
   // -- Render -------------------------------------------- //
   public override render() {
-    if (this.mobileFullScreen) {
-      this.setAttribute('data-mobile-fullscreen', 'true')
-    }
-
     return html`
       <wui-grid
         data-scroll=${!this.loading}
@@ -99,16 +106,31 @@ export class W3mAllWalletsList extends LitElement {
     )
   }
 
+  private getWallets() {
+    const wallets = [...this.featured, ...this.recommended]
+    if (this.filteredWallets?.length > 0) {
+      wallets.push(...this.filteredWallets)
+    } else {
+      wallets.push(...this.wallets)
+    }
+
+    const uniqueWallets = CoreHelperUtil.uniqueBy(wallets, 'id')
+    const walletsWithInstalled = WalletUtil.markWalletsAsInstalled(uniqueWallets)
+
+    return WalletUtil.markWalletsWithDisplayIndex(walletsWithInstalled)
+  }
+
   private walletsTemplate() {
-    return WalletUtil.getWalletConnectWallets(this.wallets).map(
-      (wallet, index) => html`
+    const wallets = this.getWallets()
+
+    return wallets.map(
+      wallet => html`
         <w3m-all-wallets-list-item
           data-testid="wallet-search-item-${wallet.id}"
           @click=${() => this.onConnectWallet(wallet)}
           .wallet=${wallet}
           explorerId=${wallet.id}
           certified=${this.badge === 'certified'}
-          displayIndex=${index}
         ></w3m-all-wallets-list-item>
       `
     )

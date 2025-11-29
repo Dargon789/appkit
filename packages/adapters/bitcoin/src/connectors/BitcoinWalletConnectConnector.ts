@@ -1,14 +1,10 @@
 import UniversalProvider from '@walletconnect/universal-provider'
 
-import { type RequestArguments } from '@reown/appkit'
-import {
-  type CaipNetwork,
-  ConstantsUtil as CommonConstantsUtil,
-  ConstantsUtil
-} from '@reown/appkit-common'
-import { ChainController, WalletConnectConnector, WcHelpersUtil } from '@reown/appkit-controllers'
+import { AccountController, type RequestArguments, WcHelpersUtil } from '@reown/appkit'
+import { type CaipNetwork, ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
 import { HelpersUtil } from '@reown/appkit-utils'
 import type { BitcoinConnector } from '@reown/appkit-utils/bitcoin'
+import { WalletConnectConnector } from '@reown/appkit/connectors'
 
 import { AddressPurpose } from '../utils/BitcoinConnector.js'
 import { ProviderEventEmitter } from '../utils/ProviderEventEmitter.js'
@@ -31,7 +27,7 @@ export class BitcoinWalletConnectConnector
   public readonly removeListener = this.eventEmitter.removeListener.bind(this.eventEmitter)
 
   constructor({ provider, chains, getActiveChain }: WalletConnectProviderConfig) {
-    super({ provider, caipNetworks: chains, namespace: ConstantsUtil.CHAIN.BITCOIN })
+    super({ provider, caipNetworks: chains, namespace: 'bip122' })
     this.getActiveChain = getActiveChain
   }
 
@@ -118,10 +114,6 @@ export class BitcoinWalletConnectConnector
     return this.internalRequest(args) as T
   }
 
-  public setDefaultChain(chainId: string) {
-    this.provider.setDefaultChain(chainId)
-  }
-
   // -- Private ------------------------------------------ //
   private get sessionChains() {
     return WcHelpersUtil.getChainsFromNamespaces(this.provider.session?.namespaces)
@@ -130,9 +122,7 @@ export class BitcoinWalletConnectConnector
   private getAccount<Required extends boolean>(
     required?: Required
   ): Required extends true ? string : string | undefined {
-    const caipAddress = ChainController.getAccountData(
-      CommonConstantsUtil.CHAIN.BITCOIN
-    )?.caipAddress
+    const caipAddress = AccountController.getCaipAddress(CommonConstantsUtil.CHAIN.BITCOIN)
     const account = this.provider.session?.namespaces[
       CommonConstantsUtil.CHAIN.BITCOIN
     ]?.accounts.find(_account => HelpersUtil.isLowerCaseMatch(_account, caipAddress))

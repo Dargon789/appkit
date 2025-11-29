@@ -2,10 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ConstantsUtil } from '@reown/appkit-common'
 import {
-  type AccountState,
+  AccountController,
+  type AccountControllerState,
   ApiController,
   BlockchainApiController,
-  ChainController,
   ConnectionController,
   ConnectorController,
   ModalController
@@ -38,9 +38,9 @@ describe('AppKitCore', () => {
 
   describe('open', () => {
     beforeEach(() => {
-      vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
+      vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
         caipAddress: undefined
-      } as unknown as AccountState)
+      } as unknown as AccountControllerState)
     })
 
     it('should open modal when not connected', async () => {

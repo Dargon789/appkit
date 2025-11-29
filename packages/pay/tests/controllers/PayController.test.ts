@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { type Address, type CaipNetworkId, ConstantsUtil, ParseUtil } from '@reown/appkit-common'
 import {
+  AccountController,
   ChainController,
   CoreHelperUtil,
   EventsController,
@@ -91,8 +92,8 @@ describe('PayController', () => {
       configurable: true
     })
 
-    // Mock Account state
-    Object.defineProperty(ChainController.state, 'activeCaipAddress', {
+    // Mock AccountController state
+    Object.defineProperty(AccountController.state, 'caipAddress', {
       get: vi.fn(() => 'eip155:1:0x1234567890123456789012345678901234567890'),
       configurable: true
     })
@@ -591,7 +592,7 @@ describe('PayController', () => {
 
   describe('handlePayWithWallet', () => {
     it('should redirect to Connect if no caipAddress', () => {
-      Object.defineProperty(ChainController.state, 'activeCaipAddress', {
+      Object.defineProperty(AccountController.state, 'caipAddress', {
         get: vi.fn(() => null),
         configurable: true
       })

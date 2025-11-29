@@ -1,7 +1,7 @@
 import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { type CaipNetwork, ConstantsUtil } from '@reown/appkit-common'
-import { type AccountState, ChainController } from '@reown/appkit-controllers'
+import { AccountController, ChainController } from '@reown/appkit-controllers'
 import { bitcoin, bitcoinTestnet } from '@reown/appkit/networks'
 
 import { BitcoinWalletConnectConnector } from '../../src/connectors/BitcoinWalletConnectConnector'
@@ -116,10 +116,9 @@ describe('LeatherConnector', () => {
   describe('sendTransfer', () => {
     beforeEach(() => {
       universalProvider.session = mockUniversalProvider.mockSession()
-      vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-        caipAddress: `${bitcoin.caipNetworkId}:address`,
-        address: 'address'
-      } as unknown as AccountState)
+      vi.spyOn(AccountController, 'getCaipAddress').mockReturnValue(
+        `${bitcoin.caipNetworkId}:address`
+      )
     })
 
     it('should send the transfer and parse response', async () => {
@@ -376,10 +375,9 @@ describe('LeatherConnector', () => {
         }
       })
 
-      vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-        caipAddress: `${bitcoin.caipNetworkId}:mainnet_address`,
-        address: 'mainnet_address'
-      } as unknown as AccountState)
+      vi.spyOn(AccountController, 'getCaipAddress').mockReturnValue(
+        `${bitcoin.caipNetworkId}:mainnet_address`
+      )
 
       const result = (provider as any).getAccount()
 
@@ -400,10 +398,9 @@ describe('LeatherConnector', () => {
         }
       })
 
-      vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-        caipAddress: `${bitcoinTestnet.caipNetworkId}:testnet_address`,
-        address: 'testnet_address'
-      } as unknown as AccountState)
+      vi.spyOn(AccountController, 'getCaipAddress').mockReturnValue(
+        `${bitcoinTestnet.caipNetworkId}:testnet_address`
+      )
 
       const result = (provider as any).getAccount()
 

@@ -34,34 +34,32 @@ import {
   parseUnits
 } from 'viem'
 
+import { AppKit, type AppKitOptions } from '@reown/appkit'
 import { ErrorUtil, UserRejectedRequestError } from '@reown/appkit-common'
 import type {
   AppKitNetwork,
   BaseNetwork,
   CaipNetwork,
-  ChainNamespace,
   Connection,
   CustomRpcUrlMap
 } from '@reown/appkit-common'
 import { ConstantsUtil as CommonConstantsUtil, NetworkUtil } from '@reown/appkit-common'
-import { PresetsUtil } from '@reown/appkit-common'
 import {
-  AdapterBlueprint,
-  AssetController,
   ChainController,
   CoreHelperUtil,
   OptionsController,
-  StorageUtil,
-  WalletConnectConnector
+  StorageUtil
 } from '@reown/appkit-controllers'
 import { type ConnectorType, type Provider } from '@reown/appkit-controllers'
-import { CaipNetworksUtil, HelpersUtil } from '@reown/appkit-utils'
+import { CaipNetworksUtil, HelpersUtil, PresetsUtil } from '@reown/appkit-utils'
 import type { W3mFrameProvider } from '@reown/appkit-wallet'
+import { AdapterBlueprint } from '@reown/appkit/adapters'
+import { WalletConnectConnector } from '@reown/appkit/connectors'
 
 import { authConnector } from './connectors/AuthConnector.js'
 import { walletConnect } from './connectors/WalletConnectConnector.js'
 import { LimitterUtil } from './utils/LimitterUtil.js'
-import { getBaseAccountConnector, getSafeConnector } from './utils/helpers.js'
+import { getCoinbaseConnector, getSafeConnector } from './utils/helpers.js'
 
 interface PendingTransactionsFilter {
   enable: boolean
@@ -287,13 +285,13 @@ export class WagmiAdapter extends AdapterBlueprint {
     })
   }
 
-  private async addThirdPartyConnectors() {
+  private async addThirdPartyConnectors(options: AppKitOptions) {
     const thirdPartyConnectors: CreateConnectorFn[] = []
-    const { enableCoinbase: isCoinbaseEnabled } = OptionsController.state || {}
-    if (isCoinbaseEnabled !== false) {
-      const baseAccountConnector = await getBaseAccountConnector(this.wagmiConfig.connectors)
-      if (baseAccountConnector) {
-        thirdPartyConnectors.push(baseAccountConnector)
+
+    if (options.enableCoinbase !== false) {
+      const coinbaseConnector = await getCoinbaseConnector(this.wagmiConfig.connectors)
+      if (coinbaseConnector) {
+        thirdPartyConnectors.push(coinbaseConnector)
       }
     }
 
@@ -304,49 +302,42 @@ export class WagmiAdapter extends AdapterBlueprint {
 
     await Promise.all(
       thirdPartyConnectors.map(connector => {
-        const cnctr = this.configureInternalConnector(connector)
+        const cnctr = this.wagmiConfig._internal.connectors.setup(connector)
+        this.wagmiConfig._internal.connectors.setState(prev => [...prev, cnctr])
 
-        return this.addWagmiConnector(cnctr)
+        return this.addWagmiConnector(cnctr, options)
       })
     )
   }
 
-  private addWagmiConnectors() {
+  private addWagmiConnectors(options: AppKitOptions, appKit: AppKit) {
     const customConnectors: CreateConnectorFn[] = []
 
-    if (OptionsController.state.enableInjected !== false) {
+    if (options.enableWalletConnect !== false) {
+      customConnectors.push(walletConnect(options, appKit))
+    }
+
+    if (options.enableInjected !== false) {
       customConnectors.push(injected({ shimDisconnect: true }))
     }
 
-    const {
-      features,
-      remoteFeatures,
-      projectId,
-      enableAuthLogger: isAuthLoggerEnabled
-    } = OptionsController.state
-    const isEmailEnabled = remoteFeatures?.email ?? features?.email ?? true
-    const socials = remoteFeatures?.socials ?? features?.socials
-    const isSocialsEnabled = Array.isArray(socials) && socials?.length > 0
+    const isEmailEnabled = appKit?.remoteFeatures?.email ?? appKit?.features?.email ?? true
+    const socials = appKit?.remoteFeatures?.socials ?? appKit?.features?.socials
+    const socialsEnabled = Array.isArray(socials) && socials?.length > 0
 
-    if (isEmailEnabled || isSocialsEnabled) {
+    if (isEmailEnabled || socialsEnabled) {
       customConnectors.push(
         authConnector({
           chains: this.wagmiChains,
-          options: { projectId, enableAuthLogger: isAuthLoggerEnabled }
+          options: { projectId: options.projectId, enableAuthLogger: options.enableAuthLogger }
         })
       )
     }
 
     customConnectors.forEach(connector => {
-      this.configureInternalConnector(connector)
+      const cnctr = this.wagmiConfig._internal.connectors.setup(connector)
+      this.wagmiConfig._internal.connectors.setState(prev => [...prev, cnctr])
     })
-  }
-
-  private configureInternalConnector(connector: CreateConnectorFn) {
-    const cnctr = this.wagmiConfig._internal.connectors.setup(connector)
-    this.wagmiConfig._internal.connectors.setState(prev => [...prev, cnctr])
-
-    return cnctr
   }
 
   private async handleAccountChanged({
@@ -402,8 +393,6 @@ export class WagmiAdapter extends AdapterBlueprint {
     params: AdapterBlueprint.SendTransactionParams
   ): Promise<AdapterBlueprint.SendTransactionResult> {
     const { chainId, address } = getAccount(this.wagmiConfig)
-    const wagmiChain = this.wagmiChains?.find(chain => chain.id === chainId)
-
     const txParams = {
       account: address,
       to: params.to as Hex,
@@ -411,7 +400,7 @@ export class WagmiAdapter extends AdapterBlueprint {
       gas: params.gas ? BigInt(params.gas) : undefined,
       gasPrice: params.gasPrice ? BigInt(params.gasPrice) : undefined,
       data: params.data as Hex,
-      chain: wagmiChain,
+      chainId,
       type: 'legacy' as const,
       parameters: ['nonce'] as const
     }
@@ -428,10 +417,10 @@ export class WagmiAdapter extends AdapterBlueprint {
   ): Promise<AdapterBlueprint.WriteContractResult> {
     const { caipNetwork, ...data } = params
     const chainId = Number(NetworkUtil.caipNetworkIdToNumber(caipNetwork.caipNetworkId))
-    const wagmiChain = this.wagmiChains?.find(chain => chain.id === chainId)
 
     const tx = await wagmiWriteContract(this.wagmiConfig, {
-      chain: wagmiChain,
+      chain: this.wagmiChains?.[chainId],
+      chainId,
       address: data.tokenAddress,
       account: data.fromAddress,
       abi: data.abi,
@@ -470,7 +459,7 @@ export class WagmiAdapter extends AdapterBlueprint {
     return formatUnits(params.value, params.decimals)
   }
 
-  private async addWagmiConnector(connector: Connector) {
+  private async addWagmiConnector(connector: Connector, options: AppKitOptions) {
     if (!this.namespace) {
       throw new Error('WagmiAdapter:addWagmiConnector - namespace is required')
     }
@@ -480,10 +469,9 @@ export class WagmiAdapter extends AdapterBlueprint {
      * from wagmi since we already set it in chain adapter blueprint
      */
 
-    const { enableEIP6963: isEIP6963Enabled } = OptionsController.state || {}
     if (
       connector.type === CommonConstantsUtil.CONNECTOR_ID.INJECTED &&
-      isEIP6963Enabled === false
+      options.enableEIP6963 === false
     ) {
       return
     }
@@ -495,18 +483,12 @@ export class WagmiAdapter extends AdapterBlueprint {
       return
     }
 
-    let provider: Provider | undefined = undefined
-    if (connector.id !== CommonConstantsUtil.CONNECTOR_ID.BASE_ACCOUNT) {
-      provider = (await connector.getProvider().catch(() => undefined)) as Provider | undefined
-    }
+    const provider = (await connector.getProvider().catch(() => undefined)) as Provider | undefined
 
-    const customConnectorImages = AssetController.state.connectorImages
     this.addConnector({
       id: connector.id,
-      explorerId:
-        PresetsUtil.ConnectorExplorerIds[connector.id] ??
-        PresetsUtil.ConnectorExplorerIds[connector.name],
-      imageUrl: customConnectorImages?.[connector.id] ?? connector.icon,
+      explorerId: PresetsUtil.ConnectorExplorerIds[connector.id],
+      imageUrl: options?.connectorImages?.[connector.id] ?? connector.icon,
       name: PresetsUtil.ConnectorNamesMap[connector.id] ?? connector.name,
       imageId: PresetsUtil.ConnectorImageIds[connector.id],
       type: PresetsUtil.ConnectorTypesMap[connector.type] ?? 'EXTERNAL',
@@ -520,46 +502,32 @@ export class WagmiAdapter extends AdapterBlueprint {
     })
   }
 
-  public async syncConnectors() {
+  public async syncConnectors(options: AppKitOptions, appKit: AppKit) {
     /*
      * Watch for new connectors. This is needed because some EIP6963
      * connectors are added later in the process the initial setup
      */
     watchConnectors(this.wagmiConfig, {
       onChange: connectors => {
-        connectors.forEach(connector => this.addWagmiConnector(connector))
+        connectors.forEach(connector => this.addWagmiConnector(connector, options))
       }
     })
 
     // Add custom connectors (WalletConnect and Auth)
-    this.addWagmiConnectors()
+    this.addWagmiConnectors(options, appKit)
 
     // Add Wagmi's initial connectors (Extensions)
     await Promise.all(
-      this.wagmiConfig.connectors.map(connector => this.addWagmiConnector(connector))
+      this.wagmiConfig.connectors.map(connector => this.addWagmiConnector(connector, options))
     )
 
-    // Add third party connectors (Base Account, Safe, etc.)
-    await this.addThirdPartyConnectors()
+    // Add third party connectors (Coinbase, Safe, etc.)
+    this.addThirdPartyConnectors(options)
   }
 
   // Wagmi already handles connections
   public async syncConnections() {
-    const wagmiConnectors = this.connectors
-      .filter(c => {
-        const { hasDisconnected, hasConnected } = HelpersUtil.getConnectorStorageInfo(
-          c.id,
-          this.namespace as ChainNamespace
-        )
-
-        return !hasDisconnected && hasConnected
-      })
-      .map(connector => this.getWagmiConnector(connector.id))
-      .filter(Boolean) as Connector[]
-
-    await reconnect(this.wagmiConfig, {
-      connectors: wagmiConnectors
-    })
+    return Promise.resolve()
   }
 
   public async syncConnection(
@@ -697,12 +665,10 @@ export class WagmiAdapter extends AdapterBlueprint {
         socialUri
       })
 
-      const resolvedProvider = provider ?? (await connector.getProvider())
-
       return {
         address: this.toChecksummedAddress(res.accounts[0]),
         chainId: res.chainId,
-        provider: resolvedProvider as Provider,
+        provider: provider as Provider,
         type: type as ConnectorType,
         id
       }
@@ -872,27 +838,21 @@ export class WagmiAdapter extends AdapterBlueprint {
       chain => chain.id.toString() === caipNetwork.id.toString()
     )
 
-    if (!wagmiChain) {
-      throw new Error('connectionControllerClient:switchNetwork - wagmiChain is undefined')
-    }
-
-    const { name, nativeCurrency, rpcUrls, blockExplorers, id } = wagmiChain
-    const rpcUrl = caipNetwork.rpcUrls?.['chainDefault']?.http?.[0] ?? rpcUrls.default.http[0] ?? ''
-    const blockExplorerUrl =
-      blockExplorers?.default.url ?? caipNetwork.blockExplorers?.default?.url ?? ''
-    const currency = nativeCurrency ?? caipNetwork.nativeCurrency
-    const chainName = name ?? caipNetwork.name
-
     await switchChain(this.wagmiConfig, {
-      chainId: id,
+      chainId: caipNetwork.id as number,
       addEthereumChainParameter: {
-        chainName,
-        nativeCurrency: currency,
-        rpcUrls: [rpcUrl],
-        blockExplorerUrls: [blockExplorerUrl]
+        chainName: wagmiChain?.name ?? caipNetwork.name,
+        nativeCurrency: wagmiChain?.nativeCurrency ?? caipNetwork.nativeCurrency,
+        rpcUrls: [
+          caipNetwork.rpcUrls?.['chainDefault']?.http?.[0] ??
+            wagmiChain?.rpcUrls?.default?.http?.[0] ??
+            ''
+        ],
+        blockExplorerUrls: [
+          wagmiChain?.blockExplorers?.default?.url ?? caipNetwork.blockExplorers?.default?.url ?? ''
+        ]
       }
     })
-
     await super.switchNetwork(params)
   }
 
@@ -1038,13 +998,6 @@ export class WagmiAdapter extends AdapterBlueprint {
         })
       }
     })
-
-    const walletConnectConnector = walletConnect({
-      universalProvider
-    })
-
-    this.configureInternalConnector(walletConnectConnector)
-
     this.addConnector(
       new WalletConnectConnector({
         provider: universalProvider,

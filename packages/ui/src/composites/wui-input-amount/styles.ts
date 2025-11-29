@@ -6,14 +6,6 @@ export default css`
     display: inline-block;
   }
 
-  :host([data-error='true']) > input {
-    color: ${({ tokens }) => tokens.core.textError};
-  }
-
-  :host([data-error='false']) > input {
-    color: ${({ tokens }) => tokens.theme.textSecondary};
-  }
-
   input {
     background: transparent;
     height: auto;
@@ -21,9 +13,9 @@ export default css`
     color: ${({ tokens }) => tokens.theme.textPrimary};
     font-feature-settings: 'case' on;
     font-size: ${({ textSize }) => textSize.h4};
-    caret-color: ${({ tokens }) => tokens.core.backgroundAccentPrimary};
-    line-height: ${({ typography }) => typography['h4-regular-mono'].lineHeight};
-    letter-spacing: ${({ typography }) => typography['h4-regular-mono'].letterSpacing};
+    caret-color: ${({ tokens }) => tokens.core.textAccentPrimary};
+    line-height: 130%;
+    letter-spacing: -1.28px;
     -webkit-appearance: none;
     -moz-appearance: textfield;
     padding: 0px;
@@ -42,7 +34,7 @@ export default css`
     position: absolute;
     visibility: hidden;
     white-space: pre;
-    font-size: var(--local-font-size);
+    font-size: ${({ textSize }) => textSize.h4};
     line-height: 130%;
     letter-spacing: -1.28px;
     font-family: ${({ fontFamily }) => fontFamily.mono};
@@ -60,6 +52,6 @@ export default css`
   }
 
   input::placeholder {
-    color: ${({ tokens }) => tokens.theme.textSecondary};
+    color: ${({ tokens }) => tokens.theme.foregroundTertiary};
   }
 `
