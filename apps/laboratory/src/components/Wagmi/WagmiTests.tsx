@@ -1,8 +1,23 @@
-import { Box, Card, CardBody, CardHeader, Heading, Stack, StackDivider } from '@chakra-ui/react'
+import {
+  Box,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Code,
+  Heading,
+  Stack,
+  StackDivider
+} from '@chakra-ui/react'
 import type { Config } from 'wagmi'
+
+import { useAppKitAccount } from '@reown/appkit/react'
+
+import { useWagmiAvailableCapabilities } from '@/src/hooks/useWagmiActiveCapabilities'
 
 import { WagmiDisconnectTest } from './WagmiDisconnectTest'
 import { WagmiGetCallsStatusTest } from './WagmiGetCallsStatusTest'
+import { WagmiSendCallsCustomAbiWithPaymasterServiceTest } from './WagmiSendCallsCustomAbiWithPaymasterServiceTest'
 import { WagmiSendCallsTest } from './WagmiSendCallsTest'
 import { WagmiSendCallsWithPaymasterServiceTest } from './WagmiSendCallsWithPaymasterServiceTest'
 import { WagmiSendUSDCTest } from './WagmiSendUSDCTest'
@@ -16,10 +31,18 @@ interface IProps {
 }
 
 export function WagmiTests({ config }: IProps) {
+  const { address } = useAppKitAccount({ namespace: 'eip155' })
+  const { availableCapabilities, fetchCapabilities, hasFetchedCapabilities, capabilitiesToRender } =
+    useWagmiAvailableCapabilities()
+
+  if (!address) {
+    return null
+  }
+
   return (
-    <Card marginTop={10} marginBottom={10}>
+    <Card data-testid="eip155-test-interactions" marginTop={10} marginBottom={10}>
       <CardHeader>
-        <Heading size="md">Test Interactions</Heading>
+        <Heading size="md">Wagmi Test Interactions</Heading>
       </CardHeader>
       <CardBody>
         <Stack divider={<StackDivider />} spacing="4">
@@ -57,27 +80,53 @@ export function WagmiTests({ config }: IProps) {
             </Heading>
             <WagmiSendUSDCTest config={config} />
           </Box>
-          <Box>
-            <Heading size="xs" textTransform="uppercase" pb="2">
-              Send Calls (Atomic Batch)
-            </Heading>
-            <WagmiSendCallsTest />
-          </Box>
 
           <Box>
             <Heading size="xs" textTransform="uppercase" pb="2">
-              Get Calls Status
+              EIP-5792 Capabilities
             </Heading>
-            <WagmiGetCallsStatusTest />
+            <Button onClick={fetchCapabilities} data-testid="fetch-capabilities-button">
+              {hasFetchedCapabilities ? 'Re-fetch' : 'Fetch'} Capabilities
+            </Button>
+            <br />
+            <Code marginTop={2} whiteSpace="pre-wrap">
+              {capabilitiesToRender}
+            </Code>
           </Box>
-
-          <Box>
-            <Heading size="xs" textTransform="uppercase" pb="2">
-              Send Calls (Paymaster Service)
-            </Heading>
-            <WagmiSendCallsWithPaymasterServiceTest />
-          </Box>
-
+          {availableCapabilities && (
+            <Box>
+              <Heading size="xs" textTransform="uppercase" pb="2">
+                Send Calls (Atomic Batch)
+              </Heading>
+              <WagmiSendCallsTest capabilities={availableCapabilities} />
+            </Box>
+          )}
+          {availableCapabilities && (
+            <Box>
+              <Heading size="xs" textTransform="uppercase" pb="2">
+                Get Calls Status
+              </Heading>
+              <WagmiGetCallsStatusTest />
+            </Box>
+          )}
+          {availableCapabilities && (
+            <Box>
+              <Heading size="xs" textTransform="uppercase" pb="2">
+                Send Calls (Paymaster Service)
+              </Heading>
+              <WagmiSendCallsWithPaymasterServiceTest capabilities={availableCapabilities} />
+            </Box>
+          )}
+          {availableCapabilities && (
+            <Box>
+              <Heading size="xs" textTransform="uppercase" pb="2">
+                Send Calls with custom abi (Paymaster Service)
+              </Heading>
+              <WagmiSendCallsCustomAbiWithPaymasterServiceTest
+                capabilities={availableCapabilities}
+              />
+            </Box>
+          )}
           <Box>
             <Heading size="xs" textTransform="uppercase" pb="2">
               Disconnect

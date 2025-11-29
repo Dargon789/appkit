@@ -5,8 +5,8 @@ import { type Address, parseGwei } from 'viem'
 import { useAccount, useEstimateGas, useSendTransaction } from 'wagmi'
 import { mainnet } from 'wagmi/chains'
 
-import { vitalikEthAddress } from '../../utils/DataUtil'
-import { useChakraToast } from '../Toast'
+import { useChakraToast } from '@/src/components/Toast'
+import { vitalikEthAddress } from '@/src/utils/DataUtil'
 
 const TEST_TX = {
   to: vitalikEthAddress as Address,
@@ -27,7 +27,7 @@ export function WagmiTransactionTest() {
 
 function AvailableTestContent() {
   const toast = useChakraToast()
-  const { refetch: estimateGas, isFetching: estimateGasFetching } = useEstimateGas({
+  const { refetch: estimateGas, isFetching: isEstimateGasFetching } = useEstimateGas({
     ...TEST_TX,
     query: {
       enabled: false
@@ -81,7 +81,7 @@ function AvailableTestContent() {
         onClick={onSendTransaction}
         disabled={!sendTransaction}
         isDisabled={isLoading}
-        isLoading={estimateGasFetching}
+        isLoading={isEstimateGasFetching}
       >
         Send Transaction to Vitalik
       </Button>

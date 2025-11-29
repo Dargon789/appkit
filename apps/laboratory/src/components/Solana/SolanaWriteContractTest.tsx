@@ -14,19 +14,19 @@ import {
 import { type Provider, useAppKitConnection } from '@reown/appkit-adapter-solana/react'
 import { useAppKitNetwork, useAppKitProvider } from '@reown/appkit/react'
 
-import { COUNTER_ACCOUNT_SIZE } from '../../utils/SolanaConstants'
-import { deserializeCounterAccount, detectProgramId } from '../../utils/SolanaUtil'
-import { useChakraToast } from '../Toast'
+import { useChakraToast } from '@/src/components/Toast'
+import { COUNTER_ACCOUNT_SIZE } from '@/src/utils/SolanaConstants'
+import { deserializeCounterAccount, detectProgramId } from '@/src/utils/SolanaUtil'
 
 export function SolanaWriteContractTest() {
   const toast = useChakraToast()
   const { caipNetwork } = useAppKitNetwork()
   const { walletProvider } = useAppKitProvider<Provider>('solana')
   const { connection } = useAppKitConnection()
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   async function onIncrementCounter() {
-    setLoading(true)
+    setIsLoading(true)
 
     const PROGRAM_ID = new PublicKey(detectProgramId(caipNetwork?.id?.toString() ?? ''))
 
@@ -121,13 +121,13 @@ export function SolanaWriteContractTest() {
         type: 'error'
       })
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
   return (
     <Button
-      isDisabled={loading}
+      isDisabled={isLoading}
       data-testid="increment-counter-with-sign-button"
       onClick={onIncrementCounter}
     >

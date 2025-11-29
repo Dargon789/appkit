@@ -3,7 +3,9 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { html } from 'lit'
 
+import type { CaipNetwork } from '@reown/appkit-common'
 import {
+  ChainController,
   ConnectionController,
   type Connector,
   ConnectorController,
@@ -11,7 +13,7 @@ import {
   EventsController,
   RouterController,
   type WcWallet
-} from '@reown/appkit-core'
+} from '@reown/appkit-controllers'
 
 const WALLET = {
   name: 'MetaMask',
@@ -29,6 +31,9 @@ describe('W3mConnectingWcBrowser', () => {
   beforeAll(() => {
     Element.prototype.animate = vi.fn()
     vi.spyOn(CoreHelperUtil, 'isMobile').mockReturnValue(false)
+    vi.spyOn(ChainController, 'getActiveCaipNetwork').mockReturnValue({
+      caipNetworkId: 'eip155:1'
+    } as unknown as CaipNetwork)
   })
 
   afterEach(() => {

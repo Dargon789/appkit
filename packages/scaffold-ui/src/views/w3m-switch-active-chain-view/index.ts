@@ -1,11 +1,20 @@
 import { LitElement, html } from 'lit'
 import { property } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
 
-import { ConstantsUtil } from '@reown/appkit-common'
-import { ChainController, ConnectorController, RouterController } from '@reown/appkit-core'
-import { customElement } from '@reown/appkit-ui'
+import { type ChainNamespace, ConstantsUtil } from '@reown/appkit-common'
+import { ChainController, ConnectorController, RouterController } from '@reown/appkit-controllers'
+import { type VisualType, customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'
+
+const chainIconNameMap: Record<ChainNamespace, VisualType> = {
+  eip155: 'eth',
+  solana: 'solana',
+  bip122: 'bitcoin',
+  // @ts-expect-error we don't have Polkadot implemented yet
+  polkadot: undefined
+}
 
 @customElement('w3m-switch-active-chain-view')
 export class W3mSwitchActiveChainView extends LitElement {
@@ -15,10 +24,6 @@ export class W3mSwitchActiveChainView extends LitElement {
   private unsubscribe: (() => void)[] = []
 
   protected readonly switchToChain = RouterController.state.data?.switchToChain
-
-  protected readonly navigateTo = RouterController.state.data?.navigateTo
-
-  protected readonly navigateWithReplace = RouterController.state.data?.navigateWithReplace
 
   protected readonly caipNetwork = RouterController.state.data?.network
 
@@ -46,30 +51,33 @@ export class W3mSwitchActiveChainView extends LitElement {
       return null
     }
 
-    const nextChainName = this.switchToChain === 'eip155' ? 'Ethereum' : this.switchToChain
+    const nextChainName = ConstantsUtil.CHAIN_NAME_MAP[this.switchToChain]
 
     return html`
       <wui-flex
         flexDirection="column"
         alignItems="center"
-        .padding=${['3xl', 'xl', 'xl', 'xl'] as const}
-        gap="xl"
+        .padding=${['4', '2', '2', '2'] as const}
+        gap="4"
       >
-        <wui-flex justifyContent="center" flexDirection="column" alignItems="center" gap="xl">
+        <wui-flex justifyContent="center" flexDirection="column" alignItems="center" gap="2">
           <wui-visual
-            name=${this.switchToChain === 'eip155' ? 'eth' : this.switchToChain}
+            size="md"
+            name=${ifDefined(chainIconNameMap[this.switchToChain])}
           ></wui-visual>
-          <wui-text
-            data-testid=${`w3m-switch-active-chain-to-${nextChainName}`}
-            variant="paragraph-500"
-            color="fg-100"
-            align="center"
-            >Switch to <span class="capitalize">${nextChainName}</span></wui-text
-          >
-          <wui-text variant="small-400" color="fg-200" align="center">
-            Connected wallet doesn't support connecting to ${switchedChainNameString} chain. You
-            need to connect with a different wallet.
-          </wui-text>
+          <wui-flex gap="2" flexDirection="column">
+            <wui-text
+              data-testid=${`w3m-switch-active-chain-to-${nextChainName}`}
+              variant="lg-regular"
+              color="primary"
+              align="center"
+              >Switch to <span class="capitalize">${nextChainName}</span></wui-text
+            >
+            <wui-text variant="md-regular" color="secondary" align="center">
+              Connected wallet doesn't support connecting to ${switchedChainNameString} chain. You
+              need to connect with a different wallet.
+            </wui-text>
+          </wui-flex>
           <wui-button
             data-testid="w3m-switch-active-chain-button"
             size="md"

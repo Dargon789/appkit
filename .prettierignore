@@ -3,3 +3,6 @@ coverage
 pnpm-lock.yaml
 .nuxt
 .svelte-kit
+bundle-analysis.html
+.open-next
+/apps/pay-test-exchange/**.d.ts

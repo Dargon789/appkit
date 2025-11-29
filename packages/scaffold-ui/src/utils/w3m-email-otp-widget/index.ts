@@ -6,8 +6,13 @@ import {
   CoreHelperUtil,
   RouterController,
   SnackController
-} from '@reown/appkit-core'
+} from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
+import '@reown/appkit-ui/wui-flex'
+import '@reown/appkit-ui/wui-link'
+import '@reown/appkit-ui/wui-loading-spinner'
+import '@reown/appkit-ui/wui-otp'
+import '@reown/appkit-ui/wui-text'
 import { W3mFrameHelpers } from '@reown/appkit-wallet'
 
 import styles from './styles.js'
@@ -17,11 +22,10 @@ export type OnOtpSubmitFn = (otp: string) => Promise<void>
 export type OnOtpResendFn = (email: string) => Promise<void>
 export type OnStartOverFn = () => void
 
-// -- Helpers ------------------------------------------- //
-const OTP_LENGTH = 6
-
 @customElement('w3m-email-otp-widget')
 export class W3mEmailOtpWidget extends LitElement {
+  public static readonly OTP_LENGTH = 6
+
   public static override styles = styles
 
   // -- State & Properties -------------------------------- //
@@ -33,7 +37,7 @@ export class W3mEmailOtpWidget extends LitElement {
 
   @state() private error = ''
 
-  private otp = ''
+  protected otp = ''
 
   public email = RouterController.state.data?.email
 
@@ -69,28 +73,28 @@ export class W3mEmailOtpWidget extends LitElement {
       <wui-flex
         flexDirection="column"
         alignItems="center"
-        .padding=${['l', '0', 'l', '0'] as const}
-        gap="l"
+        .padding=${['4', '0', '4', '0'] as const}
+        gap="4"
       >
         <wui-flex
           class="email-display"
           flexDirection="column"
           alignItems="center"
-          .padding=${['0', 'xl', '0', 'xl'] as const}
+          .padding=${['0', '5', '0', '5'] as const}
         >
-          <wui-text variant="paragraph-400" color="fg-100" align="center">
+          <wui-text variant="md-regular" color="primary" align="center">
             Enter the code we sent to
           </wui-text>
-          <wui-text variant="paragraph-500" color="fg-100" lineClamp="1" align="center">
+          <wui-text variant="md-medium" color="primary" lineClamp="1" align="center">
             ${this.email}
           </wui-text>
         </wui-flex>
 
-        <wui-text variant="small-400" color="fg-200">The code expires in 20 minutes</wui-text>
+        <wui-text variant="sm-regular" color="secondary">The code expires in 20 minutes</wui-text>
 
         ${this.loading
-          ? html`<wui-loading-spinner size="xl" color="accent-100"></wui-loading-spinner>`
-          : html` <wui-flex flexDirection="column" alignItems="center" gap="xs">
+          ? html`<wui-loading-spinner size="xl" color="accent-primary"></wui-loading-spinner>`
+          : html` <wui-flex flexDirection="column" alignItems="center" gap="2">
               <wui-otp
                 dissabled
                 length="6"
@@ -99,15 +103,15 @@ export class W3mEmailOtpWidget extends LitElement {
               ></wui-otp>
               ${this.error
                 ? html`
-                    <wui-text variant="small-400" align="center" color="error-100">
+                    <wui-text variant="sm-regular" align="center" color="error">
                       ${this.error}. Try Again
                     </wui-text>
                   `
                 : null}
             </wui-flex>`}
 
-        <wui-flex alignItems="center" gap="xs">
-          <wui-text variant="small-400" color="fg-200">${footerLabels.title}</wui-text>
+        <wui-flex alignItems="center" gap="2">
+          <wui-text variant="sm-regular" color="secondary">${footerLabels.title}</wui-text>
           <wui-link @click=${this.onResendCode.bind(this)} .disabled=${isResendDisabled}>
             ${footerLabels.action}
           </wui-link>
@@ -132,7 +136,7 @@ export class W3mEmailOtpWidget extends LitElement {
     try {
       if (!this.loading) {
         this.otp = event.detail
-        if (this.authConnector && this.otp.length === OTP_LENGTH) {
+        if (this.shouldSubmitOnOtpChange()) {
           this.loading = true
           await this.onOtpSubmit?.(this.otp)
         }
@@ -180,6 +184,10 @@ export class W3mEmailOtpWidget extends LitElement {
       title: `Didn't receive it?`,
       action: `Resend ${isResendDisabled ? `in ${this.timeoutTimeLeft}s` : 'Code'}`
     }
+  }
+
+  protected shouldSubmitOnOtpChange() {
+    return this.authConnector && this.otp.length === W3mEmailOtpWidget.OTP_LENGTH
   }
 }
 

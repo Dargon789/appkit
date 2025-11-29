@@ -1,28 +1,30 @@
 import { type Ref, onUnmounted, ref } from 'vue'
 
-import { ChainController, CoreHelperUtil, type UseAppKitNetworkReturn } from '@reown/appkit-core'
+import {
+  ChainController,
+  CoreHelperUtil,
+  type UseAppKitNetworkReturn
+} from '@reown/appkit-controllers'
 import type { AppKitNetwork } from '@reown/appkit/networks'
 
-import { AppKit } from '../src/client.js'
+import { AppKit } from '../src/client/appkit.js'
 import { getAppKit } from '../src/library/vue/index.js'
+import { _internalFetchBalance } from '../src/utils/BalanceUtil.js'
 import type { AppKitOptions } from '../src/utils/TypesUtil.js'
 import { PACKAGE_VERSION } from './constants.js'
-
-// -- Views ------------------------------------------------------------
-export * from '@reown/appkit-scaffold-ui'
 
 // -- Hooks ------------------------------------------------------------
 export * from '../src/library/vue/index.js'
 
 // -- Utils & Other -----------------------------------------------------
 export * from '../src/utils/index.js'
-export type * from '@reown/appkit-core'
+export type * from '@reown/appkit-controllers'
 export type { CaipNetwork, CaipAddress, CaipNetworkId } from '@reown/appkit-common'
-export { CoreHelperUtil, AccountController } from '@reown/appkit-core'
+export { CoreHelperUtil, AccountController } from '@reown/appkit-controllers'
 
 let modal: AppKit | undefined = undefined
 
-export type CreateAppKit = Omit<AppKitOptions, 'sdkType' | 'sdkVersion'>
+export type CreateAppKit = Omit<AppKitOptions, 'sdkType' | 'sdkVersion' | 'basic'>
 
 export function createAppKit(options: CreateAppKit) {
   if (!modal) {
@@ -45,8 +47,8 @@ export function useAppKitNetwork(): Ref<UseAppKitNetworkReturn> {
     caipNetwork: ChainController.state.activeCaipNetwork,
     chainId: ChainController.state.activeCaipNetwork?.id,
     caipNetworkId: ChainController.state.activeCaipNetwork?.caipNetworkId,
-    switchNetwork: (network: AppKitNetwork) => {
-      modal?.switchNetwork(network)
+    switchNetwork: async (network: AppKitNetwork) => {
+      await modal?.switchNetwork(network)
     }
   })
 
@@ -61,6 +63,16 @@ export function useAppKitNetwork(): Ref<UseAppKitNetworkReturn> {
   })
 
   return state
+}
+
+export function useAppKitBalance() {
+  async function fetchBalance() {
+    return await _internalFetchBalance(modal)
+  }
+
+  return {
+    fetchBalance
+  }
 }
 
 export * from '../src/library/vue/index.js'

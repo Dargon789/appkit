@@ -57,7 +57,7 @@ const signMessage = async () => {
 const connect = async () => {
   if (!props.signClient) return
   const { uri, approval } = await props.signClient.connect({
-    requiredNamespaces: {
+    optionalNamespaces: {
       eip155: {
         methods: [
           'eth_sendTransaction',
@@ -74,7 +74,7 @@ const connect = async () => {
 
   if (uri) {
     const appKitModal = initializeModal()
-    appKitModal.open({ uri, view: 'ConnectingWalletConnectBasic' })
+    appKitModal.open({ uri })
     const session = await approval()
     props.onAccountChange(session?.namespaces['eip155']?.accounts?.[0]?.split(':')[2])
     props.onNetworkChange(session?.namespaces['eip155']?.chains?.[0])

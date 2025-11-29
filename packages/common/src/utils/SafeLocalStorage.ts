@@ -15,6 +15,18 @@ export type SafeLocalStorageItems = {
   '@appkit/connection_status': string
   '@appkit/siwx-auth-token': string
   '@appkit/siwx-nonce-token': string
+  '@appkit/social_provider': string
+  '@appkit/native_balance_cache': string
+  '@appkit/portfolio_cache': string
+  '@appkit/ens_cache': string
+  '@appkit/identity_cache': string
+  '@appkit/preferred_account_types': string
+  '@appkit/connections': string
+  '@appkit/disconnected_connector_ids': string
+  '@appkit/history_transactions_cache': string
+  '@appkit/token_price_cache': string
+  '@appkit/recent_emails': string
+  '@appkit/latest_version': string
   /*
    * DO NOT CHANGE: @walletconnect/universal-provider requires us to set this specific key
    *  This value is a stringified version of { href: stiring; name: string }
@@ -36,7 +48,19 @@ export const SafeLocalStorageKeys = {
   CONNECTED_NAMESPACES: '@appkit/connected_namespaces',
   CONNECTION_STATUS: '@appkit/connection_status',
   SIWX_AUTH_TOKEN: '@appkit/siwx-auth-token',
-  SIWX_NONCE_TOKEN: '@appkit/siwx-nonce-token'
+  SIWX_NONCE_TOKEN: '@appkit/siwx-nonce-token',
+  TELEGRAM_SOCIAL_PROVIDER: '@appkit/social_provider',
+  NATIVE_BALANCE_CACHE: '@appkit/native_balance_cache',
+  PORTFOLIO_CACHE: '@appkit/portfolio_cache',
+  ENS_CACHE: '@appkit/ens_cache',
+  IDENTITY_CACHE: '@appkit/identity_cache',
+  PREFERRED_ACCOUNT_TYPES: '@appkit/preferred_account_types',
+  CONNECTIONS: '@appkit/connections',
+  DISCONNECTED_CONNECTOR_IDS: '@appkit/disconnected_connector_ids',
+  HISTORY_TRANSACTIONS_CACHE: '@appkit/history_transactions_cache',
+  TOKEN_PRICE_CACHE: '@appkit/token_price_cache',
+  RECENT_EMAILS: '@appkit/recent_emails',
+  LATEST_APPKIT_VERSION: '@appkit/latest_version'
 } as const satisfies Record<string, keyof SafeLocalStorageItems>
 
 export type SafeLocalStorageKey = keyof SafeLocalStorageItems | NamespacedConnectorKey

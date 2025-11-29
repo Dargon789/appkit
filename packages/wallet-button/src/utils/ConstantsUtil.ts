@@ -1,8 +1,12 @@
 export const ConstantsUtil = {
   SECURE_SITE_ORIGIN:
-    process.env['NEXT_PUBLIC_SECURE_SITE_ORIGIN'] || 'https://secure.walletconnect.org',
+    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+    (typeof process !== 'undefined' && typeof process.env !== 'undefined'
+      ? process.env['NEXT_PUBLIC_SECURE_SITE_ORIGIN']
+      : undefined) || 'https://secure.walletconnect.org',
 
   Socials: ['google', 'github', 'apple', 'facebook', 'x', 'discord', 'farcaster'] as const,
+  Email: 'email' as const,
 
   WalletButtonsIds: {
     coinbase: 'fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa',
@@ -34,6 +38,20 @@ export const ConstantsUtil = {
     coin98: '2a3c89040ac3b723a1972a33a125b1db11e258a6975d3a61252cd64e6ea5ea01',
     'magic-eden': '8b830a2b724a9c3fbab63af6f55ed29c9dfa8a55e732dc88c80a196a2ba136c6',
     backpack: '2bd8c14e035c2d48f184aaa168559e86b0e3433228d3c4075900a221785019b0',
-    frontier: '85db431492aa2e8672e93f4ea7acf10c88b97b867b0d373107af63dc4880f041'
+    frontier: '85db431492aa2e8672e93f4ea7acf10c88b97b867b0d373107af63dc4880f041',
+    xverse: '2a87d74ae02e10bdd1f51f7ce6c4e1cc53cd5f2c0b6b5ad0d7b3007d2b13de7b',
+    leather: '483afe1df1df63daf313109971ff3ef8356ddf1cc4e45877d205eee0b7893a13',
+    haha: '719bd888109f5e8dd23419b20e749900ce4d2fc6858cf588395f19c82fd036b3',
+    'ambire-wallet': '2c81da3add65899baeac53758a07e652eea46dbb5195b8074772c62a77bbf568',
+    bitpay: 'b4678fefcc469583ed4ef58a5bd90ce86208b82803f3c45f2de3e0973d268835',
+    'blade-wallet': 'a9104b630bac1929ad9ac2a73a17ed4beead1889341f307bff502f89b46c8501',
+    brave: '163d2cf19babf05eb8962e9748f9ebe613ed52ebf9c8107c9a0f104bfcf161b3',
+    coinstats: 'bcaec16e531fb5f6dc690d7b70d570421e0209af9a0fe77c6419d516fe0098c2',
+    'kresus-superapp': '56bec983b47c8b6eb774890c1c8ae9d95334e10bdb126ab6c11dfaf56fb2b31c',
+    'plena-app': '9654c004e02e492c30904a820154e239886edbf4d66bc5d372060809ef4c9111',
+    status: 'af9a6dfff9e63977bbde28fb23518834f08b696fe8bff6dd6827acad1814c6be',
+    'tomo-wallet': '5e4a8cc31d062b78a7ad9e017135574809b01c4dbbf30e4dbb467ddd43025618',
+    valora: 'd01c7758d741b363e637a817a09bcf579feae4db9f5bb16f599fdd1f66e2f974',
+    'zengo-wallet': '9414d5a85c8f4eabc1b5b15ebe0cd399e1a2a9d35643ab0ad22a6e4a32f596f0'
   } as const
 }

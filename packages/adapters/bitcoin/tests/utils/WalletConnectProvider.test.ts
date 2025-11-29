@@ -1,9 +1,10 @@
 import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { type CaipNetwork, ConstantsUtil } from '@reown/appkit-common'
+import { AccountController, ChainController } from '@reown/appkit-controllers'
 import { bitcoin, bitcoinTestnet } from '@reown/appkit/networks'
 
-import { BitcoinWalletConnectConnector } from '../../src/connectors/BitcoinWalletConnectProvider'
+import { BitcoinWalletConnectConnector } from '../../src/connectors/BitcoinWalletConnectConnector'
 import { mockUniversalProvider } from '../mocks/mockUniversalProvider'
 
 describe('LeatherConnector', () => {
@@ -21,6 +22,7 @@ describe('LeatherConnector', () => {
       chains: requestedChains,
       getActiveChain: getActiveChain
     })
+    vi.spyOn(ChainController, 'getCaipNetworks').mockReturnValue(requestedChains)
   })
 
   it('should validate the metadata', async () => {
@@ -114,6 +116,9 @@ describe('LeatherConnector', () => {
   describe('sendTransfer', () => {
     beforeEach(() => {
       universalProvider.session = mockUniversalProvider.mockSession()
+      vi.spyOn(AccountController, 'getCaipAddress').mockReturnValue(
+        `${bitcoin.caipNetworkId}:address`
+      )
     })
 
     it('should send the transfer and parse response', async () => {
@@ -184,7 +189,7 @@ describe('LeatherConnector', () => {
 
       await expect(
         provider.sendTransfer({ recipient: 'mock_recipient', amount: 'mock_amount' })
-      ).rejects.toThrow('Address not found')
+      ).rejects.toThrow('Account not found')
     })
   })
 
@@ -354,6 +359,52 @@ describe('LeatherConnector', () => {
       })
 
       expect((provider as any).getAccount()).toBeUndefined()
+    })
+
+    it('should select the correct address when multiple networks have addresses', () => {
+      universalProvider.session = mockUniversalProvider.mockSession({
+        namespaces: {
+          bip122: {
+            accounts: [
+              `${bitcoin.caipNetworkId}:mainnet_address`,
+              `${bitcoinTestnet.caipNetworkId}:testnet_address`
+            ],
+            events: [],
+            methods: []
+          }
+        }
+      })
+
+      vi.spyOn(AccountController, 'getCaipAddress').mockReturnValue(
+        `${bitcoin.caipNetworkId}:mainnet_address`
+      )
+
+      const result = (provider as any).getAccount()
+
+      expect(result).toBe('mainnet_address')
+    })
+
+    it('should select testnet address when testnet is active chain', () => {
+      universalProvider.session = mockUniversalProvider.mockSession({
+        namespaces: {
+          bip122: {
+            accounts: [
+              `${bitcoin.caipNetworkId}:mainnet_address`,
+              `${bitcoinTestnet.caipNetworkId}:testnet_address`
+            ],
+            events: [],
+            methods: []
+          }
+        }
+      })
+
+      vi.spyOn(AccountController, 'getCaipAddress').mockReturnValue(
+        `${bitcoinTestnet.caipNetworkId}:testnet_address`
+      )
+
+      const result = (provider as any).getAccount()
+
+      expect(result).toBe('testnet_address')
     })
   })
 })

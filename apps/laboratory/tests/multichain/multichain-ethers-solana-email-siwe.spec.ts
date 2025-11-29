@@ -28,9 +28,7 @@ test.beforeAll(async ({ browser }) => {
   }
   const email = new Email(mailsacApiKey)
   const tempEmail = await email.getEmailAddressToUse()
-  await page.emailFlow(tempEmail, context, mailsacApiKey)
-  await page.promptSiwe()
-  await page.approveSign()
+  await page.emailFlow({ emailAddress: tempEmail, context, mailsacApiKey })
 
   await validator.expectConnected()
   await validator.expectAuthenticated()
@@ -45,12 +43,13 @@ test('it should switch networks and sign', async () => {
   const chainName = 'Polygon'
 
   await page.switchNetwork(chainName)
-  await validator.expectUnauthenticated()
   await page.promptSiwe()
   await page.approveSign()
+  await validator.expectAuthenticated()
+  await page.page.waitForTimeout(1000)
 
   // -- Sign ------------------------------------------------------------------
-  await page.sign()
+  await page.sign('eip155')
   await validator.expectReceivedSign({ chainName })
   await page.approveSign()
   await validator.expectAcceptedSign()
@@ -65,7 +64,7 @@ test('it should switch to different namespace', async () => {
   await page.closeModal()
 
   // -- Sign ------------------------------------------------------------------
-  await page.sign()
+  await page.sign('solana')
   await validator.expectReceivedSign({ chainName })
   await page.approveSign()
   await validator.expectAcceptedSign()

@@ -1,8 +1,9 @@
 import type { Connection, PublicKey, SendOptions } from '@solana/web3.js'
 
-import { type CaipNetwork, ConstantsUtil } from '@reown/appkit-common'
-import type { RequestArguments } from '@reown/appkit-core'
-import type { Provider as CoreProvider } from '@reown/appkit-core'
+import { type CaipNetwork, ConstantsUtil, UserRejectedRequestError } from '@reown/appkit-common'
+import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
+import type { RequestArguments } from '@reown/appkit-controllers'
+import type { Provider as CoreProvider } from '@reown/appkit-controllers'
 import { PresetsUtil } from '@reown/appkit-utils'
 import { type AnyTransaction, type Provider as SolanaProvider } from '@reown/appkit-utils/solana'
 import { solana } from '@reown/appkit/networks'
@@ -59,6 +60,10 @@ export class CoinbaseWalletProvider extends ProviderEventEmitter implements Sola
     return this.coinbase.publicKey
   }
 
+  public get imageId() {
+    return PresetsUtil.ConnectorImageIds[CommonConstantsUtil.CONNECTOR_ID.COINBASE]
+  }
+
   public async connect() {
     try {
       await this.coinbase.connect()
@@ -69,7 +74,7 @@ export class CoinbaseWalletProvider extends ProviderEventEmitter implements Sola
       return account.toBase58()
     } catch (error) {
       this.coinbase.emit('error', error)
-      throw error
+      throw new UserRejectedRequestError(error)
     }
   }
 

@@ -2,16 +2,19 @@ import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import type { WcWallet } from '@reown/appkit-core'
+import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
+import type { WcWallet } from '@reown/appkit-controllers'
 import {
   AssetUtil,
+  ConnectionController,
   ConnectorController,
   CoreHelperUtil,
   OptionsController,
   RouterController,
   StorageUtil
-} from '@reown/appkit-core'
+} from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
+import '@reown/appkit-ui/wui-flex'
 
 @customElement('w3m-connect-custom-widget')
 export class W3mConnectCustomWidget extends LitElement {
@@ -23,11 +26,19 @@ export class W3mConnectCustomWidget extends LitElement {
 
   @state() private connectors = ConnectorController.state.connectors
 
+  @state() private loading = false
+
   public constructor() {
     super()
     this.unsubscribe.push(
       ConnectorController.subscribeKey('connectors', val => (this.connectors = val))
     )
+    if (CoreHelperUtil.isTelegram() && CoreHelperUtil.isIos()) {
+      this.loading = !ConnectionController.state.wcUri
+      this.unsubscribe.push(
+        ConnectionController.subscribeKey('wcUri', val => (this.loading = !val))
+      )
+    }
   }
 
   public override disconnectedCallback() {
@@ -46,17 +57,25 @@ export class W3mConnectCustomWidget extends LitElement {
 
     const wallets = this.filterOutDuplicateWallets(customWallets)
 
-    return html`<wui-flex flexDirection="column" gap="xs">
+    const hasWcConnection = ConnectionController.hasAnyConnection(
+      CommonConstantsUtil.CONNECTOR_ID.WALLET_CONNECT
+    )
+
+    return html`<wui-flex flexDirection="column" gap="2">
       ${wallets.map(
         wallet => html`
-          <wui-list-wallet
+          <w3m-list-wallet
             imageSrc=${ifDefined(AssetUtil.getWalletImage(wallet))}
             name=${wallet.name ?? 'Unknown'}
             @click=${() => this.onConnectWallet(wallet)}
+            size="sm"
             data-testid=${`wallet-selector-${wallet.id}`}
             tabIdx=${ifDefined(this.tabIdx)}
+            ?loading=${this.loading}
+            ?disabled=${hasWcConnection}
+            rdnsId=${wallet.id}
           >
-          </wui-list-wallet>
+          </w3m-list-wallet>
         `
       )}
     </wui-flex>`
@@ -82,6 +101,9 @@ export class W3mConnectCustomWidget extends LitElement {
   }
 
   private onConnectWallet(wallet: WcWallet) {
+    if (this.loading) {
+      return
+    }
     RouterController.push('ConnectingWalletConnect', { wallet })
   }
 }

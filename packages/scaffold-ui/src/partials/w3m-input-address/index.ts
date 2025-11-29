@@ -3,8 +3,17 @@ import { property, state } from 'lit/decorators.js'
 import { createRef, ref } from 'lit/directives/ref.js'
 import type { Ref } from 'lit/directives/ref.js'
 
-import { ConnectionController, CoreHelperUtil, SendController } from '@reown/appkit-core'
+import {
+  ChainController,
+  ConnectionController,
+  CoreHelperUtil,
+  SendController
+} from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
+import '@reown/appkit-ui/wui-button'
+import '@reown/appkit-ui/wui-flex'
+import '@reown/appkit-ui/wui-icon'
+import '@reown/appkit-ui/wui-text'
 
 import styles from './styles.js'
 
@@ -20,6 +29,8 @@ export class W3mInputAddress extends LitElement {
   // -- State & Properties -------------------------------- //
   @property() public value?: string
 
+  @property({ type: Boolean }) public readOnly = false
+
   @state() private instructionHidden = Boolean(this.value)
 
   @state() private pasting = false
@@ -33,24 +44,42 @@ export class W3mInputAddress extends LitElement {
 
   // -- Render -------------------------------------------- //
   public override render() {
+    if (this.readOnly) {
+      return html` <wui-flex
+        flexDirection="column"
+        justifyContent="center"
+        gap="01"
+        .padding=${['8', '4', '5', '4'] as const}
+      >
+        <textarea
+          spellcheck="false"
+          ?disabled=${true}
+          autocomplete="off"
+          .value=${this.value ?? ''}
+        >
+           ${this.value ?? ''}</textarea
+        >
+      </wui-flex>`
+    }
+
     return html` <wui-flex
       @click=${this.onBoxClick.bind(this)}
       flexDirection="column"
       justifyContent="center"
-      gap="4xs"
-      .padding=${['2xl', 'l', 'xl', 'l'] as const}
+      gap="01"
+      .padding=${['8', '4', '5', '4'] as const}
     >
       <wui-text
         ${ref(this.instructionElementRef)}
         class="instruction"
-        color="fg-300"
-        variant="medium-400"
+        color="secondary"
+        variant="md-medium"
       >
         Type or
         <wui-button
           class="paste"
           size="md"
-          variant="neutral"
+          variant="neutral-secondary"
           iconLeft="copy"
           @click=${this.onPasteClick.bind(this)}
         >
@@ -137,9 +166,10 @@ ${this.value ?? ''}</textarea
   }
 
   private onInputChange(e: InputEvent) {
-    this.pasting = false
-
     const element = e.target as HTMLInputElement
+
+    this.pasting = false
+    this.value = (e.target as HTMLInputElement)?.value
 
     if (element.value && !this.instructionHidden) {
       this.focusInput()
@@ -149,20 +179,43 @@ ${this.value ?? ''}</textarea
   }
 
   private onDebouncedSearch = CoreHelperUtil.debounce(async (value: string) => {
-    const address = await ConnectionController.getEnsAddress(value)
-    SendController.setLoading(false)
+    if (!value.length) {
+      this.setReceiverAddress('')
 
-    if (address) {
-      SendController.setReceiverProfileName(value)
-      SendController.setReceiverAddress(address)
-      const avatar = await ConnectionController.getEnsAvatar(value)
-      SendController.setReceiverProfileImageUrl(avatar || undefined)
-    } else {
-      SendController.setReceiverAddress(value)
-      SendController.setReceiverProfileName(undefined)
-      SendController.setReceiverProfileImageUrl(undefined)
+      return
+    }
+
+    const activeChain = ChainController.state.activeChain
+    const isValidAddress = CoreHelperUtil.isAddress(value, activeChain)
+
+    if (isValidAddress) {
+      this.setReceiverAddress(value)
+
+      return
+    }
+
+    try {
+      const resolvedAddress = await ConnectionController.getEnsAddress(value)
+
+      if (resolvedAddress) {
+        SendController.setReceiverProfileName(value)
+        SendController.setReceiverAddress(resolvedAddress)
+        const avatar = await ConnectionController.getEnsAvatar(value)
+        SendController.setReceiverProfileImageUrl(avatar || undefined)
+      }
+    } catch (error) {
+      this.setReceiverAddress(value)
+    } finally {
+      SendController.setLoading(false)
     }
   })
+
+  private setReceiverAddress(address: string) {
+    SendController.setReceiverAddress(address)
+    SendController.setReceiverProfileName(undefined)
+    SendController.setReceiverProfileImageUrl(undefined)
+    SendController.setLoading(false)
+  }
 }
 
 declare global {

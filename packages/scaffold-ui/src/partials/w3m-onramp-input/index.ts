@@ -8,8 +8,13 @@ import {
   OnRampController,
   type PaymentCurrency,
   type PurchaseCurrency
-} from '@reown/appkit-core'
+} from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
+import '@reown/appkit-ui/wui-flex'
+import '@reown/appkit-ui/wui-image'
+import '@reown/appkit-ui/wui-input-text'
+import '@reown/appkit-ui/wui-loading-spinner'
+import '@reown/appkit-ui/wui-text'
 
 import styles from './styles.js'
 
@@ -84,11 +89,11 @@ export class W3mInputCurrency extends LitElement {
             class="currency-container"
             justifyContent="space-between"
             alignItems="center"
-            gap="xxs"
+            gap="1"
             @click=${() => ModalController.open({ view: `OnRamp${this.type}Select` })}
           >
             <wui-image src=${ifDefined(image)}></wui-image>
-            <wui-text color="fg-100">${this.selectedCurrency.symbol}</wui-text>
+            <wui-text color="primary">${this.selectedCurrency.symbol}</wui-text>
           </wui-flex>`
         : html`<wui-loading-spinner></wui-loading-spinner>`}
     </wui-input-text>`

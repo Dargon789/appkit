@@ -7,17 +7,17 @@ import bs58 from 'bs58'
 import { type Provider, useAppKitConnection } from '@reown/appkit-adapter-solana/react'
 import { useAppKitProvider } from '@reown/appkit/react'
 
-import { useChakraToast } from '../Toast'
+import { useChakraToast } from '@/src/components/Toast'
 
 export function SolanaSignJupiterSwapTest() {
   const toast = useChakraToast()
   const { connection } = useAppKitConnection()
   const { walletProvider } = useAppKitProvider<Provider>('solana')
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   async function onSignVersionedTransaction() {
     try {
-      setLoading(true)
+      setIsLoading(true)
       if (!walletProvider?.publicKey) {
         throw Error('user is disconnected')
       }
@@ -48,7 +48,7 @@ export function SolanaSignJupiterSwapTest() {
         type: 'error'
       })
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
@@ -57,7 +57,7 @@ export function SolanaSignJupiterSwapTest() {
       <Button
         data-test-id="sign-transaction-button"
         onClick={onSignVersionedTransaction}
-        isDisabled={loading}
+        isDisabled={isLoading}
       >
         Sign Jupiter Swap Transaction
       </Button>

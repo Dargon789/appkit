@@ -2,11 +2,18 @@ import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import type { WcWallet } from '@reown/appkit-core'
-import { ApiController, ConnectorController } from '@reown/appkit-core'
+import {
+  ApiController,
+  ConnectorController,
+  CoreHelperUtil,
+  type WcWallet
+} from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
+import '@reown/appkit-ui/wui-card-select-loader'
+import '@reown/appkit-ui/wui-grid'
 
 import { WalletUtil } from '../../utils/WalletUtil.js'
+import '../w3m-all-wallets-list-item/index.js'
 import styles from './styles.js'
 
 // -- Helpers --------------------------------------------- //
@@ -30,13 +37,18 @@ export class W3mAllWalletsList extends LitElement {
 
   @state() private featured = ApiController.state.featured
 
+  @state() private filteredWallets = ApiController.state.filteredWallets
+
+  @state() private badge?: 'certified' | undefined
+
   public constructor() {
     super()
     this.unsubscribe.push(
       ...[
         ApiController.subscribeKey('wallets', val => (this.wallets = val)),
         ApiController.subscribeKey('recommended', val => (this.recommended = val)),
-        ApiController.subscribeKey('featured', val => (this.featured = val))
+        ApiController.subscribeKey('featured', val => (this.featured = val)),
+        ApiController.subscribeKey('filteredWallets', val => (this.filteredWallets = val))
       ]
     )
   }
@@ -56,9 +68,8 @@ export class W3mAllWalletsList extends LitElement {
     return html`
       <wui-grid
         data-scroll=${!this.loading}
-        .padding=${['0', 's', 's', 's'] as const}
-        columnGap="xxs"
-        rowGap="l"
+        .padding=${['0', '3', '3', '3'] as const}
+        gap="2"
         justifyContent="space-between"
       >
         ${this.loading ? this.shimmerTemplate(16) : this.walletsTemplate()}
@@ -72,7 +83,7 @@ export class W3mAllWalletsList extends LitElement {
     this.loading = true
     const gridEl = this.shadowRoot?.querySelector('wui-grid')
     if (gridEl) {
-      await ApiController.fetchWallets({ page: 1 })
+      await ApiController.fetchWalletsByPage({ page: 1 })
       await gridEl.animate([{ opacity: 1 }, { opacity: 0 }], {
         duration: 200,
         fill: 'forwards',
@@ -95,22 +106,39 @@ export class W3mAllWalletsList extends LitElement {
     )
   }
 
-  private walletsTemplate() {
-    const wallets = [...this.featured, ...this.recommended, ...this.wallets]
-    const walletsWithInstalled = WalletUtil.markWalletsAsInstalled(wallets)
+  private getWallets() {
+    const wallets = [...this.featured, ...this.recommended]
+    if (this.filteredWallets?.length > 0) {
+      wallets.push(...this.filteredWallets)
+    } else {
+      wallets.push(...this.wallets)
+    }
 
-    return walletsWithInstalled.map(
+    const uniqueWallets = CoreHelperUtil.uniqueBy(wallets, 'id')
+    const walletsWithInstalled = WalletUtil.markWalletsAsInstalled(uniqueWallets)
+
+    return WalletUtil.markWalletsWithDisplayIndex(walletsWithInstalled)
+  }
+
+  private walletsTemplate() {
+    const wallets = this.getWallets()
+
+    return wallets.map(
       wallet => html`
         <w3m-all-wallets-list-item
+          data-testid="wallet-search-item-${wallet.id}"
           @click=${() => this.onConnectWallet(wallet)}
           .wallet=${wallet}
+          explorerId=${wallet.id}
+          certified=${this.badge === 'certified'}
         ></w3m-all-wallets-list-item>
       `
     )
   }
 
   private paginationLoaderTemplate() {
-    const { wallets, recommended, featured, count } = ApiController.state
+    const { wallets, recommended, featured, count, mobileFilteredOutWalletsLength } =
+      ApiController.state
     const columns = window.innerWidth < 352 ? 3 : 4
     const currentWallets = wallets.length + recommended.length
     const minimumRows = Math.ceil(currentWallets / columns)
@@ -121,7 +149,11 @@ export class W3mAllWalletsList extends LitElement {
       return null
     }
 
-    if (count === 0 || [...featured, ...wallets, ...recommended].length < count) {
+    if (
+      count === 0 ||
+      [...featured, ...wallets, ...recommended].length <
+        count - (mobileFilteredOutWalletsLength ?? 0)
+    ) {
       return this.shimmerTemplate(shimmerCount, PAGINATOR_ID)
     }
 
@@ -135,7 +167,7 @@ export class W3mAllWalletsList extends LitElement {
         if (element?.isIntersecting && !this.loading) {
           const { page, count, wallets } = ApiController.state
           if (wallets.length < count) {
-            ApiController.fetchWallets({ page: page + 1 })
+            ApiController.fetchWalletsByPage({ page: page + 1 })
           }
         }
       })

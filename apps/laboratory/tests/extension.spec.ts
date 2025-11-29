@@ -10,6 +10,8 @@ let modalValidator: ModalValidator
 function getNetworks(library: string) {
   if (library === 'solana') {
     return ['Solana Testnet', 'Solana Devnet', 'Solana']
+  } else if (library === 'bitcoin') {
+    return ['Bitcoin Testnet', 'Bitcoin']
   }
 
   return ['Polygon', 'Base', 'Ethereum']
@@ -47,7 +49,7 @@ extensionTest('it should sign message', async () => {
 })
 
 extensionTest('it should sign typed data', async ({ library }) => {
-  if (library === 'solana') {
+  if (library === 'solana' || library === 'bitcoin') {
     return
   }
 

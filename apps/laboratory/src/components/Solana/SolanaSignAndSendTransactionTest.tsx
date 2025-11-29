@@ -12,8 +12,8 @@ import {
 import { type Provider, useAppKitConnection } from '@reown/appkit-adapter-solana/react'
 import { useAppKitAccount, useAppKitProvider } from '@reown/appkit/react'
 
-import { ErrorUtil } from '../../utils/ErrorUtil'
-import { useChakraToast } from '../Toast'
+import { useChakraToast } from '@/src/components/Toast'
+import { ErrorUtil } from '@/src/utils/ErrorUtil'
 
 const PHANTOM_TESTNET_ADDRESS = '8vCyX7oB6Pc3pbWMGYYZF5pbSnAdQ7Gyr32JqxqCy8ZR'
 const recipientAddress = new PublicKey(PHANTOM_TESTNET_ADDRESS)
@@ -21,15 +21,15 @@ const amountInLamports = 10_000_000
 
 export function SolanaSignAndSendTransaction() {
   const toast = useChakraToast()
-  const { address } = useAppKitAccount()
+  const { address } = useAppKitAccount({ namespace: 'solana' })
   const { walletProvider } = useAppKitProvider<Provider>('solana')
   const { connection } = useAppKitConnection()
 
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   async function onSendTransaction(mode: 'legacy' | 'versioned') {
     try {
-      setLoading(true)
+      setIsLoading(true)
       if (!walletProvider?.publicKey || !address) {
         throw Error('user is disconnected')
       }
@@ -84,7 +84,7 @@ export function SolanaSignAndSendTransaction() {
         type: 'error'
       })
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
@@ -97,14 +97,14 @@ export function SolanaSignAndSendTransaction() {
       <Button
         data-test-id="sign-transaction-button"
         onClick={() => onSendTransaction('legacy')}
-        isDisabled={loading}
+        isDisabled={isLoading}
       >
         Sign and Send Transaction
       </Button>
       <Button
         data-test-id="sign-transaction-button"
         onClick={() => onSendTransaction('versioned')}
-        isDisabled={loading}
+        isDisabled={isLoading}
       >
         Sign and Send Versioned Transaction
       </Button>

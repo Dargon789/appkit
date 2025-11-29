@@ -3,9 +3,11 @@ import { createContext, useContext, useEffect, useState } from 'react'
 
 import { type PrivateKeyAccount, generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 
-import { useChakraToast } from '../components/Toast'
-import { useLocalStorageState } from '../hooks/useLocalStorageState'
-import { LOCAL_SIGNER_KEY, getLocalStorageItem } from '../utils/LocalStorage'
+import type { Address } from '@reown/appkit-common'
+
+import { useChakraToast } from '@/src/components/Toast'
+import { useLocalStorageState } from '@/src/hooks/useLocalStorageState'
+import { LOCAL_SIGNER_KEY, getLocalStorageItem } from '@/src/utils/LocalStorage'
 
 type LocalEcdsaKeyContextType = {
   privateKey: string | undefined
@@ -42,7 +44,7 @@ export function LocalEcdsaKeyProvider({ children }: LocalEcdsaKeyProviderProps) 
         setPrivateKey(newPrivateKey)
         storedPrivateKey = newPrivateKey
       }
-      const accountSigner = privateKeyToAccount(storedPrivateKey as `0x${string}`)
+      const accountSigner = privateKeyToAccount(storedPrivateKey as Address)
       setSigner(accountSigner)
     } catch {
       toast({

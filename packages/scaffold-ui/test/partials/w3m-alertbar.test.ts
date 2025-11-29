@@ -3,8 +3,8 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { html } from 'lit'
 
-import { AlertController } from '@reown/appkit-core'
-import type { WuiAlertBar } from '@reown/appkit-ui'
+import { AlertController } from '@reown/appkit-controllers'
+import type { WuiAlertBar } from '@reown/appkit-ui/wui-alertbar'
 
 import { W3mAlertBar, presets } from '../../src/partials/w3m-alertbar'
 import { HelpersUtil } from '../utils/HelpersUtil'
@@ -44,22 +44,14 @@ describe('W3mAlertBar', () => {
   })
 
   it('it should display the correct alert based on the variant', async () => {
-    for (const { variant, message, preset } of ALERT_VARIANTS) {
+    for (const { variant, message } of ALERT_VARIANTS) {
       AlertController.state.message = message
       AlertController.state.variant = variant
 
       const alertBar: W3mAlertBar = await fixture(html`<w3m-alertbar></w3m-alertbar>`)
-      const {
-        message: alertMessage,
-        backgroundColor,
-        icon,
-        iconColor
-      } = HelpersUtil.querySelect(alertBar, ALERBAR) as WuiAlertBar
+      const { message: alertMessage } = HelpersUtil.querySelect(alertBar, ALERBAR) as WuiAlertBar
 
       expect(alertMessage).toBe(message)
-      expect(backgroundColor).toBe(preset.backgroundColor)
-      expect(icon).toBe(preset.icon)
-      expect(iconColor).toBe(preset.iconColor)
     }
   })
 

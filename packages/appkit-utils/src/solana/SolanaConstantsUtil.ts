@@ -20,8 +20,6 @@ export const SolConstantsUtil = {
   /**
    * Mainnet program ID
    */
-  ERROR_CODE_UNRECOGNIZED_CHAIN_ID: 4902,
-  ERROR_CODE_DEFAULT: 5000,
   DEFAULT_CHAIN: {
     id: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
     caipNetworkId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
@@ -52,4 +50,10 @@ export const SolConstantsUtil = {
     Deprecated_Devnet: 'solana:8E9rvCKLFQia2Y35HXjjpWzj8weVo44K'
   },
   LAMPORTS_PER_SOL: 1_000_000_000
+} as const
+
+export const SPL_COMPUTE_BUDGET_CONSTANTS = {
+  UNIT_PRICE_MICRO_LAMPORTS: 20000000,
+  UNIT_LIMIT_TRANSFER_ONLY: 300000,
+  UNIT_LIMIT_WITH_ATA_CREATION: 400000
 } as const

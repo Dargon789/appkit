@@ -1,7 +1,11 @@
 import { LitElement, html } from 'lit'
 
-import { RouterController } from '@reown/appkit-core'
+import { RouterController } from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
+import '@reown/appkit-ui/wui-flex'
+import '@reown/appkit-ui/wui-icon-box'
+import '@reown/appkit-ui/wui-link'
+import '@reown/appkit-ui/wui-text'
 
 import styles from './styles.js'
 
@@ -21,33 +25,27 @@ export class W3mAccountNftsWidget extends LitElement {
       alignItems="center"
       justifyContent="center"
       flexDirection="column"
-      gap="l"
+      gap="5"
     >
-      <wui-icon-box
-        icon="wallet"
-        size="inherit"
-        iconColor="fg-200"
-        backgroundColor="fg-200"
-        iconSize="lg"
-      ></wui-icon-box>
+      <wui-icon-box icon="wallet" size="lg" color="default"></wui-icon-box>
       <wui-flex
         class="textContent"
-        gap="xs"
+        gap="2"
         flexDirection="column"
         justifyContent="center"
         flexDirection="column"
       >
         <wui-text
-          variant="paragraph-500"
+          variant="md-regular"
           align="center"
-          color="fg-100"
+          color="primary"
           data-testid="nft-template-title"
           >Coming soon</wui-text
         >
         <wui-text
-          variant="small-400"
+          variant="sm-regular"
           align="center"
-          color="fg-200"
+          color="secondary"
           data-testid="nft-template-description"
           >Stay tuned for our upcoming NFT feature</wui-text
         >
