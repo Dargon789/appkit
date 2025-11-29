@@ -298,20 +298,15 @@ export const BlockchainApiController = {
     })
   },
 
-  async getAddressBalance<T = string>({
-    caipNetworkId,
-    address,
-    method = 'getAddressBalance',
-    params
-  }: BlockchainApiGetAddressBalanceRequest) {
+  async getAddressBalance({ caipNetworkId, address }: BlockchainApiGetAddressBalanceRequest) {
     return state.api
-      .post<BlockchainApiGetAddressBalanceResponse<T>>({
+      .post<BlockchainApiGetAddressBalanceResponse>({
         path: `/v1?chainId=${caipNetworkId}&projectId=${OptionsController.state.projectId}`,
         body: {
           id: '1',
           jsonrpc: '2.0',
-          method,
-          params: params ?? { address }
+          method: 'getAddressBalance',
+          params: { address }
         }
       })
       .then(result => result.result)

@@ -9,8 +9,6 @@ export const PresetsUtil = {
       'fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa',
     [CommonConstantsUtil.CONNECTOR_ID.COINBASE_SDK]:
       'fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa',
-    [CommonConstantsUtil.CONNECTOR_ID.BASE_ACCOUNT]:
-      'fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa',
     [CommonConstantsUtil.CONNECTOR_ID.SAFE]:
       '225affb176778569276e484e1b92637ad061b01e13a048b35a9d280c3b58970f',
     [CommonConstantsUtil.CONNECTOR_ID.LEDGER]:
@@ -42,9 +40,7 @@ export const PresetsUtil = {
     [ConstantsUtil.LEATHER_CONNECTOR_NAME]:
       '483afe1df1df63daf313109971ff3ef8356ddf1cc4e45877d205eee0b7893a13',
     [ConstantsUtil.OKX_CONNECTOR_NAME]:
-      '971e689d0a5be527bac79629b4ee9b925e82208e5168b733496a09c0faed0709',
-    [ConstantsUtil.BINANCE_CONNECTOR_NAME]:
-      '2fafea35bb471d22889ccb49c08d99dd0a18a37982602c33f696a5723934ba25'
+      '971e689d0a5be527bac79629b4ee9b925e82208e5168b733496a09c0faed0709'
   } as Record<string, string>,
   NetworkImageIds: {
     // Ethereum
@@ -116,17 +112,12 @@ export const PresetsUtil = {
     // Bitcoin Testnet
     '000000000933ea01ad0ee984209779ba': '39354064-d79b-420b-065d-f980c4b78200',
     // Bitcoin Signet
-    '00000008819873e925422c1ff0f99f7c': 'b3406e4a-bbfc-44fb-e3a6-89673c78b700',
-    // TON
-    '-239': '20f673c0-095e-49b2-07cf-eb5049dcf600',
-    // TON Testnet
-    '-3': '20f673c0-095e-49b2-07cf-eb5049dcf600'
+    '00000008819873e925422c1ff0f99f7c': 'b3406e4a-bbfc-44fb-e3a6-89673c78b700'
   } as Record<string, string>,
 
   ConnectorImageIds: {
     [CommonConstantsUtil.CONNECTOR_ID.COINBASE]: '0c2840c3-5b04-4c44-9661-fbd4b49e1800',
     [CommonConstantsUtil.CONNECTOR_ID.COINBASE_SDK]: '0c2840c3-5b04-4c44-9661-fbd4b49e1800',
-    [CommonConstantsUtil.CONNECTOR_ID.BASE_ACCOUNT]: 'bba2c8be-7fd1-463e-42b1-796ecb0ad200',
     [CommonConstantsUtil.CONNECTOR_ID.SAFE]: '461db637-8616-43ce-035a-d89b8a1d5800',
     [CommonConstantsUtil.CONNECTOR_ID.LEDGER]: '54a1aa77-d202-4f8d-0fb2-5d2bb6db0300',
     [CommonConstantsUtil.CONNECTOR_ID.WALLET_CONNECT]: 'ef1a1fcf-7fe8-4d69-bd6d-fda1345b4400',
@@ -138,7 +129,6 @@ export const PresetsUtil = {
     [CommonConstantsUtil.CONNECTOR_ID.WALLET_CONNECT]: 'WalletConnect',
     [CommonConstantsUtil.CONNECTOR_ID.COINBASE]: 'Coinbase',
     [CommonConstantsUtil.CONNECTOR_ID.COINBASE_SDK]: 'Coinbase',
-    [CommonConstantsUtil.CONNECTOR_ID.BASE_ACCOUNT]: 'Base Account',
     [CommonConstantsUtil.CONNECTOR_ID.LEDGER]: 'Ledger',
     [CommonConstantsUtil.CONNECTOR_ID.SAFE]: 'Safe'
   } as Record<string, string>,

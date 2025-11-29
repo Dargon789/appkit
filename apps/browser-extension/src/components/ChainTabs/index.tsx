@@ -6,23 +6,16 @@ import { sprinkles } from '../../css/sprinkless.css'
 import { Btc } from '../Icons/Btc'
 import { Eth } from '../Icons/Eth'
 import { Sol } from '../Icons/Sol'
-import { Ton } from '../Icons/Ton'
 
 function Tab({ onTabClick }: { onTabClick: (tab: ChainNamespace) => void }) {
   const [activeTab, setActiveTab] = useState<ChainNamespace>('eip155')
 
-  const tabs: ChainNamespace[] = ['eip155', 'solana', 'bip122', 'ton']
-  const icons: React.ReactNode[] = [<Eth />, <Sol />, <Btc />, <Ton />]
+  const tabs: ChainNamespace[] = ['eip155', 'solana', 'bip122']
+  const icons: React.ReactNode[] = [<Eth />, <Sol />, <Btc />]
 
   function handleTabClick(tab: ChainNamespace) {
     setActiveTab(tab)
     onTabClick(tab)
-  }
-
-  function getTabLabel(tab: ChainNamespace) {
-    const label = ConstantsUtil.CHAIN_NAME_MAP[tab] || tab
-
-    return label.replaceAll('EVM Networks', 'EVM')
   }
 
   return (
@@ -58,7 +51,7 @@ function Tab({ onTabClick }: { onTabClick: (tab: ChainNamespace) => void }) {
           })}
         >
           {icons[index]}
-          {activeTab === tab && getTabLabel(tab)}
+          {ConstantsUtil.CHAIN_NAME_MAP[tab].replaceAll('EVM Networks', 'Ethereum')}
         </button>
       ))}
     </div>

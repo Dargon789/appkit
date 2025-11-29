@@ -4,7 +4,6 @@ import { Keypair } from '@solana/web3.js'
 import Big from 'big.js'
 import { privateKeyToAccount } from 'viem/accounts'
 
-import { toUserFriendlyAddress } from '@reown/appkit-adapter-ton/utils'
 import { ChainNamespace } from '@reown/appkit-common'
 
 import { Box } from '../../components/Box'
@@ -14,7 +13,6 @@ import { Text } from '../../components/Text'
 import { Token } from '../../components/Token'
 import { Zorb } from '../../components/Zorb'
 import { BitcoinProvider } from '../../core/BitcoinProvider'
-import { TonProvider } from '../../core/TonProvider'
 import { useBalance } from '../../hooks/useBalance'
 import { AccountUtil } from '../../utils/AccountUtil'
 import { HelperUtil } from '../../utils/HelperUtil'
@@ -28,9 +26,6 @@ const publicKey = keypair.publicKey
 
 // Bitcoin
 const bitcoinProvider = new BitcoinProvider()
-
-// TON
-const tonProvider = new TonProvider()
 
 export function Home() {
   const [copied, setCopied] = useState(false)
@@ -50,8 +45,6 @@ export function Home() {
         return publicKey.toString()
       case 'bip122':
         return bitcoinProvider.accounts[0].address
-      case 'ton':
-        return toUserFriendlyAddress(tonProvider.getAddress())
       default:
         return ''
     }
@@ -73,9 +66,6 @@ export function Home() {
         break
       case 'bip122':
         window.open(`https://btcscan.org/address/${account}`, '_blank')
-        break
-      case 'ton':
-        window.open(`https://tonscan.org/address/${account}`, '_blank')
         break
       default:
         break

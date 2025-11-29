@@ -9,7 +9,6 @@ import type {
   CaipAddress,
   CaipNetwork,
   CaipNetworkId,
-  ChainId,
   ChainNamespace,
   Hex,
   OnRampProvider,
@@ -275,13 +274,11 @@ export interface BlockchainApiSwapTokensRequest {
 export interface BlockchainApiGetAddressBalanceRequest {
   caipNetworkId: string
   address: string
-  method?: string
-  params?: unknown
 }
 
-export interface BlockchainApiGetAddressBalanceResponse<T = string> {
+export interface BlockchainApiGetAddressBalanceResponse {
   ok: boolean
-  result: T
+  result: string
   jsonrpc: string
   id: string
 }
@@ -1139,15 +1136,12 @@ export type NamespaceTypeMap = {
   sui: 'eoa'
   stacks: 'eoa'
   ton: 'eoa'
-  tron: 'eoa'
 }
 
 export type AccountTypeMap = {
   [K in ChainNamespace]: {
     namespace: K
     address: string
-    chainId?: ChainId
-    caipAddress?: CaipAddress
     type: NamespaceTypeMap[K]
     publicKey?: K extends 'bip122' ? string : never
     path?: K extends 'bip122' ? string : never
@@ -1409,8 +1403,6 @@ export type UseAppKitNetworkReturn = {
   caipNetwork: CaipNetwork | undefined
   chainId: number | string | undefined
   caipNetworkId: CaipNetworkId | undefined
-  approvedCaipNetworkIds: CaipNetworkId[] | undefined
-  supportsAllNetworks: boolean
   switchNetwork: (network: AppKitNetwork) => Promise<void>
 }
 

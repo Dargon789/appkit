@@ -44,12 +44,11 @@ export default css`
     width: 100%;
     font-family: ${({ fontFamily }) => fontFamily.regular};
     font-style: normal;
-    font-size: ${({ textSize }) => textSize.large};
-    font-weight: ${({ fontWeight }) => fontWeight.regular};
-    line-height: ${({ typography }) => typography['lg-regular'].lineHeight};
-    letter-spacing: ${({ typography }) => typography['lg-regular'].letterSpacing};
-    color: ${({ tokens }) => tokens.theme.textSecondary};
-    caret-color: ${({ tokens }) => tokens.core.backgroundAccentPrimary};
+    font-weight: var(--apkt-font-weight-light);
+    line-height: 130%;
+    letter-spacing: ${({ typography }) => typography['md-medium'].letterSpacing};
+    color: ${({ tokens }) => tokens.theme.textPrimary};
+    caret-color: ${({ tokens }) => tokens.core.textAccentPrimary};
     box-sizing: border-box;
     -webkit-appearance: none;
     -moz-appearance: textfield;

@@ -41,10 +41,6 @@ mobileWalletFeaturesTest('it should show all wallets option', async () => {
 mobileWalletFeaturesTest(
   'it should show all wallets view and connect to a wallet',
   async ({ library }) => {
-    if (library === 'ton') {
-      return
-    }
-
     await modalPage.openAllWallets()
     await modalPage.page.waitForTimeout(500)
     await modalPage.search(library === 'bitcoin' ? 'okx' : 'trust')
@@ -55,10 +51,6 @@ mobileWalletFeaturesTest(
 )
 
 mobileWalletFeaturesTest('it should show open button', async ({ library }) => {
-  if (library === 'ton') {
-    return
-  }
-
   await modalPage.clickAllWalletsListSearchItem(
     library === 'bitcoin' ? OKX_WALLET_ID : TRUST_WALLET_ID
   )

@@ -2,7 +2,6 @@ import type { CaipNetwork, SocialProvider } from '@reown/appkit'
 import type { Wallet } from '@reown/appkit-wallet-button'
 import {
   abstract,
-  adi,
   arbitrum,
   aurora,
   base,
@@ -15,7 +14,6 @@ import {
   hedera,
   mainnet,
   mantle,
-  monad,
   monadTestnet,
   optimism,
   polygon,
@@ -27,8 +25,6 @@ import {
   solanaTestnet,
   ton,
   tonTestnet,
-  tronMainnet,
-  tronShastaTestnet,
   unichainSepolia,
   zkSync
 } from '@reown/appkit/networks'
@@ -92,11 +88,9 @@ const EvmNetworks = [
   aurora,
   mantle,
   abstract,
-  monad,
   monadTestnet,
   rootstock,
-  rootstockTestnet,
-  adi
+  rootstockTestnet
 ] as [AppKitNetwork, ...AppKitNetwork[]]
 
 export const solanaNotExist = {
@@ -122,8 +116,6 @@ const BitcoinNetworks = [bitcoin, bitcoinTestnet, bitcoinSignet] as [
 ]
 
 const TonNetworks = [ton, tonTestnet] as [AppKitNetwork, ...AppKitNetwork[]]
-
-const TronNetworks = [tronMainnet, tronShastaTestnet] as [AppKitNetwork, ...AppKitNetwork[]]
 
 export const ConstantsUtil = {
   SigningSucceededToastTitle: 'Signing Succeeded',
@@ -181,14 +173,10 @@ export const ConstantsUtil = {
   SolanaNetworks,
   BitcoinNetworks,
   TonNetworks,
-  TronNetworks,
-  AllNetworks: [
-    ...EvmNetworks,
-    ...SolanaNetworks,
-    ...BitcoinNetworks,
-    ...TonNetworks,
-    ...TronNetworks
-  ] as [AppKitNetwork, ...AppKitNetwork[]],
+  AllNetworks: [...EvmNetworks, ...SolanaNetworks, ...BitcoinNetworks, ...TonNetworks] as [
+    AppKitNetwork,
+    ...AppKitNetwork[]
+  ],
   EvmWalletButtons: [
     'walletConnect',
     'metamask',

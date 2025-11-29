@@ -8,6 +8,7 @@ import {
   ParseUtil
 } from '@reown/appkit-common'
 
+import { AccountController } from '../controllers/AccountController.js'
 import { BlockchainApiController } from '../controllers/BlockchainApiController.js'
 import { ChainController } from '../controllers/ChainController.js'
 import { ConnectionController } from '../controllers/ConnectionController.js'
@@ -35,7 +36,7 @@ export const BalanceUtil = {
   async getMyTokensWithBalance(
     forceUpdate?: string
   ): Promise<BlockchainApiBalanceResponse['balances']> {
-    const address = ChainController.getAccountData()?.address
+    const address = AccountController.state.address
     const caipNetwork = ChainController.state.activeCaipNetwork
     const isAuthConnector =
       ConnectorController.getConnectorId('eip155') === ConstantsUtil.CONNECTOR_ID.AUTH
