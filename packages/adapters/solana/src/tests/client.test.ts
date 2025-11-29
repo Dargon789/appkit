@@ -1,16 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { WcHelpersUtil } from '@reown/appkit'
 import { ConstantsUtil } from '@reown/appkit-common'
-import { PresetsUtil } from '@reown/appkit-common'
 import {
   ChainController,
   type ConnectionControllerClient,
-  ConnectorController,
   type Provider as CoreProvider,
-  ProviderController,
-  WcHelpersUtil
+  type NetworkControllerClient
 } from '@reown/appkit-controllers'
-import { CaipNetworksUtil, HelpersUtil } from '@reown/appkit-utils'
+import { CaipNetworksUtil, HelpersUtil, PresetsUtil } from '@reown/appkit-utils'
 import { solana } from '@reown/appkit/networks'
 
 import { SolanaAdapter } from '../client'
@@ -19,6 +17,7 @@ import { SolanaWalletConnectProvider } from '../providers/SolanaWalletConnectPro
 import type { WalletStandardProvider } from '../providers/WalletStandardProvider'
 import { SolStoreUtil } from '../utils/SolanaStoreUtil'
 import { watchStandard } from '../utils/watchStandard'
+import mockAppKit from './mocks/AppKit'
 import { mockAuthConnector } from './mocks/AuthConnector'
 import { mockCoinbaseWallet } from './mocks/CoinbaseWallet'
 import { mockUniversalProvider } from './mocks/UniversalProvider'
@@ -75,7 +74,8 @@ describe('SolanaAdapter', () => {
       adapterType: ConstantsUtil.ADAPTER_TYPES.SOLANA
     })
     ChainController.initialize([adapter], mockCaipNetworks, {
-      connectionControllerClient: vi.fn() as unknown as ConnectionControllerClient
+      connectionControllerClient: vi.fn() as unknown as ConnectionControllerClient,
+      networkControllerClient: vi.fn() as unknown as NetworkControllerClient
     })
     ChainController.setRequestedCaipNetworks(mockCaipNetworks, 'solana')
   })
@@ -83,14 +83,14 @@ describe('SolanaAdapter', () => {
   describe('SolanaAdapter - syncConnectors', () => {
     it('should not add coinbase connector if window.coinbaseSolana does not exist', async () => {
       const addConnectorSpy = vi.spyOn(adapter, 'addConnector' as any)
-      adapter.syncConnectors()
+      adapter.syncConnectors({ networks: [solana], projectId: '123' }, mockAppKit)
       expect(addConnectorSpy).not.toHaveBeenCalled()
     })
 
     it('should add coinbase connector if window.coinbaseSolana exist', async () => {
       ;(window as any).coinbaseSolana = mockCoinbaseWallet()
       const addConnectorSpy = vi.spyOn(adapter, 'addConnector' as any)
-      adapter.syncConnectors()
+      adapter.syncConnectors({ networks: [solana], projectId: '123' }, mockAppKit)
       expect(addConnectorSpy).toHaveBeenCalledOnce()
       expect(addConnectorSpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -630,22 +630,13 @@ describe('SolanaAdapter', () => {
       const provider = Object.assign(Object.create(AuthProvider.prototype), {
         type: 'AUTH',
         switchNetwork: switchNetworkSpy,
-        getUser: mockAuthConnector.connect,
-        syncDappData: vi.fn(),
-        syncTheme: vi.fn()
+        getUser: mockAuthConnector.connect
       })
 
-      // Set up provider in ProviderController for super.switchNetwork() call
-      ProviderController.setProvider(mockCaipNetworks[0].chainNamespace, provider)
-      ProviderController.setProviderId(mockCaipNetworks[0].chainNamespace, 'AUTH')
-
-      // Mock ConnectorController.getAuthConnector to return our mock provider
-      vi.spyOn(ConnectorController, 'getAuthConnector').mockReturnValue({
-        provider
-      } as any)
-
       await adapter.switchNetwork({
-        caipNetwork: mockCaipNetworks[0]
+        caipNetwork: mockCaipNetworks[0],
+        provider: provider,
+        providerType: 'AUTH'
       })
 
       expect(switchNetworkSpy).toHaveBeenCalled()
@@ -681,7 +672,7 @@ describe('SolanaAdapter', () => {
       walletName => {
         const watchStandardSpy = vi.mocked(watchStandard)
         const addProviderSpy = vi.spyOn(adapter as any, 'addConnector')
-        adapter.syncConnectors()
+        adapter.syncConnectors({ features: {}, projectId: '1234' } as any, {} as any)
 
         const callback = watchStandardSpy.mock.calls[0]![2]
         callback({ name: walletName } as any)

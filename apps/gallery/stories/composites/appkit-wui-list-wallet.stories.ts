@@ -3,7 +3,6 @@ import type { Meta } from '@storybook/web-components'
 import { html } from 'lit'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import '@reown/appkit-ui/wui-list-wallet'
 import type { WuiListWallet } from '@reown/appkit-ui/wui-list-wallet'
 
 import '../../components/gallery-container'
@@ -21,8 +20,7 @@ export default {
     disabled: false,
     loading: false,
     showAllWallets: false,
-    size: 'md',
-    namespaces: ['eip155', 'solana', 'bip122']
+    size: 'md'
   },
   argTypes: {
     tagVariant: {
@@ -54,21 +52,16 @@ export default {
 
 export const Default: Component = {
   render: args =>
-    html` <gallery-container width="360">
-      <div style="background-color: var(--apkt-tokens-theme-backgroundPrimary); width: 100%;">
-        <wui-flex flexDirection="column" gap="4" padding="4">
-          <wui-list-wallet
-            name=${args.name}
-            imageSrc=${ifDefined(args.imageSrc)}
-            tagLabel=${ifDefined(args.tagLabel)}
-            tagVariant=${ifDefined(args.tagVariant)}
-            size=${ifDefined(args.size)}
-            ?disabled=${args.disabled}
-            ?loading=${args.loading}
-            ?showAllWallets=${args.showAllWallets}
-            .namespaces=${args.namespaces}
-          ></wui-list-wallet>
-        </wui-flex>
-      </div>
+    html` <gallery-container width="336">
+      <w3m-list-wallet
+        name=${args.name}
+        imageSrc=${ifDefined(args.imageSrc)}
+        tagLabel=${ifDefined(args.tagLabel)}
+        tagVariant=${ifDefined(args.tagVariant)}
+        size=${ifDefined(args.size)}
+        ?disabled=${args.disabled}
+        ?loading=${args.loading}
+        ?showAllWallets=${args.showAllWallets}
+      ></w3m-list-wallet>
     </gallery-container>`
 }

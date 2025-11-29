@@ -29,17 +29,6 @@ export default css`
     align-items: center;
   }
 
-  .left-image-container {
-    position: relative;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .chain-image {
-    position: absolute;
-    border: 1px solid ${({ tokens }) => tokens.theme.foregroundPrimary};
-  }
-
   /* -- Sizes --------------------------------------------------- */
   button[data-size='lg'] {
     height: 32px;
@@ -53,17 +42,17 @@ export default css`
     height: 24px;
   }
 
-  button[data-size='lg'] .token-image {
+  button[data-size='lg'] wui-image {
     width: 24px;
     height: 24px;
   }
 
-  button[data-size='md'] .token-image {
+  button[data-size='md'] wui-image {
     width: 20px;
     height: 20px;
   }
 
-  button[data-size='sm'] .token-image {
+  button[data-size='sm'] wui-image {
     width: 16px;
     height: 16px;
   }
@@ -81,27 +70,6 @@ export default css`
   button[data-size='sm'] .left-icon-container {
     width: 16px;
     height: 16px;
-  }
-
-  button[data-size='lg'] .chain-image {
-    width: 12px;
-    height: 12px;
-    bottom: 2px;
-    right: -4px;
-  }
-
-  button[data-size='md'] .chain-image {
-    width: 10px;
-    height: 10px;
-    bottom: 2px;
-    right: -4px;
-  }
-
-  button[data-size='sm'] .chain-image {
-    width: 8px;
-    height: 8px;
-    bottom: 2px;
-    right: -3px;
   }
 
   /* -- Focus states --------------------------------------------------- */

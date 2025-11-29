@@ -100,17 +100,16 @@ export const ConnectionControllerUtil = {
       recentConnections: dedupedRecentConnections
     }
   },
-  onConnectMobile(wallet: WcWallet | undefined, wcPayUrl?: string) {
+  onConnectMobile(wallet: WcWallet | undefined) {
     const wcUri = ConnectionController.state.wcUri
 
     if (wallet?.mobile_link && wcUri) {
       try {
         ConnectionController.setWcError(false)
         const { mobile_link, link_mode, name } = wallet
-        const uriWithPay = CoreHelperUtil.appendPayToUri(wcUri, wcPayUrl)
         const { redirect, redirectUniversalLink, href } = CoreHelperUtil.formatNativeUrl(
           mobile_link,
-          uriWithPay,
+          wcUri,
           link_mode
         )
 

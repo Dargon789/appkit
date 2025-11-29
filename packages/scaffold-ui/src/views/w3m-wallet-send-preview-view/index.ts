@@ -1,7 +1,7 @@
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 
-import { ErrorUtil } from '@reown/appkit-common'
+import { ConstantsUtil as CommonConstantsUtil, ErrorUtil } from '@reown/appkit-common'
 import {
   AppKitError,
   ChainController,
@@ -168,18 +168,21 @@ export class W3mWalletSendPreviewView extends LitElement {
         RouterController.replace('Account')
       }
     } catch (error) {
-      let errMessage = 'Failed to send transaction'
+      let errMessage = 'Failed to send transaction. Please try again.'
 
       const isUserRejectedRequestError =
         error instanceof AppKitError &&
         error.originalName === ErrorUtil.PROVIDER_RPC_ERROR_NAME.USER_REJECTED_REQUEST
 
-      const isSendTransactionError =
-        error instanceof AppKitError &&
-        error.originalName === ErrorUtil.PROVIDER_RPC_ERROR_NAME.SEND_TRANSACTION_ERROR
-
-      if (isUserRejectedRequestError || isSendTransactionError) {
-        errMessage = error.message
+      // eslint-disable-next-line no-warning-comments
+      // TODO: Remove this once we have a better way to handle errors for each adapter
+      if (
+        ChainController.state.activeChain === CommonConstantsUtil.CHAIN.SOLANA ||
+        isUserRejectedRequestError
+      ) {
+        if (error instanceof Error) {
+          errMessage = error.message
+        }
       }
 
       EventsController.sendEvent({

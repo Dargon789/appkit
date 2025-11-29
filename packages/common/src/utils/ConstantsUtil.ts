@@ -14,12 +14,11 @@ export const ConstantsUtil = {
     WALLET_STANDARD: 'announced',
     COINBASE: 'coinbaseWallet',
     COINBASE_SDK: 'coinbaseWalletSDK',
-    BASE_ACCOUNT: 'baseAccount',
     SAFE: 'safe',
     LEDGER: 'ledger',
     OKX: 'okx',
     EIP6963: 'eip6963',
-    AUTH: 'AUTH'
+    AUTH: 'ID_AUTH'
   },
   CONNECTOR_NAMES: {
     AUTH: 'Auth'
@@ -32,8 +31,7 @@ export const ConstantsUtil = {
     EVM: 'eip155',
     SOLANA: 'solana',
     POLKADOT: 'polkadot',
-    BITCOIN: 'bip122',
-    TON: 'ton'
+    BITCOIN: 'bip122'
   } as const satisfies Record<string, ChainNamespace>,
   CHAIN_NAME_MAP: {
     eip155: 'EVM Networks',
@@ -42,16 +40,14 @@ export const ConstantsUtil = {
     bip122: 'Bitcoin',
     cosmos: 'Cosmos',
     sui: 'Sui',
-    stacks: 'Stacks',
-    ton: 'TON'
+    stacks: 'Stacks'
   } as const satisfies Record<ChainNamespace, string>,
   ADAPTER_TYPES: {
     BITCOIN: 'bitcoin',
     SOLANA: 'solana',
     WAGMI: 'wagmi',
     ETHERS: 'ethers',
-    ETHERS5: 'ethers5',
-    TON: 'ton'
+    ETHERS5: 'ethers5'
   } as const satisfies Record<string, string>,
   USDT_CONTRACT_ADDRESSES: [
     // Mainnet
@@ -134,54 +130,7 @@ export const ConstantsUtil = {
         debugMessage:
           'Multi-wallet support is not enabled. Please enable it in your AppKit configuration at cloud.reown.com to use the useAppKitConnection hook.'
       }
-    },
-    HEADLESS_NOT_ENABLED: {
-      DEFAULT: {
-        displayMessage: '',
-        debugMessage:
-          'Headless support is not enabled. Please enable it with the features.headless option in the AppKit configuration and make sure your current plan supports it.'
-      }
     }
   },
-  IS_DEVELOPMENT: typeof process !== 'undefined' && process.env['NODE_ENV'] === 'development',
-  DEFAULT_ALLOWED_ANCESTORS: [
-    'http://localhost:*',
-    'https://localhost:*',
-    'http://127.0.0.1:*',
-    'https://127.0.0.1:*',
-    'https://*.pages.dev',
-    'https://*.vercel.app',
-    'https://*.ngrok-free.app',
-    'https://secure-mobile.walletconnect.com',
-    'https://secure-mobile.walletconnect.org'
-  ] as string[],
-  /* Connector names */
-  METMASK_CONNECTOR_NAME: 'MetaMask',
-  TRUST_CONNECTOR_NAME: 'Trust Wallet',
-  SOLFLARE_CONNECTOR_NAME: 'Solflare',
-  PHANTOM_CONNECTOR_NAME: 'Phantom',
-  COIN98_CONNECTOR_NAME: 'Coin98',
-  MAGIC_EDEN_CONNECTOR_NAME: 'Magic Eden',
-  BACKPACK_CONNECTOR_NAME: 'Backpack',
-  BITGET_CONNECTOR_NAME: 'Bitget Wallet',
-  FRONTIER_CONNECTOR_NAME: 'Frontier',
-  XVERSE_CONNECTOR_NAME: 'Xverse Wallet',
-  LEATHER_CONNECTOR_NAME: 'Leather',
-  OKX_CONNECTOR_NAME: 'OKX Wallet',
-  BINANCE_CONNECTOR_NAME: 'Binance Wallet',
-  EIP155: 'eip155',
-  ADD_CHAIN_METHOD: 'wallet_addEthereumChain',
-  EIP6963_ANNOUNCE_EVENT: 'eip6963:announceProvider',
-  EIP6963_REQUEST_EVENT: 'eip6963:requestProvider',
-  CONNECTOR_RDNS_MAP: {
-    coinbaseWallet: 'com.coinbase.wallet',
-    coinbaseWalletSDK: 'com.coinbase.wallet'
-  } as Record<string, string>,
-  CONNECTOR_TYPE_EXTERNAL: 'EXTERNAL',
-  CONNECTOR_TYPE_WALLET_CONNECT: 'WALLET_CONNECT',
-  CONNECTOR_TYPE_INJECTED: 'INJECTED',
-  CONNECTOR_TYPE_ANNOUNCED: 'ANNOUNCED',
-  CONNECTOR_TYPE_AUTH: 'AUTH',
-  CONNECTOR_TYPE_MULTI_CHAIN: 'MULTI_CHAIN',
-  CONNECTOR_TYPE_W3M_AUTH: 'AUTH'
+  IS_DEVELOPMENT: typeof process !== 'undefined' && process.env['NODE_ENV'] === 'development'
 } as const

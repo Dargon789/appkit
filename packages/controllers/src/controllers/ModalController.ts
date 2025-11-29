@@ -65,11 +65,7 @@ const controller = {
 
     if (ConnectionController.state.wcBasic) {
       // No need to add an await here if we are use basic
-      ApiController.prefetch({
-        fetchNetworkImages: false,
-        fetchConnectorImages: false,
-        fetchWalletRanks: false
-      })
+      ApiController.prefetch({ fetchNetworkImages: false, fetchConnectorImages: false })
     } else {
       await ApiController.prefetch()
     }

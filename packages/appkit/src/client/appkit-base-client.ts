@@ -41,8 +41,7 @@ import type {
   UseAppKitNetworkReturn,
   User,
   WalletFeature,
-  WriteContractArgs,
-  WriteSolanaTransactionArgs
+  WriteContractArgs
 } from '@reown/appkit-controllers'
 import {
   AdapterController,
@@ -107,7 +106,6 @@ export type Views =
   | 'WhatIsANetwork'
   | 'AllWallets'
   | 'WalletSend'
-  | 'ProfileWallets'
 
 type ViewArguments = {
   Swap: NonNullable<RouterControllerState['data']>['swap']
@@ -432,7 +430,6 @@ export abstract class AppKitBaseClient {
     OptionsController.setEnableWalletGuide(options.enableWalletGuide !== false)
     OptionsController.setEnableWallets(options.enableWallets !== false)
     OptionsController.setEIP6963Enabled(options.enableEIP6963 !== false)
-    OptionsController.setEnableCoinbase(options.enableCoinbase !== false)
     OptionsController.setEnableNetworkSwitch(options.enableNetworkSwitch !== false)
     OptionsController.setEnableReconnect(options.enableReconnect !== false)
     OptionsController.setEnableMobileFullScreen(options.enableMobileFullScreen === true)
@@ -845,35 +842,6 @@ export abstract class AppKitBaseClient {
         const result = await adapter?.writeContract({ ...args, caipNetwork, provider, caipAddress })
 
         return result?.hash as Hex | null
-      },
-      writeSolanaTransaction: async (args: WriteSolanaTransactionArgs) => {
-        const namespace = ChainController.state.activeChain
-        const adapter = this.getAdapter(namespace)
-
-        if (!namespace) {
-          throw new Error('writeContract: namespace is required but got undefined')
-        }
-
-        if (!adapter) {
-          throw new Error('writeContract: adapter is required but got undefined')
-        }
-
-        const caipNetwork = this.getCaipNetwork()
-        const caipAddress = this.getCaipAddress()
-        const provider = ProviderController.getProvider(namespace)
-
-        if (!caipNetwork || !caipAddress) {
-          throw new Error('writeContract: caipNetwork or caipAddress is required but got undefined')
-        }
-
-        const result = await adapter?.writeSolanaTransaction({
-          ...args,
-          caipNetwork,
-          provider,
-          caipAddress
-        })
-
-        return result?.hash
       },
       parseUnits: (value: string, decimals: number) => {
         const adapter = this.getAdapter(ChainController.state.activeChain)
@@ -1873,13 +1841,6 @@ export abstract class AppKitBaseClient {
           onConnect: accounts => {
             const { address } = CoreHelperUtil.getAccount(accounts[0])
 
-            for (const namespace of this.chainNamespaces) {
-              StorageUtil.removeDisconnectedConnectorId(
-                ConstantsUtil.CONNECTOR_ID.WALLET_CONNECT,
-                namespace
-              )
-            }
-
             ConnectionController.finalizeWcConnection(address as string)
           },
           onDisconnect: () => {
@@ -2454,8 +2415,6 @@ export abstract class AppKitBaseClient {
     callback: (newState: UseAppKitAccountReturn) => void,
     namespace?: ChainNamespace
   ) {
-    const unsubArr: (() => void)[] = []
-
     const updateVal = () => {
       const account = this.getAccount(namespace)
 
@@ -2467,19 +2426,11 @@ export abstract class AppKitBaseClient {
     }
 
     if (namespace) {
-      const unsub = ChainController.subscribeChainProp('accountState', updateVal, namespace)
-      unsubArr.push(unsub)
+      ChainController.subscribeChainProp('accountState', updateVal, namespace)
     } else {
-      const unsub = ChainController.subscribe(updateVal)
-      unsubArr.push(unsub)
+      ChainController.subscribe(updateVal)
     }
-
-    const unsub = ConnectorController.subscribe(updateVal)
-    unsubArr.push(unsub)
-
-    return () => {
-      unsubArr.forEach(fn => fn())
-    }
+    ConnectorController.subscribe(updateVal)
   }
 
   public subscribeNetwork(
@@ -2512,13 +2463,13 @@ export abstract class AppKitBaseClient {
   }
 
   public subscribeShouldUpdateToAddress(callback: (newState?: string) => void) {
-    return ChainController.subscribeChainProp('accountState', accountState =>
+    ChainController.subscribeChainProp('accountState', accountState =>
       callback(accountState?.shouldUpdateToAddress)
     )
   }
 
   public subscribeCaipNetworkChange(callback: (newState?: CaipNetwork) => void) {
-    return ChainController.subscribeKey('activeCaipNetwork', callback)
+    ChainController.subscribeKey('activeCaipNetwork', callback)
   }
 
   public getState() {
