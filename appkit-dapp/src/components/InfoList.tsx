@@ -31,11 +31,11 @@ export const InfoList = ({ hash, signedMsg, balance }: InfoListProps) => {
   })
 
   useEffect(() => {
-    console.log('Events: ', events)
+    // console.log('Events: ', events)
   }, [events])
 
   useEffect(() => {
-    console.log('Embedded Wallet Info: ', embeddedWalletInfo)
+    // console.log('Embedded Wallet Info: ', embeddedWalletInfo)
   }, [embeddedWalletInfo])
 
   return (
