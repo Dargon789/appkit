@@ -70,7 +70,7 @@ export function App() {
                 href="https://cloud.reown.com"
                 target="_blank"
                 className="link-button"
-                rel="Reown Cloud"
+                rel="noopener noreferrer"
               >
                 Reown Cloud
               </a>{' '}
