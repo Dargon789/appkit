@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { NetworkUtil } from '@reown/appkit-common'
-import { AccountController } from '@reown/appkit-controllers'
+import { ChainController } from '@reown/appkit-controllers'
 
 import { AppKit } from '../../src/client/appkit.js'
 import { mockEvmAdapter } from '../mocks/Adapter.js'
@@ -9,6 +9,7 @@ import { base, mainnet, sepolia } from '../mocks/Networks.js'
 import { mockOptions } from '../mocks/Options.js'
 import {
   mockBlockchainApiController,
+  mockRemoteFeatures,
   mockStorageUtil,
   mockWindowAndDocument
 } from '../test-utils.js'
@@ -18,13 +19,15 @@ describe('Balance sync', () => {
     mockWindowAndDocument()
     mockStorageUtil()
     mockBlockchainApiController()
+    mockRemoteFeatures()
   })
 
   it.sequential('should not sync balance if theres no matching caipNetwork', async () => {
     const getNetworksByNamespaceSpy = vi.spyOn(NetworkUtil, 'getNetworksByNamespace')
-    const setBalanceSpy = vi.spyOn(AccountController, 'setBalance')
+    const setBalanceSpy = vi.spyOn(ChainController, 'setAccountProp')
 
     const appKit = new AppKit(mockOptions)
+
     await appKit['syncBalance']({
       address: '0x123',
       chainId: base.id,
@@ -33,12 +36,16 @@ describe('Balance sync', () => {
 
     expect(getNetworksByNamespaceSpy).toHaveBeenCalled()
     expect(mockEvmAdapter.getBalance).not.toHaveBeenCalled()
-    expect(setBalanceSpy).not.toHaveBeenCalled()
+    expect(setBalanceSpy).not.toHaveBeenCalledWith(
+      'balance',
+      expect.any(String),
+      expect.any(String)
+    )
   })
 
   it.sequential('should fetch native balance on testnet', async () => {
     const getNetworksByNamespaceSpy = vi.spyOn(NetworkUtil, 'getNetworksByNamespace')
-    const setBalanceSpy = vi.spyOn(AccountController, 'setBalance')
+    const setAccountPropSpy = vi.spyOn(ChainController, 'setAccountProp')
     const mockAccount = {
       address: '0x123',
       chainId: sepolia.id,
@@ -50,14 +57,16 @@ describe('Balance sync', () => {
 
     expect(getNetworksByNamespaceSpy).toHaveBeenCalled()
     expect(mockEvmAdapter.getBalance).toHaveBeenCalled()
-    expect(setBalanceSpy).toHaveBeenCalledWith('1.00', 'ETH', sepolia.chainNamespace)
+    expect(setAccountPropSpy).toHaveBeenCalledWith('balance', '1.00', sepolia.chainNamespace)
   })
 
   it.sequential('should set the correct native token balance', async () => {
     const getNetworksByNamespaceSpy = vi.spyOn(NetworkUtil, 'getNetworksByNamespace')
-    const setBalanceSpy = vi.spyOn(AccountController, 'setBalance')
+    const setAccountPropSpy = vi.spyOn(ChainController, 'setAccountProp')
 
     const appKit = new AppKit(mockOptions)
+    await appKit.ready()
+
     await appKit['syncBalance']({
       address: '0x123',
       chainId: mainnet.id,
@@ -66,6 +75,6 @@ describe('Balance sync', () => {
 
     expect(getNetworksByNamespaceSpy).toHaveBeenCalled()
     expect(mockEvmAdapter.getBalance).toHaveBeenCalled()
-    expect(setBalanceSpy).toHaveBeenCalledWith('1.00', 'ETH', 'eip155')
+    expect(setAccountPropSpy).toHaveBeenCalledWith('balance', '1.00', 'eip155')
   })
 })

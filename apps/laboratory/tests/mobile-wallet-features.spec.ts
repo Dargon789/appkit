@@ -41,17 +41,28 @@ mobileWalletFeaturesTest('it should show all wallets option', async () => {
 mobileWalletFeaturesTest(
   'it should show all wallets view and connect to a wallet',
   async ({ library }) => {
+    if (library === 'ton') {
+      return
+    }
+
     await modalPage.openAllWallets()
     await modalPage.page.waitForTimeout(500)
     await modalPage.search(library === 'bitcoin' ? 'okx' : 'trust')
-    await modalPage.clickAllWalletsListSearchItem(
+    await modalValidator.expectAllWalletsListSearchItem(
       library === 'bitcoin' ? OKX_WALLET_ID : TRUST_WALLET_ID
     )
   }
 )
 
-mobileWalletFeaturesTest('it should show try again button after 5 seconds', async () => {
-  await modalValidator.expectNoTryAgainButton()
-  await modalPage.page.waitForTimeout(5000)
-  await modalValidator.expectTryAgainButton()
+mobileWalletFeaturesTest('it should show open button', async ({ library }) => {
+  if (library === 'ton') {
+    return
+  }
+
+  await modalPage.clickAllWalletsListSearchItem(
+    library === 'bitcoin' ? OKX_WALLET_ID : TRUST_WALLET_ID
+  )
+  await modalValidator.expectOpenButton({ disabled: true })
+  await modalPage.page.waitForTimeout(2000)
+  await modalValidator.expectOpenButton({ disabled: false })
 })

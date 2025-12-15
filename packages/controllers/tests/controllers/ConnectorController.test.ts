@@ -13,8 +13,12 @@ import {
   type ThemeMode,
   type ThemeVariables
 } from '../../exports/index.js'
+import { mockChainControllerState } from '../../exports/testing.js'
+import { CUSTOM_DEEPLINK_WALLETS, MobileWalletUtil } from '../../src/utils/MobileWallet.js'
 
 // -- Setup --------------------------------------------------------------------
+const ORIGINAL_HREF = 'https://example.com/path'
+
 const authProvider = {
   syncDappData: (_args: { metadata: Metadata; sdkVersion: SdkVersion; projectId: string }) =>
     Promise.resolve(),
@@ -42,14 +46,14 @@ const externalConnector = {
   name: 'External'
 } as const
 const evmAuthConnector = {
-  id: 'ID_AUTH',
+  id: 'AUTH',
   type: 'AUTH',
   provider: authProvider,
   chain: ConstantsUtil.CHAIN.EVM,
   name: 'Auth'
 } as const
 const solanaAuthConnector = {
-  id: 'ID_AUTH',
+  id: 'AUTH',
   type: 'AUTH',
   provider: authProvider,
   chain: ConstantsUtil.CHAIN.SOLANA,
@@ -103,11 +107,13 @@ const zerionConnector = {
 // -- Tests --------------------------------------------------------------------
 describe('ConnectorController', () => {
   beforeEach(() => {
-    ChainController.state.activeChain = ConstantsUtil.CHAIN.EVM
-  })
-
-  beforeEach(() => {
     vi.clearAllMocks()
+    ChainController.state.activeChain = ConstantsUtil.CHAIN.EVM
+    vi.stubGlobal('window', {
+      location: {
+        href: ORIGINAL_HREF
+      }
+    })
   })
 
   it('should have valid default state', () => {
@@ -152,13 +158,21 @@ describe('ConnectorController', () => {
     ConnectorController.setConnectors([evmConnector, solanaConnector])
     ChainController.state.activeChain = ConstantsUtil.CHAIN.EVM
 
-    expect(ConnectorController.getConnector(EVM_EXPLORER_ID, '')).toEqual(evmConnector)
-    expect(ConnectorController.getConnector(SOLANA_EXPLORER_ID, '')).toBeUndefined()
+    expect(ConnectorController.getConnector({ id: EVM_EXPLORER_ID, namespace: 'eip155' })).toEqual(
+      evmConnector
+    )
+    expect(
+      ConnectorController.getConnector({ id: SOLANA_EXPLORER_ID, namespace: 'eip155' })
+    ).toBeUndefined()
 
     ChainController.setActiveNamespace(ConstantsUtil.CHAIN.SOLANA)
 
-    expect(ConnectorController.getConnector(SOLANA_EXPLORER_ID, '')).toEqual(solanaConnector)
-    expect(ConnectorController.getConnector(EVM_EXPLORER_ID, '')).toBeUndefined()
+    expect(
+      ConnectorController.getConnector({ id: SOLANA_EXPLORER_ID, namespace: 'eip155' })
+    ).toBeUndefined()
+    expect(ConnectorController.getConnector({ id: EVM_EXPLORER_ID, namespace: 'eip155' })).toEqual(
+      evmConnector
+    )
   })
 
   it('should update state correctly on setConnectors()', () => {
@@ -184,12 +198,16 @@ describe('ConnectorController', () => {
 
   it('should return the correct connector on getConnector', () => {
     ConnectorController.addConnector(zerionConnector)
-    expect(ConnectorController.getConnector('walletConnectId', '')).toStrictEqual(
-      walletConnectConnector
-    )
-    expect(ConnectorController.getConnector('', 'io.metamask.com')).toStrictEqual(metamaskConnector)
-    expect(ConnectorController.getConnector(zerionConnector.id, '')).toBeUndefined()
-    expect(ConnectorController.getConnector('unknown', '')).toBeUndefined()
+    expect(
+      ConnectorController.getConnector({ id: 'walletConnectId', namespace: 'eip155' })
+    ).toStrictEqual(walletConnectConnector)
+    expect(
+      ConnectorController.getConnector({ id: metamaskConnector.id, namespace: 'eip155' })
+    ).toStrictEqual(metamaskConnector)
+    expect(
+      ConnectorController.getConnector({ id: zerionConnector.id, namespace: 'eip155' })
+    ).toStrictEqual(zerionConnector)
+    expect(ConnectorController.getConnector({ id: 'unknown', namespace: 'eip155' })).toBeUndefined()
   })
 
   it('getAuthConnector() should not throw when auth connector is not set', () => {
@@ -203,6 +221,7 @@ describe('ConnectorController', () => {
     OptionsController.setProjectId(mockDappData.projectId)
 
     ConnectorController.addConnector(evmAuthConnector as unknown as AuthConnector)
+
     expect(ConnectorController.state.connectors).toEqual([
       walletConnectConnector,
       externalConnector,
@@ -247,7 +266,7 @@ describe('ConnectorController', () => {
       zerionConnector,
       // Need to define inline to reference the spies
       {
-        id: 'ID_AUTH',
+        id: 'AUTH',
         imageId: undefined,
         imageUrl: undefined,
         name: 'Auth',
@@ -256,7 +275,7 @@ describe('ConnectorController', () => {
         connectors: [
           {
             chain: 'eip155',
-            id: 'ID_AUTH',
+            id: 'AUTH',
             name: 'Auth',
             provider: {
               syncDappData: syncDappDataSpy,
@@ -266,7 +285,7 @@ describe('ConnectorController', () => {
           },
           {
             chain: 'solana',
-            id: 'ID_AUTH',
+            id: 'AUTH',
             name: 'Auth',
             provider: {
               syncDappData: syncDappDataSpy,
@@ -292,7 +311,7 @@ describe('ConnectorController', () => {
     }
 
     const mergedAuthConnector = {
-      id: 'ID_AUTH',
+      id: 'AUTH',
       imageId: undefined,
       imageUrl: undefined,
       name: 'Auth',
@@ -301,7 +320,7 @@ describe('ConnectorController', () => {
       connectors: [
         {
           chain: 'eip155',
-          id: 'ID_AUTH',
+          id: 'AUTH',
           name: 'Auth',
           provider: {
             syncDappData: syncDappDataSpy,
@@ -311,7 +330,7 @@ describe('ConnectorController', () => {
         },
         {
           chain: 'solana',
-          id: 'ID_AUTH',
+          id: 'AUTH',
           name: 'Auth',
           provider: {
             syncDappData: syncDappDataSpy,
@@ -337,18 +356,102 @@ describe('ConnectorController', () => {
       id: 'connector',
       name: 'Connector',
       type: 'INJECTED' as const,
-      chain: 'solana' as const
+      chain: ConstantsUtil.CHAIN.SOLANA
     }
     vi.spyOn(ConnectorController, 'getConnector').mockReturnValue(mockConnector)
-
     vi.spyOn(RouterController, 'push')
 
-    ConnectorController.selectWalletConnector({ name: 'Connector', id: 'connector' })
+    const wallet = {
+      name: 'Connector',
+      id: 'connector',
+      display_index: 0
+    }
+    ConnectorController.selectWalletConnector(wallet)
 
     expect(RouterController.push).toHaveBeenCalledWith('ConnectingExternal', {
-      connector: mockConnector
+      connector: mockConnector,
+      wallet
     })
   })
+
+  it('should call mobile wallet util when selecting wallet is Phantom ', () => {
+    const mockConnector = {
+      id: CUSTOM_DEEPLINK_WALLETS.PHANTOM.id,
+      name: 'Phantom',
+      type: 'INJECTED' as const,
+      chain: ConstantsUtil.CHAIN.SOLANA
+    }
+    const handleMobileDeeplinkRedirectSpy = vi.spyOn(
+      MobileWalletUtil,
+      'handleMobileDeeplinkRedirect'
+    )
+    vi.spyOn(ConnectorController, 'getConnector').mockReturnValue(mockConnector)
+    vi.spyOn(RouterController, 'push')
+
+    ConnectorController.selectWalletConnector({ name: mockConnector.name, id: mockConnector.id })
+
+    const encodedHref = encodeURIComponent(ORIGINAL_HREF)
+    const encodedRef = encodeURIComponent('https://example.com')
+    const expectedUrl = `${CUSTOM_DEEPLINK_WALLETS.PHANTOM.url}/ul/browse/${encodedHref}?ref=${encodedRef}`
+
+    expect(window.location.href).toBe(expectedUrl)
+    expect(handleMobileDeeplinkRedirectSpy).toHaveBeenCalledWith(
+      mockConnector.id,
+      ConstantsUtil.CHAIN.EVM
+    )
+  })
+
+  it('should call mobile wallet util when selecting wallet is Coinbase only on Solana ', () => {
+    const mockConnector = {
+      id: CUSTOM_DEEPLINK_WALLETS.COINBASE.id,
+      name: 'Coinbase Wallet',
+      type: 'INJECTED' as const,
+      chain: ConstantsUtil.CHAIN.EVM
+    }
+    mockChainControllerState({ activeChain: ConstantsUtil.CHAIN.SOLANA })
+    const handleMobileDeeplinkRedirectSpy = vi.spyOn(
+      MobileWalletUtil,
+      'handleMobileDeeplinkRedirect'
+    )
+    vi.spyOn(ConnectorController, 'getConnector').mockReturnValue(mockConnector)
+    vi.spyOn(RouterController, 'push')
+
+    ConnectorController.selectWalletConnector({ name: mockConnector.name, id: mockConnector.id })
+
+    const encodedHref = encodeURIComponent(ORIGINAL_HREF)
+    const expectedUrl = `${CUSTOM_DEEPLINK_WALLETS.COINBASE.url}/dapp?cb_url=${encodedHref}`
+
+    expect(window.location.href).toBe(expectedUrl)
+    expect(handleMobileDeeplinkRedirectSpy).toHaveBeenCalledWith(
+      mockConnector.id,
+      ConstantsUtil.CHAIN.SOLANA
+    )
+  })
+
+  it('should not call redirect when selected wallet is Coinbase and active chain is not Solana ', () => {
+    const mockConnector = {
+      id: CUSTOM_DEEPLINK_WALLETS.COINBASE.id,
+      name: 'Coinbase Wallet',
+      type: 'INJECTED' as const,
+      chain: ConstantsUtil.CHAIN.EVM
+    }
+    mockChainControllerState({ activeChain: ConstantsUtil.CHAIN.EVM })
+    const handleMobileDeeplinkRedirectSpy = vi.spyOn(
+      MobileWalletUtil,
+      'handleMobileDeeplinkRedirect'
+    )
+    vi.spyOn(ConnectorController, 'getConnector').mockReturnValue(mockConnector)
+    vi.spyOn(RouterController, 'push')
+
+    ConnectorController.selectWalletConnector({ name: mockConnector.name, id: mockConnector.id })
+
+    expect(window.location.href).toBe(ORIGINAL_HREF)
+    expect(handleMobileDeeplinkRedirectSpy).toHaveBeenCalledWith(
+      mockConnector.id,
+      ConstantsUtil.CHAIN.EVM
+    )
+  })
+
   it('should route to ConnectingWalletConnect when selecting wallet if there is not a connector', () => {
     vi.spyOn(ConnectorController, 'getConnector').mockReturnValue(undefined)
     vi.spyOn(RouterController, 'push')
@@ -357,6 +460,163 @@ describe('ConnectorController', () => {
 
     expect(RouterController.push).toHaveBeenCalledWith('ConnectingWalletConnect', {
       wallet: { name: 'WalletConnect', id: 'wc' }
+    })
+  })
+
+  describe('extendConnectorsWithExplorerWallets', () => {
+    beforeEach(() => {
+      ConnectorController.state.allConnectors = []
+      ConnectorController.state.connectors = []
+    })
+
+    it('should extend connectors with explorer wallets matching by id', () => {
+      const connectorWithId = {
+        id: 'metamask',
+        explorerId: 'metamask-explorer-id',
+        type: 'INJECTED' as const,
+        chain: ConstantsUtil.CHAIN.EVM,
+        name: 'MetaMask'
+      }
+
+      const explorerWallet = {
+        id: 'metamask',
+        name: 'MetaMask',
+        order: 1,
+        image_url: 'https://example.com/metamask.png'
+      }
+
+      ConnectorController.addConnector(connectorWithId)
+      ConnectorController.extendConnectorsWithExplorerWallets([explorerWallet])
+
+      const connector = ConnectorController.getConnectorById('metamask')
+      expect(connector?.explorerWallet).toEqual(explorerWallet)
+    })
+
+    it('should extend connectors with explorer wallets matching by rdns', () => {
+      const connectorWithRdns = {
+        id: 'metamask',
+        type: 'INJECTED' as const,
+        chain: ConstantsUtil.CHAIN.EVM,
+        name: 'MetaMask',
+        info: { rdns: 'io.metamask' }
+      }
+
+      const explorerWallet = {
+        id: 'different-id',
+        name: 'MetaMask',
+        rdns: 'io.metamask',
+        order: 1
+      }
+
+      ConnectorController.addConnector(connectorWithRdns)
+      ConnectorController.extendConnectorsWithExplorerWallets([explorerWallet])
+
+      const connector = ConnectorController.getConnectorById('metamask')
+      expect(connector?.explorerWallet).toEqual(explorerWallet)
+    })
+
+    it('should not extend connectors when no match is found', () => {
+      const connector = {
+        id: 'metamask',
+        type: 'INJECTED' as const,
+        chain: ConstantsUtil.CHAIN.EVM,
+        name: 'MetaMask'
+      }
+
+      const explorerWallet = {
+        id: 'different-id',
+        name: 'Different Wallet',
+        rdns: 'io.different'
+      }
+
+      ConnectorController.addConnector(connector)
+      ConnectorController.extendConnectorsWithExplorerWallets([explorerWallet])
+
+      const foundConnector = ConnectorController.getConnectorById('metamask')
+      expect(foundConnector?.explorerWallet).toBeUndefined()
+    })
+
+    it('should handle empty explorer wallets array', () => {
+      const connector = {
+        id: 'metamask',
+        type: 'INJECTED' as const,
+        chain: ConstantsUtil.CHAIN.EVM,
+        name: 'MetaMask'
+      }
+
+      ConnectorController.addConnector(connector)
+      ConnectorController.extendConnectorsWithExplorerWallets([])
+
+      const foundConnector = ConnectorController.getConnectorById('metamask')
+      expect(foundConnector?.explorerWallet).toBeUndefined()
+    })
+
+    it('should extend multiple connectors with matching explorer wallets', () => {
+      const metamaskConnector = {
+        id: 'metamask',
+        type: 'INJECTED' as const,
+        chain: ConstantsUtil.CHAIN.EVM,
+        name: 'MetaMask',
+        info: { rdns: 'io.metamask' }
+      }
+
+      const coinbaseConnector = {
+        id: 'coinbase',
+        type: 'INJECTED' as const,
+        chain: ConstantsUtil.CHAIN.EVM,
+        name: 'Coinbase Wallet'
+      }
+
+      const explorerWallets = [
+        {
+          id: 'metamask',
+          name: 'MetaMask',
+          order: 1
+        },
+        {
+          id: 'coinbase',
+          name: 'Coinbase Wallet',
+          order: 2
+        }
+      ]
+
+      ConnectorController.addConnector(metamaskConnector)
+      ConnectorController.addConnector(coinbaseConnector)
+      ConnectorController.extendConnectorsWithExplorerWallets(explorerWallets)
+
+      const metamask = ConnectorController.getConnectorById('metamask')
+      const coinbase = ConnectorController.getConnectorById('coinbase')
+
+      expect(metamask?.explorerWallet).toEqual(explorerWallets[0])
+      expect(coinbase?.explorerWallet).toEqual(explorerWallets[1])
+    })
+
+    it('should update connectors state after extending', () => {
+      const connector = {
+        id: 'metamask',
+        type: 'INJECTED' as const,
+        chain: ConstantsUtil.CHAIN.EVM,
+        name: 'MetaMask'
+      }
+
+      const explorerWallet = {
+        id: 'metamask',
+        name: 'MetaMask',
+        order: 1
+      }
+
+      ConnectorController.state.allConnectors = []
+      ConnectorController.state.connectors = []
+
+      ConnectorController.addConnector(connector)
+      const connectorsBefore = JSON.parse(JSON.stringify(ConnectorController.getConnectors()))
+
+      ConnectorController.extendConnectorsWithExplorerWallets([explorerWallet])
+      const connectorsAfter = JSON.parse(JSON.stringify(ConnectorController.getConnectors()))
+
+      expect(connectorsAfter).not.toEqual(connectorsBefore)
+      expect(connectorsAfter[0]?.explorerWallet).toEqual(explorerWallet)
+      expect(connectorsBefore[0]?.explorerWallet).toBeUndefined()
     })
   })
 })

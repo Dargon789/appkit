@@ -1,4 +1,7 @@
-import { AccountController } from '../controllers/AccountController.js'
+import { ref } from 'valtio/vanilla'
+
+import { ConstantsUtil } from '@reown/appkit-common'
+
 import { ChainController } from '../controllers/ChainController.js'
 import { ConnectorController } from '../controllers/ConnectorController.js'
 import { EventsController } from '../controllers/EventsController.js'
@@ -10,7 +13,11 @@ import type { SocialProvider } from './TypeUtil.js'
 
 function getPopupWindow() {
   try {
-    return CoreHelperUtil.returnOpenHref('', 'popupWindow', 'width=600,height=800,scrollbars=yes')
+    return CoreHelperUtil.returnOpenHref(
+      `${ConstantsUtil.SECURE_SITE_SDK_ORIGIN}/loading`,
+      'popupWindow',
+      'width=600,height=800,scrollbars=yes'
+    )
   } catch (error) {
     throw new Error('Could not open social popup')
   }
@@ -21,10 +28,11 @@ export async function connectFarcaster() {
   const authConnector = ConnectorController.getAuthConnector()
 
   if (authConnector) {
-    if (!AccountController.state.farcasterUrl) {
+    const accountData = ChainController.getAccountData()
+    if (!accountData?.farcasterUrl) {
       try {
         const { url } = await authConnector.provider.getFarcasterUri()
-        AccountController.setFarcasterUrl(url, ChainController.state.activeChain)
+        ChainController.setAccountProp('farcasterUrl', url, ChainController.state.activeChain)
       } catch (error) {
         RouterController.goBack()
         SnackController.showError(error)
@@ -53,7 +61,11 @@ export async function connectSocial(
       }
 
       if (popupWindow) {
-        AccountController.setSocialWindow(popupWindow, ChainController.state.activeChain)
+        ChainController.setAccountProp(
+          'socialWindow',
+          ref(popupWindow),
+          ChainController.state.activeChain
+        )
       } else if (!CoreHelperUtil.isTelegram()) {
         throw new Error('Could not create social popup')
       }
@@ -82,12 +94,23 @@ export async function connectSocial(
     }
   } catch (error) {
     popupWindow?.close()
-    SnackController.showError((error as Error)?.message)
+    const errorMessage = CoreHelperUtil.parseError(error)
+    SnackController.showError(errorMessage)
+
+    EventsController.sendEvent({
+      type: 'track',
+      event: 'SOCIAL_LOGIN_ERROR',
+      properties: { provider: socialProvider, message: errorMessage }
+    })
   }
 }
 
 export async function executeSocialLogin(socialProvider: SocialProvider) {
-  AccountController.setSocialProvider(socialProvider, ChainController.state.activeChain)
+  ChainController.setAccountProp(
+    'socialProvider',
+    socialProvider,
+    ChainController.state.activeChain
+  )
   EventsController.sendEvent({
     type: 'track',
     event: 'SOCIAL_LOGIN_STARTED',

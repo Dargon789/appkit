@@ -60,7 +60,6 @@ export const mockAppKit = {
   addConnector: vi.fn(),
   setCaipNetwork: vi.fn(),
   setLoading: vi.fn(),
-  setSmartAccountEnabledNetworks: vi.fn(),
   setAllAccounts: vi.fn(),
   setStatus: vi.fn(),
   setSmartAccountDeployed: vi.fn(),
@@ -83,7 +82,6 @@ export const mockAppKit = {
   signMessage: vi.fn(),
   sendTransaction: vi.fn(),
   writeContract: vi.fn(),
-  getEnsAddress: vi.fn(),
   estimateGas: vi.fn(),
   parseUnits: vi.fn(),
   formatUnits: vi.fn(),
@@ -93,7 +91,6 @@ export const mockAppKit = {
   connect: vi.fn(),
   reconnect: vi.fn(),
   getBalance: vi.fn(),
-  getProfile: vi.fn(),
   getWalletConnectProvider: vi.fn(),
   disconnect: vi.fn(),
   switchNetwork: vi.fn(),
@@ -107,9 +104,6 @@ export const mockAppKit = {
     connectionControllerClient: {
       connectWalletConnect: vi.fn(),
       disconnect: vi.fn()
-    },
-    networkControllerClient: {
-      switchCaipNetwork: vi.fn()
     }
   },
   getConnectorImage: vi.fn(),

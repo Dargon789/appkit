@@ -1,16 +1,16 @@
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 
-import type { ChainNamespace } from '@reown/appkit-common'
 import {
-  AccountController,
   ChainController,
   ConnectionController,
+  CoreHelperUtil,
   EventsController,
   ModalController,
   OptionsController,
   RouterController,
-  SnackController
+  SnackController,
+  getPreferredAccountType
 } from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet/utils'
@@ -29,34 +29,26 @@ export class W3mConnectingSiweView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex justifyContent="center" .padding=${['2xl', '0', 'xxl', '0'] as const}>
+      <wui-flex justifyContent="center" .padding=${['8', '0', '6', '0'] as const}>
         <w3m-connecting-siwe></w3m-connecting-siwe>
       </wui-flex>
-      <wui-flex
-        .padding=${['0', '4xl', 'l', '4xl'] as const}
-        gap="s"
-        justifyContent="space-between"
-      >
-        <wui-text variant="paragraph-500" align="center" color="fg-100"
+      <wui-flex .padding=${['0', '20', '4', '20'] as const} gap="3" justifyContent="space-between">
+        <wui-text variant="lg-medium" align="center" color="primary"
           >${this.dappName ?? 'Dapp'} needs to connect to your wallet</wui-text
         >
       </wui-flex>
-      <wui-flex
-        .padding=${['0', '3xl', 'l', '3xl'] as const}
-        gap="s"
-        justifyContent="space-between"
-      >
-        <wui-text variant="small-400" align="center" color="fg-200"
+      <wui-flex .padding=${['0', '20', '4', '20'] as const} gap="3" justifyContent="space-between">
+        <wui-text variant="md-regular" align="center" color="secondary"
           >Sign this message to prove you own this wallet and proceed. Canceling will disconnect
           you.</wui-text
         >
       </wui-flex>
-      <wui-flex .padding=${['l', 'xl', 'xl', 'xl'] as const} gap="s" justifyContent="space-between">
+      <wui-flex .padding=${['4', '6', '6', '6'] as const} gap="3" justifyContent="space-between">
         <wui-button
           size="lg"
           borderRadius="xs"
           fullWidth
-          variant="neutral"
+          variant="neutral-secondary"
           ?loading=${this.isCancelling}
           @click=${this.onCancel.bind(this)}
           data-testid="w3m-connecting-siwe-cancel"
@@ -67,7 +59,7 @@ export class W3mConnectingSiweView extends LitElement {
           size="lg"
           borderRadius="xs"
           fullWidth
-          variant="main"
+          variant="neutral-primary"
           @click=${this.onSign.bind(this)}
           ?loading=${this.isSigning}
           data-testid="w3m-connecting-siwe-sign"
@@ -80,8 +72,6 @@ export class W3mConnectingSiweView extends LitElement {
 
   // -- Private ------------------------------------------- //
   private async onSign() {
-    const activeChainNamespace = ChainController.state.activeChain as ChainNamespace
-
     this.isSigning = true
     EventsController.sendEvent({
       event: 'CLICK_SIGN_SIWX_MESSAGE',
@@ -89,7 +79,7 @@ export class W3mConnectingSiweView extends LitElement {
       properties: {
         network: ChainController.state.activeCaipNetwork?.caipNetworkId || '',
         isSmartAccount:
-          AccountController.state.preferredAccountTypes?.[activeChainNamespace] ===
+          getPreferredAccountType(ChainController.state.activeChain) ===
           W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT
       }
     })
@@ -103,30 +93,30 @@ export class W3mConnectingSiweView extends LitElement {
         properties: {
           network: ChainController.state.activeCaipNetwork?.caipNetworkId || '',
           isSmartAccount:
-            AccountController.state.preferredAccountTypes?.[activeChainNamespace] ===
+            getPreferredAccountType(ChainController.state.activeChain) ===
             W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT
         }
       })
 
       return session
     } catch (error) {
-      const preferredAccountType =
-        AccountController.state.preferredAccountTypes?.[activeChainNamespace]
+      const preferredAccountType = getPreferredAccountType(ChainController.state.activeChain)
       const isSmartAccount =
         preferredAccountType === W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT
-      if (isSmartAccount) {
-        SnackController.showError('This application might not support Smart Accounts')
-      } else {
-        SnackController.showError('Signature declined')
-      }
+
+      SnackController.showError('Error signing message')
       SIWEController.setStatus('error')
+
+      // eslint-disable-next-line no-console
+      console.error('Failed to sign SIWE message', error)
 
       return EventsController.sendEvent({
         event: 'SIWX_AUTH_ERROR',
         type: 'track',
         properties: {
           network: ChainController.state.activeCaipNetwork?.caipNetworkId || '',
-          isSmartAccount
+          isSmartAccount,
+          message: CoreHelperUtil.parseError(error)
         }
       })
     } finally {
@@ -135,8 +125,6 @@ export class W3mConnectingSiweView extends LitElement {
   }
 
   private async onCancel() {
-    const activeChainNamespace = ChainController.state.activeChain as ChainNamespace
-
     this.isCancelling = true
     const caipAddress = ChainController.state.activeCaipAddress
     if (caipAddress) {
@@ -152,7 +140,7 @@ export class W3mConnectingSiweView extends LitElement {
       properties: {
         network: ChainController.state.activeCaipNetwork?.caipNetworkId || '',
         isSmartAccount:
-          AccountController.state.preferredAccountTypes?.[activeChainNamespace] ===
+          getPreferredAccountType(ChainController.state.activeChain) ===
           W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT
       }
     })

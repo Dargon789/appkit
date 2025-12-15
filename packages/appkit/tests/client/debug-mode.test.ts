@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { ChainNamespace, SdkVersion } from '@reown/appkit-common'
-import { AlertController, OptionsController } from '@reown/appkit-controllers'
+import { AlertController, ApiController, OptionsController } from '@reown/appkit-controllers'
+import type { AdapterBlueprint } from '@reown/appkit-controllers'
 import { ErrorUtil } from '@reown/appkit-utils'
 
-import type { AdapterBlueprint } from '../../src/adapters'
 import { AppKitBaseClient, type AppKitOptionsWithSdk } from '../../src/client/appkit-base-client'
 
 // Create a mock implementation of AppKitBaseClient
@@ -37,6 +37,7 @@ describe('AppKit Debug Mode', () => {
 
     // Spy on AlertController.open
     vi.spyOn(AlertController, 'open')
+    vi.spyOn(ApiController, 'fetchAllowedOrigins').mockResolvedValue(['http://localhost:3000'])
   })
 
   afterEach(() => {
