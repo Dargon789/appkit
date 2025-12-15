@@ -1,11 +1,24 @@
 import { proxy, ref, snapshot, subscribe as sub } from 'valtio/vanilla'
 import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 
-import { type ChainNamespace, ConstantsUtil, getW3mThemeVariables } from '@reown/appkit-common'
+import {
+  AVAILABLE_NAMESPACES,
+  type ChainNamespace,
+  ConstantsUtil,
+  getW3mThemeVariables
+} from '@reown/appkit-common'
+import { W3mFrameRpcConstants } from '@reown/appkit-wallet/utils'
 
+import { getPreferredAccountType } from '../utils/ChainControllerUtil.js'
 import { MobileWalletUtil } from '../utils/MobileWallet.js'
 import { StorageUtil } from '../utils/StorageUtil.js'
-import type { AuthConnector, Connector, WcWallet } from '../utils/TypeUtil.js'
+import type {
+  AuthConnector,
+  Connector,
+  ConnectorWithProviders,
+  WcWallet
+} from '../utils/TypeUtil.js'
+import { withErrorBoundary } from '../utils/withErrorBoundary.js'
 import { ApiController } from './ApiController.js'
 import { ChainController } from './ChainController.js'
 import { OptionsController } from './OptionsController.js'
@@ -13,9 +26,6 @@ import { RouterController } from './RouterController.js'
 import { ThemeController } from './ThemeController.js'
 
 // -- Types --------------------------------------------- //
-export interface ConnectorWithProviders extends Connector {
-  connectors?: Connector[]
-}
 export interface ConnectorControllerState {
   allConnectors: Connector[]
   connectors: ConnectorWithProviders[]
@@ -27,13 +37,13 @@ export interface ConnectorControllerState {
 
 type StateKey = keyof ConnectorControllerState
 
-const defaultActiveConnectors = {
-  eip155: undefined,
-  solana: undefined,
-  polkadot: undefined,
-  bip122: undefined,
-  cosmos: undefined
-}
+const defaultActiveConnectors = Object.fromEntries(
+  AVAILABLE_NAMESPACES.map(namespace => [namespace, undefined])
+) as Record<ChainNamespace, string | undefined>
+
+const defaultFilterByNamespaceMap = Object.fromEntries(
+  AVAILABLE_NAMESPACES.map(namespace => [namespace, true])
+) as Record<ChainNamespace, boolean>
 
 // -- State --------------------------------------------- //
 const state = proxy<ConnectorControllerState>({
@@ -41,18 +51,12 @@ const state = proxy<ConnectorControllerState>({
   connectors: [],
   activeConnector: undefined,
   filterByNamespace: undefined,
-  activeConnectorIds: { ...defaultActiveConnectors },
-  filterByNamespaceMap: {
-    eip155: true,
-    solana: true,
-    polkadot: true,
-    bip122: true,
-    cosmos: true
-  }
+  activeConnectorIds: defaultActiveConnectors,
+  filterByNamespaceMap: defaultFilterByNamespaceMap
 })
 
 // -- Controller ---------------------------------------- //
-export const ConnectorController = {
+const controller = {
   state,
 
   subscribe(callback: (value: ConnectorControllerState) => void) {
@@ -69,7 +73,7 @@ export const ConnectorController = {
     namespaces.forEach(namespace => {
       const connectorId = StorageUtil.getConnectedConnectorId(namespace)
       if (connectorId) {
-        this.setConnectorId(connectorId, namespace)
+        ConnectorController.setConnectorId(connectorId, namespace)
       }
     })
   },
@@ -86,14 +90,14 @@ export const ConnectorController = {
         !state.allConnectors.some(
           existingConnector =>
             existingConnector.id === newConnector.id &&
-            this.getConnectorName(existingConnector.name) ===
-              this.getConnectorName(newConnector.name) &&
+            ConnectorController.getConnectorName(existingConnector.name) ===
+              ConnectorController.getConnectorName(newConnector.name) &&
             existingConnector.chain === newConnector.chain
         )
     )
 
     /**
-     * We are reassigning the state of the proxy to a new array of new objects, this can cause issues. So it is better to use ref in this case.
+     * We are reassigning the state of the proxy to a new array of new objects, ConnectorController can cause issues. So it is better to use ref in ConnectorController case.
      * Check more about proxy on https://valtio.dev/docs/api/basic/proxy#Gotchas
      * Check more about ref on https://valtio.dev/docs/api/basic/ref
      */
@@ -103,10 +107,11 @@ export const ConnectorController = {
       }
     })
 
-    const enabledNamespaces = this.getEnabledNamespaces()
-    const connectorsFilteredByNamespaces = this.getEnabledConnectors(enabledNamespaces)
+    const enabledNamespaces = ConnectorController.getEnabledNamespaces()
+    const connectorsFilteredByNamespaces =
+      ConnectorController.getEnabledConnectors(enabledNamespaces)
 
-    state.connectors = this.mergeMultiChainConnectors(connectorsFilteredByNamespaces)
+    state.connectors = ConnectorController.mergeMultiChainConnectors(connectorsFilteredByNamespaces)
   },
 
   filterByNamespaces(enabledNamespaces: ChainNamespace[]) {
@@ -118,21 +123,21 @@ export const ConnectorController = {
       state.filterByNamespaceMap[namespace] = true
     })
 
-    this.updateConnectorsForEnabledNamespaces()
+    ConnectorController.updateConnectorsForEnabledNamespaces()
   },
 
   filterByNamespace(namespace: ChainNamespace, enabled: boolean) {
     state.filterByNamespaceMap[namespace] = enabled
 
-    this.updateConnectorsForEnabledNamespaces()
+    ConnectorController.updateConnectorsForEnabledNamespaces()
   },
 
   updateConnectorsForEnabledNamespaces() {
-    const enabledNamespaces = this.getEnabledNamespaces()
-    const enabledConnectors = this.getEnabledConnectors(enabledNamespaces)
-    const areAllNamespacesEnabled = this.areAllNamespacesEnabled()
+    const enabledNamespaces = ConnectorController.getEnabledNamespaces()
+    const enabledConnectors = ConnectorController.getEnabledConnectors(enabledNamespaces)
+    const areAllNamespacesEnabled = ConnectorController.areAllNamespacesEnabled()
 
-    state.connectors = this.mergeMultiChainConnectors(enabledConnectors)
+    state.connectors = ConnectorController.mergeMultiChainConnectors(enabledConnectors)
 
     if (areAllNamespacesEnabled) {
       ApiController.clearFilterByNamespaces()
@@ -148,9 +153,7 @@ export const ConnectorController = {
   },
 
   getEnabledConnectors(enabledNamespaces: ChainNamespace[]): Connector[] {
-    return state.allConnectors.filter(connector =>
-      enabledNamespaces.includes(connector.chain as ChainNamespace)
-    )
+    return state.allConnectors.filter(connector => enabledNamespaces.includes(connector.chain))
   },
 
   areAllNamespacesEnabled(): boolean {
@@ -158,7 +161,7 @@ export const ConnectorController = {
   },
 
   mergeMultiChainConnectors(connectors: Connector[]) {
-    const connectorsByNameMap = this.generateConnectorMapByName(connectors)
+    const connectorsByNameMap = ConnectorController.generateConnectorMapByName(connectors)
     const mergedConnectors: ConnectorWithProviders[] = []
 
     connectorsByNameMap.forEach(keyConnectors => {
@@ -189,7 +192,7 @@ export const ConnectorController = {
 
     connectors.forEach(connector => {
       const { name } = connector
-      const connectorName = this.getConnectorName(name)
+      const connectorName = ConnectorController.getConnectorName(name)
 
       if (!connectorName) {
         return
@@ -249,9 +252,9 @@ export const ConnectorController = {
         themeVariables,
         w3mThemeVariables: getW3mThemeVariables(themeVariables, themeMode)
       })
-      this.setConnectors([connector])
+      ConnectorController.setConnectors([connector])
     } else {
-      this.setConnectors([connector])
+      ConnectorController.setConnectors([connector])
     }
   },
 
@@ -280,16 +283,17 @@ export const ConnectorController = {
     return state.allConnectors.find(c => c.id === id)
   },
 
-  getConnector(id: string, rdns?: string | null) {
-    const connectorsByNamespace = state.allConnectors.filter(
-      c => c.chain === ChainController.state.activeChain
-    )
+  getConnector({ id, namespace }: { id: string; namespace: ChainNamespace }) {
+    const namespaceToUse = namespace || ChainController.state.activeChain
 
-    return connectorsByNamespace.find(c => c.explorerId === id || c.info?.rdns === rdns)
+    const connectorsByNamespace = state.allConnectors.filter(c => c.chain === namespaceToUse)
+    const connector = connectorsByNamespace.find(c => c.id === id || c.explorerId === id)
+
+    return connector
   },
 
   syncIfAuthConnector(connector: Connector | AuthConnector) {
-    if (connector.id !== 'ID_AUTH') {
+    if (connector.id !== 'AUTH') {
       return
     }
 
@@ -322,20 +326,35 @@ export const ConnectorController = {
       connector => connector.chain === namespace
     )
 
-    return this.mergeMultiChainConnectors(namespaceConnectors)
+    return ConnectorController.mergeMultiChainConnectors(namespaceConnectors)
+  },
+
+  canSwitchToSmartAccount(namespace: ChainNamespace) {
+    const isSmartAccountEnabled = ChainController.checkIfSmartAccountEnabled()
+
+    return (
+      isSmartAccountEnabled &&
+      getPreferredAccountType(namespace) === W3mFrameRpcConstants.ACCOUNT_TYPES.EOA
+    )
   },
 
   selectWalletConnector(wallet: WcWallet) {
-    const connector = ConnectorController.getConnector(wallet.id, wallet.rdns)
+    const redirectView = RouterController.state.data?.redirectView
+    const namespace = ChainController.state.activeChain
 
-    if (ChainController.state.activeChain === ConstantsUtil.CHAIN.SOLANA) {
-      MobileWalletUtil.handleSolanaDeeplinkRedirect(connector?.name || wallet.name || '')
-    }
+    const connector = namespace
+      ? ConnectorController.getConnector({ id: wallet.id, namespace })
+      : undefined
+
+    MobileWalletUtil.handleMobileDeeplinkRedirect(
+      connector?.explorerId || wallet.id,
+      ChainController.state.activeChain
+    )
 
     if (connector) {
-      RouterController.push('ConnectingExternal', { connector })
+      RouterController.push('ConnectingExternal', { connector, wallet, redirectView })
     } else {
-      RouterController.push('ConnectingWalletConnect', { wallet })
+      RouterController.push('ConnectingWalletConnect', { wallet, redirectView })
     }
   },
 
@@ -346,10 +365,10 @@ export const ConnectorController = {
    */
   getConnectors(namespace?: ChainNamespace) {
     if (namespace) {
-      return this.getConnectorsByNamespace(namespace)
+      return ConnectorController.getConnectorsByNamespace(namespace)
     }
 
-    return this.mergeMultiChainConnectors(state.allConnectors)
+    return ConnectorController.mergeMultiChainConnectors(state.allConnectors)
   },
 
   /**
@@ -358,7 +377,7 @@ export const ConnectorController = {
    */
   setFilterByNamespace(namespace: ChainNamespace | undefined) {
     state.filterByNamespace = namespace
-    state.connectors = this.getConnectors(namespace)
+    state.connectors = ConnectorController.getConnectors(namespace)
     ApiController.setFilterByNamespace(namespace)
   },
 
@@ -398,5 +417,25 @@ export const ConnectorController = {
 
   resetConnectorIds() {
     state.activeConnectorIds = { ...defaultActiveConnectors }
+  },
+
+  extendConnectorsWithExplorerWallets(explorerWallets: WcWallet[]) {
+    state.allConnectors.forEach(connector => {
+      const explorerWallet = explorerWallets.find(
+        wallet =>
+          wallet.id === connector.id || (wallet.rdns && wallet.rdns === connector.info?.rdns)
+      )
+
+      if (explorerWallet) {
+        connector.explorerWallet = explorerWallet
+      }
+    })
+
+    const enabledNamespaces = ConnectorController.getEnabledNamespaces()
+    const enabledConnectors = ConnectorController.getEnabledConnectors(enabledNamespaces)
+    state.connectors = ConnectorController.mergeMultiChainConnectors(enabledConnectors)
   }
 }
+
+// Export the controller wrapped with our error boundary
+export const ConnectorController = withErrorBoundary(controller)

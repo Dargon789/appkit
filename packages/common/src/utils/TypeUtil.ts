@@ -1,7 +1,7 @@
-import type { ChainFormatters, HttpTransportConfig } from 'viem'
+import type { Address, ChainFormatters, Hex, HttpTransportConfig } from 'viem'
 import type { Chain as BaseChain } from 'viem/chains'
 
-export type { BaseChain }
+export type { BaseChain, Address, Hex }
 
 export type BaseNetwork<
   formatters extends ChainFormatters | undefined = ChainFormatters | undefined,
@@ -10,18 +10,33 @@ export type BaseNetwork<
 
 export type CaipNetwork<
   formatters extends ChainFormatters | undefined = ChainFormatters | undefined,
-  custom extends Record<string, unknown> | undefined = Record<string, unknown> | undefined
+  custom extends Record<string, unknown> | undefined = Record<string, unknown> | undefined,
+  N extends string = InternalChainNamespace
 > = Omit<BaseChain<formatters, custom>, 'id'> & {
   id: number | string
-  chainNamespace: ChainNamespace
-  caipNetworkId: CaipNetworkId
+  chainNamespace: ChainNamespace<N>
+  caipNetworkId: CaipNetworkId<N>
   assets?: {
     imageId: string | undefined
     imageUrl: string | undefined
   }
 }
 
+export type CustomCaipNetwork<T extends string = InternalChainNamespace> = CaipNetwork<
+  ChainFormatters,
+  Record<string, unknown>,
+  T
+>
+
 export type CustomRpcUrlMap = Record<CaipNetworkId, CustomRpcUrl[]>
+
+export type ConnectorType =
+  | 'EXTERNAL'
+  | 'WALLET_CONNECT'
+  | 'INJECTED'
+  | 'ANNOUNCED'
+  | 'AUTH'
+  | 'MULTI_CHAIN'
 
 export type CustomRpcUrl = {
   url: string
@@ -30,13 +45,24 @@ export type CustomRpcUrl = {
 
 export type AppKitNetwork = BaseNetwork | CaipNetwork
 
-export type CaipNetworkId = `${ChainNamespace}:${ChainId}`
+export type CaipNetworkId<N extends string = InternalChainNamespace> =
+  `${ChainNamespace<N>}:${ChainId}`
 
 export type CaipAddress = `${ChainNamespace}:${ChainId}:${string}`
 
 export type ChainId = string | number
 
-export type ChainNamespace = 'eip155' | 'solana' | 'polkadot' | 'bip122' | 'cosmos'
+export type InternalChainNamespace =
+  | 'eip155'
+  | 'solana'
+  | 'polkadot'
+  | 'bip122'
+  | 'cosmos'
+  | 'sui'
+  | 'stacks'
+  | 'ton'
+
+export type ChainNamespace<T extends string = InternalChainNamespace> = T | InternalChainNamespace
 
 export type AdapterType =
   | 'solana'
@@ -44,13 +70,9 @@ export type AdapterType =
   | 'ethers'
   | 'ethers5'
   | 'universal'
-  | 'polkadot'
   | 'bip122'
-
-export type CoinbaseTransactionStatus =
-  | 'ONRAMP_TRANSACTION_STATUS_SUCCESS'
-  | 'ONRAMP_TRANSACTION_STATUS_IN_PROGRESS'
-  | 'ONRAMP_TRANSACTION_STATUS_FAILED'
+  | 'polkadot'
+  | 'ton'
 
 export type TransactionStatus = 'confirmed' | 'failed' | 'pending'
 
@@ -74,7 +96,7 @@ export interface TransactionMetadata {
   minedAt: string
   sentFrom: string
   sentTo: string
-  status: TransactionStatus | CoinbaseTransactionStatus
+  status: TransactionStatus
   nonce: number
 }
 
@@ -184,3 +206,36 @@ export type EmbeddedWalletTimeoutReason =
   | 'iframe_load_failed'
   | 'iframe_request_timeout'
   | 'unverified_domain'
+
+export type SocialProvider =
+  | 'google'
+  | 'github'
+  | 'apple'
+  | 'facebook'
+  | 'x'
+  | 'discord'
+  | 'farcaster'
+
+export type SwapProvider = '1inch'
+
+export type OnRampProvider = 'meld'
+
+/**
+ * Helper type to create a CaipNetwork with proper type inference from the chainNamespace field
+ * Usage: const network = { ... } as InferredCaipNetwork<typeof network>
+ */
+export type InferredCaipNetwork<T extends { chainNamespace: string } = { chainNamespace: string }> =
+  T extends { chainNamespace: infer N extends string } ? CustomCaipNetwork<N> : CustomCaipNetwork
+
+export type Connection = {
+  name?: string
+  icon?: string
+  networkIcon?: string
+  accounts: { type?: string; address: string; publicKey?: string }[]
+  caipNetwork?: CaipNetwork
+  connectorId: string
+  auth?: {
+    name: string | undefined
+    username: string | undefined
+  }
+}

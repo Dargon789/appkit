@@ -3,6 +3,7 @@ import { property, state } from 'lit/decorators.js'
 
 import {
   AlertController,
+  ApiController,
   ConnectorController,
   ConstantsUtil,
   OptionsController,
@@ -32,9 +33,11 @@ export class W3mSocialLoginList extends LitElement {
 
   @state() private authConnector = this.connectors.find(c => c.type === 'AUTH')
 
-  @state() private features = OptionsController.state.features
+  @state() private remoteFeatures = OptionsController.state.remoteFeatures
 
   @state() private isPwaLoading = false
+
+  @state() private hasExceededUsageLimit = ApiController.state.plan.hasExceededUsageLimit
 
   public constructor() {
     super()
@@ -43,7 +46,7 @@ export class W3mSocialLoginList extends LitElement {
         this.connectors = val
         this.authConnector = this.connectors.find(c => c.type === 'AUTH')
       }),
-      OptionsController.subscribeKey('features', val => (this.features = val))
+      OptionsController.subscribeKey('remoteFeatures', val => (this.remoteFeatures = val))
     )
   }
 
@@ -58,7 +61,7 @@ export class W3mSocialLoginList extends LitElement {
 
   // -- Render -------------------------------------------- //
   public override render() {
-    let socials = this.features?.socials || []
+    let socials = this.remoteFeatures?.socials || []
     const isAuthConnectorExist = Boolean(this.authConnector)
     const isSocialsEnabled = socials?.length
     const isConnectSocialsView = RouterController.state.view === 'ConnectSocials'
@@ -68,10 +71,10 @@ export class W3mSocialLoginList extends LitElement {
     }
 
     if (isConnectSocialsView && !isSocialsEnabled) {
-      socials = ConstantsUtil.DEFAULT_FEATURES.socials
+      socials = ConstantsUtil.DEFAULT_SOCIALS
     }
 
-    return html` <wui-flex flexDirection="column" gap="xs">
+    return html` <wui-flex flexDirection="column" gap="2">
       ${socials.map(
         social =>
           html`<wui-list-social
@@ -89,6 +92,12 @@ export class W3mSocialLoginList extends LitElement {
 
   // -- Private ------------------------------------------- //
   async onSocialClick(socialProvider?: SocialProvider) {
+    if (this.hasExceededUsageLimit) {
+      RouterController.push('UsageExceeded')
+
+      return
+    }
+
     if (socialProvider) {
       await executeSocialLogin(socialProvider)
     }
@@ -104,8 +113,8 @@ export class W3mSocialLoginList extends LitElement {
       } catch (error) {
         AlertController.open(
           {
-            shortMessage: 'Error loading embedded wallet in PWA',
-            longMessage: (error as Error).message
+            displayMessage: 'Error loading embedded wallet in PWA',
+            debugMessage: (error as Error).message
           },
           'error'
         )

@@ -1,7 +1,10 @@
-import { AccountController } from '../controllers/AccountController.js'
+import type { CaipNetworkId } from '@reown/appkit-common'
+
 import { BlockchainApiController } from '../controllers/BlockchainApiController.js'
 import { ChainController } from '../controllers/ChainController.js'
 import { ConnectionController } from '../controllers/ConnectionController.js'
+import { BalanceUtil } from './BalanceUtil.js'
+import { getActiveNetworkTokenAddress } from './ChainControllerUtil.js'
 import type { SwapTokenWithBalance } from './TypeUtil.js'
 import type { BlockchainApiBalanceResponse, BlockchainApiSwapAllowanceRequest } from './TypeUtil.js'
 
@@ -20,10 +23,9 @@ export type TokenInfo = {
 
 // -- Controller ---------------------------------------- //
 export const SwapApiUtil = {
-  async getTokenList() {
-    const caipNetwork = ChainController.state.activeCaipNetwork
+  async getTokenList(caipNetworkId?: CaipNetworkId) {
     const response = await BlockchainApiController.fetchSwapTokens({
-      chainId: caipNetwork?.caipNetworkId
+      chainId: caipNetworkId
     })
     const tokens =
       response?.tokens?.map(
@@ -101,43 +103,50 @@ export const SwapApiUtil = {
   },
 
   async getMyTokensWithBalance(forceUpdate?: string) {
-    const address = AccountController.state.address
-    const caipNetwork = ChainController.state.activeCaipNetwork
+    const balances = await BalanceUtil.getMyTokensWithBalance(forceUpdate)
 
-    if (!address || !caipNetwork) {
-      return []
-    }
-
-    const response = await BlockchainApiController.getBalance(
-      address,
-      caipNetwork.caipNetworkId,
-      forceUpdate
-    )
-    /*
-     * The 1Inch API includes many low-quality tokens in the balance response,
-     * which appear inconsistently. This filter prevents them from being displayed.
-     */
-    const balances = response.balances.filter(balance => balance.quantity.decimals !== '0')
-
-    AccountController.setTokenBalance(balances, ChainController.state.activeChain)
+    ChainController.setAccountProp('tokenBalance', balances, ChainController.state.activeChain)
 
     return this.mapBalancesToSwapTokens(balances)
   },
 
+  /**
+   * Maps the balances from Blockchain API to SwapTokenWithBalance array
+   * @param balances
+   * @returns SwapTokenWithBalance[]
+   */
   mapBalancesToSwapTokens(balances: BlockchainApiBalanceResponse['balances']) {
     return (
       balances?.map(
         token =>
           ({
             ...token,
-            address: token?.address
-              ? token.address
-              : ChainController.getActiveNetworkTokenAddress(),
+            address: token?.address ? token.address : getActiveNetworkTokenAddress(),
             decimals: parseInt(token.quantity.decimals, 10),
             logoUri: token.iconUrl,
             eip2612: false
           }) as SwapTokenWithBalance
       ) || []
     )
+  },
+
+  async handleSwapError(error: unknown) {
+    try {
+      const cause = (error as ErrorOptions)?.cause as Response
+      if (!cause?.json) {
+        return undefined
+      }
+
+      const response = await cause.json()
+      const reason = response?.reasons?.[0]?.description
+
+      if (reason?.includes('insufficient liquidity')) {
+        return 'Insufficient liquidity'
+      }
+
+      return undefined
+    } catch {
+      return undefined
+    }
   }
 }

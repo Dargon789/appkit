@@ -1,23 +1,32 @@
 import UniversalProvider from '@walletconnect/universal-provider'
-import { JsonRpcProvider } from 'ethers'
+import { JsonRpcProvider, getAddress } from 'ethers'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { WcConstantsUtil } from '@reown/appkit'
-import { ConstantsUtil as CommonConstantsUtil, Emitter } from '@reown/appkit-common'
 import {
-  AccountController,
+  type CaipAddress,
+  ConstantsUtil as CommonConstantsUtil,
+  Emitter
+} from '@reown/appkit-common'
+import {
   ChainController,
   type ConnectionControllerClient,
-  type NetworkControllerClient,
-  type Provider
+  ConnectorController,
+  ConnectorUtil,
+  CoreHelperUtil,
+  OptionsController,
+  type Provider,
+  ProviderController,
+  SIWXUtil,
+  WcHelpersUtil
 } from '@reown/appkit-controllers'
-import { CaipNetworksUtil } from '@reown/appkit-utils'
-import { ProviderUtil } from '@reown/appkit-utils'
+import { CaipNetworksUtil, HelpersUtil, PresetsUtil } from '@reown/appkit-utils'
 import type { W3mFrameProvider } from '@reown/appkit-wallet'
 import { mainnet, polygon } from '@reown/appkit/networks'
 
 import { EthersAdapter } from '../client'
 import { EthersMethods } from '../utils/EthersMethods'
+import { mockEthersConfig } from './mocks/EthersConfig'
 
 class ErrorWithCode extends Error {
   code: number
@@ -76,10 +85,12 @@ const mockWalletConnectProvider = {
 } as unknown as UniversalProvider
 
 const mockAuthProvider = {
-  connect: vi.fn(),
+  connect: vi.fn().mockResolvedValue({ address: '0x123' }),
   disconnect: vi.fn(),
   switchNetwork: vi.fn(),
-  getUser: vi.fn()
+  getUser: vi.fn(),
+  syncDappData: vi.fn(),
+  syncTheme: vi.fn()
 } as unknown as W3mFrameProvider
 
 const mockNetworks = [mainnet, polygon]
@@ -95,10 +106,15 @@ describe('EthersAdapter', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.stubGlobal('window', {
+      location: {
+        ancestorOrigins: ['https://app.safe.global']
+      }
+    })
+
     adapter = new EthersAdapter()
     ChainController.initialize([adapter], mockCaipNetworks, {
-      connectionControllerClient: vi.fn() as unknown as ConnectionControllerClient,
-      networkControllerClient: vi.fn() as unknown as NetworkControllerClient
+      connectionControllerClient: vi.fn() as unknown as ConnectionControllerClient
     })
     ChainController.setRequestedCaipNetworks(mockCaipNetworks, 'eip155')
   })
@@ -127,6 +143,41 @@ describe('EthersAdapter', () => {
       const injectedConnector = mockConnectors.filter((c: any) => c.id === 'injected')[0]
 
       expect(injectedConnector?.info).toBeUndefined()
+    })
+
+    it('should set explorerId from PresetsUtil based on rdns or name', () => {
+      const ethersAdapter = new EthersAdapter()
+      const addConnectorSpy = vi.spyOn(ethersAdapter as any, 'addConnector')
+
+      const mockEIP6963Provider = {
+        info: {
+          rdns: 'MetaMask',
+          name: 'MetaMask',
+          icon: 'data:image/png;base64,mock'
+        },
+        provider: mockProvider
+      }
+
+      const { info, provider } = mockEIP6963Provider
+
+      const id = info.rdns || info.name
+
+      ;(ethersAdapter as any).addConnector({
+        id,
+        type: 'ANNOUNCED',
+        explorerId:
+          PresetsUtil.ConnectorExplorerIds[info.rdns || ''] ??
+          PresetsUtil.ConnectorExplorerIds[info.name || ''],
+        imageUrl: info?.icon,
+        name: info?.name || 'Unknown',
+        provider
+      })
+
+      expect(addConnectorSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          explorerId: expect.any(String)
+        })
+      )
     })
   })
 
@@ -158,10 +209,15 @@ describe('EthersAdapter', () => {
     it('should send transaction successfully', async () => {
       const mockTxHash = '0xtxhash'
       vi.mocked(EthersMethods.sendTransaction).mockResolvedValue(mockTxHash)
-      vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
-        ...AccountController.state,
-        caipAddress: 'eip155:1:0x123'
+      vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
+        address: '0x123',
+        currentTab: 0,
+        tokenBalance: [],
+        smartAccountDeployed: false,
+        addressLabels: new Map(),
+        user: undefined
       })
+
       const result = await adapter.sendTransaction({
         value: BigInt(1000),
         to: '0x456',
@@ -176,9 +232,13 @@ describe('EthersAdapter', () => {
     })
 
     it('should throw error when provider is undefined', async () => {
-      vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
-        ...AccountController.state,
-        caipAddress: 'eip155:1:0x123'
+      vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
+        address: '0x123',
+        currentTab: 0,
+        tokenBalance: [],
+        smartAccountDeployed: false,
+        addressLabels: new Map(),
+        user: undefined
       })
       await expect(
         adapter.sendTransaction({
@@ -234,6 +294,10 @@ describe('EthersAdapter', () => {
         value: connectors
       })
 
+      // Set up provider in ProviderController for switchNetwork call in connect
+      ProviderController.setProvider('eip155', mockProvider)
+      ProviderController.setProviderId('eip155', 'EXTERNAL')
+
       const result = await adapter.connect({
         id: 'test',
         provider: mockProvider,
@@ -267,6 +331,10 @@ describe('EthersAdapter', () => {
         value: connectors
       })
 
+      // Set up provider in ProviderController for switchNetwork call in connect
+      ProviderController.setProvider('eip155', mockProvider)
+      ProviderController.setProviderId('eip155', 'EXTERNAL')
+
       const result = await adapter.connect({
         id: 'test',
         provider: mockProvider,
@@ -284,11 +352,14 @@ describe('EthersAdapter', () => {
     })
 
     it('should respect preferredAccountType when calling connect with AUTH provider', async () => {
-      vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
-        ...AccountController.state,
-        preferredAccountTypes: {
-          eip155: 'smartAccount'
-        }
+      vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
+        address: '0x123',
+        currentTab: 0,
+        tokenBalance: [],
+        smartAccountDeployed: false,
+        addressLabels: new Map(),
+        user: undefined,
+        preferredAccountType: 'smartAccount'
       })
 
       const ethersAdapter = new EthersAdapter()
@@ -325,23 +396,479 @@ describe('EthersAdapter', () => {
     })
   })
 
+  describe('EthersAdapter -reconnect', () => {
+    it('should call SIWXUtil.authConnectorAuthenticate when reconnecting with AUTH provider', async () => {
+      ChainController.setAccountProp('preferredAccountType', 'smartAccount', 'eip155')
+      const ethersAdapter = new EthersAdapter()
+      vi.spyOn(SIWXUtil, 'authConnectorAuthenticate')
+
+      Object.defineProperty(ethersAdapter, 'connectors', {
+        value: [
+          {
+            id: 'AUTH',
+            type: 'AUTH',
+            provider: mockAuthProvider
+          }
+        ]
+      })
+
+      await ethersAdapter.reconnect({
+        id: 'AUTH',
+        type: 'AUTH',
+        chainId: 1
+      })
+
+      expect(SIWXUtil.authConnectorAuthenticate).toHaveBeenCalledWith({
+        authConnector: mockAuthProvider,
+        chainId: 1,
+        preferredAccountType: 'smartAccount',
+        chainNamespace: 'eip155'
+      })
+    })
+  })
+
   describe('EthersAdapter -disconnect', () => {
     it('should disconnect WalletConnect provider', async () => {
-      await adapter.disconnect({
-        provider: mockWalletConnectProvider,
-        providerType: 'WALLET_CONNECT'
+      const ethersAdapter = new EthersAdapter()
+
+      Object.defineProperty(ethersAdapter, 'connectors', {
+        value: [
+          {
+            id: 'walletConnect',
+            type: 'WALLET_CONNECT',
+            provider: mockWalletConnectProvider
+          }
+        ]
+      })
+
+      await ethersAdapter.disconnect({
+        id: 'walletConnect'
       })
 
       expect(mockWalletConnectProvider.disconnect).toHaveBeenCalled()
     })
 
     it('should disconnect Auth provider', async () => {
-      await adapter.disconnect({
-        provider: mockAuthProvider,
-        providerType: 'AUTH'
+      const ethersAdapter = new EthersAdapter()
+
+      Object.defineProperty(ethersAdapter, 'connectors', {
+        value: [
+          {
+            id: 'AUTH',
+            type: 'AUTH',
+            provider: mockAuthProvider
+          }
+        ]
+      })
+
+      await ethersAdapter.disconnect({
+        id: 'AUTH'
       })
 
       expect(mockAuthProvider.disconnect).toHaveBeenCalled()
+    })
+
+    it('should disconnect all connectors if no connector id provided and return them as connections', async () => {
+      const connector1 = {
+        id: 'test1',
+        type: 'EXTERNAL',
+        provider: {
+          request: vi.fn(),
+          on: vi.fn(),
+          removeListener: vi.fn()
+        } as unknown as Provider
+      }
+
+      const connector2 = {
+        id: 'test2',
+        type: 'EXTERNAL',
+        provider: {
+          request: vi.fn(),
+          on: vi.fn(),
+          removeListener: vi.fn()
+        } as unknown as Provider
+      }
+
+      const ethersAdapter = new EthersAdapter()
+
+      Object.defineProperty(ethersAdapter, 'connectors', {
+        value: [connector1, connector2]
+      })
+      ;(ethersAdapter as any).addConnection({
+        connectorId: connector1.id,
+        accounts: [{ address: '0xaddress1' }],
+        caipNetwork: mockCaipNetworks[0]
+      })
+      ;(ethersAdapter as any).addConnection({
+        connectorId: connector2.id,
+        accounts: [{ address: '0xaddress2' }],
+        caipNetwork: mockCaipNetworks[0]
+      })
+
+      const revokePermissionsSpy = vi
+        .spyOn(ethersAdapter as any, 'revokeProviderPermissions')
+        .mockResolvedValue(undefined)
+
+      const result = await ethersAdapter.disconnect({ id: undefined })
+
+      expect(revokePermissionsSpy).toHaveBeenCalledTimes(2)
+      expect(result.connections).toHaveLength(2)
+
+      const connectorIds = result.connections.map(c => c.connectorId)
+      expect(connectorIds).toContain(connector1.id)
+      expect(connectorIds).toContain(connector2.id)
+    })
+
+    it('should handle empty connections', async () => {
+      const ethersAdapter = new EthersAdapter()
+
+      Object.defineProperty(ethersAdapter, 'connectors', {
+        value: []
+      })
+
+      const result = await ethersAdapter.disconnect({ id: undefined })
+
+      expect(result.connections).toHaveLength(0)
+    })
+
+    it('should throw error if one of the connector is not found from connections', async () => {
+      const ethersAdapter = new EthersAdapter()
+
+      Object.defineProperty(ethersAdapter, 'connectors', {
+        value: []
+      })
+      ;(ethersAdapter as any).addConnection({
+        connectorId: 'non-existent-connector',
+        accounts: [{ address: '0xaddress1' }],
+        caipNetwork: mockCaipNetworks[0]
+      })
+
+      await expect(ethersAdapter.disconnect({ id: undefined })).rejects.toThrow(
+        'Connector not found'
+      )
+    })
+
+    it('should throw error if one of the connector fails to disconnect', async () => {
+      const connector = {
+        id: 'test',
+        type: 'EXTERNAL',
+        provider: {
+          request: vi.fn(),
+          on: vi.fn(),
+          removeListener: vi.fn()
+        } as unknown as Provider
+      }
+
+      const ethersAdapter = new EthersAdapter()
+
+      Object.defineProperty(ethersAdapter, 'connectors', {
+        value: [connector]
+      })
+      ;(ethersAdapter as any).addConnection({
+        connectorId: connector.id,
+        accounts: [{ address: '0xaddress1' }],
+        caipNetwork: mockCaipNetworks[0]
+      })
+
+      const revokePermissionsSpy = vi
+        .spyOn(ethersAdapter as any, 'revokeProviderPermissions')
+        .mockRejectedValue(new Error('Disconnect failed'))
+
+      await expect(ethersAdapter.disconnect({ id: undefined })).rejects.toThrow('Disconnect failed')
+      expect(revokePermissionsSpy).toHaveBeenCalled()
+    })
+  })
+
+  describe('EthersAdapter -syncConnections', () => {
+    let mockEmitFirstAvailableConnection: any
+
+    beforeEach(() => {
+      mockEmitFirstAvailableConnection = vi
+        .spyOn(adapter as any, 'emitFirstAvailableConnection')
+        .mockImplementation(() => {})
+    })
+
+    it('should sync connections for connectors that have connected and are not disconnected', async () => {
+      const connector = {
+        id: 'test',
+        type: 'EXTERNAL',
+        provider: {
+          request: vi.fn(),
+          on: vi.fn(),
+          removeListener: vi.fn()
+        } as unknown as Provider
+      }
+
+      Object.defineProperty(adapter, 'connectors', {
+        value: [connector]
+      })
+
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValueOnce({
+        hasDisconnected: false,
+        hasConnected: true
+      })
+
+      const fetchProviderDataSpy = vi.spyOn(ConnectorUtil, 'fetchProviderData').mockResolvedValue({
+        accounts: ['0x123'],
+        chainId: 1
+      })
+
+      const listenProviderEventsSpy = vi
+        .spyOn(adapter as any, 'listenProviderEvents')
+        .mockImplementation(() => {})
+
+      await adapter.syncConnections({
+        connectToFirstConnector: false
+      })
+
+      expect(fetchProviderDataSpy).toHaveBeenCalledWith(connector)
+      expect(listenProviderEventsSpy).toHaveBeenCalledWith(connector.id, connector.provider)
+      expect(adapter.connections).toHaveLength(1)
+      expect(adapter.connections[0]?.connectorId).toBe(connector.id)
+    })
+
+    it('should skip connectors that are disconnected', async () => {
+      const connector = {
+        id: 'test',
+        type: 'EXTERNAL',
+        provider: mockProvider
+      }
+
+      Object.defineProperty(adapter, 'connectors', {
+        value: [connector]
+      })
+
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValueOnce({
+        hasDisconnected: true,
+        hasConnected: true
+      })
+
+      const fetchProviderDataSpy = vi.spyOn(ConnectorUtil, 'fetchProviderData')
+
+      await adapter.syncConnections({
+        connectToFirstConnector: false
+      })
+
+      expect(fetchProviderDataSpy).not.toHaveBeenCalled()
+      expect(adapter.connections).toHaveLength(0)
+    })
+
+    it('should handle WalletConnect connector specially', async () => {
+      const mockWcProvider = mockWalletConnectProvider
+      adapter.setUniversalProvider(mockWcProvider)
+
+      const wcConnector = adapter.connectors.find(c => c.id === 'walletConnect')
+      expect(wcConnector).toBeDefined()
+
+      vi.spyOn(WcHelpersUtil, 'getWalletConnectAccounts').mockReturnValue([
+        {
+          address: '0xwcaddress',
+          chainId: 1,
+          chainNamespace: 'eip155' as any
+        }
+      ])
+
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValueOnce({
+        hasDisconnected: false,
+        hasConnected: true
+      })
+
+      await adapter.syncConnections({
+        connectToFirstConnector: false
+      })
+
+      const wcConnection = adapter.connections.find(c => c.connectorId === 'walletConnect')
+      expect(WcHelpersUtil.getWalletConnectAccounts).toHaveBeenCalledWith(mockWcProvider, 'eip155')
+      expect(wcConnection).toBeDefined()
+    })
+
+    it('should call emitFirstAvailableConnection when connectToFirstConnector is true', async () => {
+      const connector = {
+        id: 'test',
+        type: 'EXTERNAL',
+        provider: mockProvider
+      }
+
+      Object.defineProperty(adapter, 'connectors', {
+        value: [connector]
+      })
+
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValueOnce({
+        hasDisconnected: false,
+        hasConnected: true
+      })
+
+      vi.spyOn(ConnectorUtil, 'fetchProviderData').mockResolvedValue({
+        accounts: ['0x123'],
+        chainId: 1
+      })
+
+      await adapter.syncConnections({
+        connectToFirstConnector: true
+      })
+
+      expect(mockEmitFirstAvailableConnection).toHaveBeenCalled()
+    })
+
+    it('should not call emitFirstAvailableConnection when connectToFirstConnector is false', async () => {
+      const connector = {
+        id: 'test',
+        type: 'EXTERNAL',
+        provider: mockProvider
+      }
+
+      Object.defineProperty(adapter, 'connectors', {
+        value: [connector]
+      })
+
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValueOnce({
+        hasDisconnected: false,
+        hasConnected: true
+      })
+
+      vi.spyOn(ConnectorUtil, 'fetchProviderData').mockResolvedValue({
+        accounts: ['0x123'],
+        chainId: 1
+      })
+
+      await adapter.syncConnections({
+        connectToFirstConnector: false
+      })
+
+      expect(mockEmitFirstAvailableConnection).not.toHaveBeenCalled()
+    })
+
+    it('should handle connector connection failures', async () => {
+      const connector1 = {
+        id: 'test1',
+        type: 'EXTERNAL',
+        provider: mockProvider
+      }
+      const connector2 = {
+        id: 'test2',
+        type: 'EXTERNAL',
+        provider: mockProvider
+      }
+
+      Object.defineProperty(adapter, 'connectors', {
+        value: [connector1, connector2]
+      })
+
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValue({
+        hasDisconnected: false,
+        hasConnected: true
+      })
+
+      vi.spyOn(ConnectorUtil, 'fetchProviderData')
+        .mockRejectedValueOnce(new Error('Connection failed'))
+        .mockResolvedValueOnce({
+          accounts: ['0x123'],
+          chainId: 1
+        })
+
+      await expect(
+        adapter.syncConnections({
+          connectToFirstConnector: false
+        })
+      ).rejects.toThrow('Connection failed')
+
+      expect(adapter.connections).toHaveLength(1)
+      expect(adapter.connections[0]?.connectorId).toBe(connector2.id)
+
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockRestore()
+    })
+
+    it('should not add connection if no accounts returned', async () => {
+      const connector = {
+        id: 'test',
+        type: 'EXTERNAL',
+        provider: mockProvider
+      }
+
+      Object.defineProperty(adapter, 'connectors', {
+        value: [connector]
+      })
+
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValueOnce({
+        hasDisconnected: false,
+        hasConnected: true
+      })
+
+      vi.spyOn(ConnectorUtil, 'fetchProviderData').mockResolvedValue({
+        accounts: [],
+        chainId: 1
+      })
+
+      await adapter.syncConnections({
+        connectToFirstConnector: false
+      })
+
+      expect(adapter.connections).toHaveLength(0)
+    })
+
+    it('should not add connection if no chainId returned', async () => {
+      const connector = {
+        id: 'test',
+        type: 'EXTERNAL',
+        provider: mockProvider
+      }
+
+      Object.defineProperty(adapter, 'connectors', {
+        value: [connector]
+      })
+
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValueOnce({
+        hasDisconnected: false,
+        hasConnected: true
+      })
+
+      vi.spyOn(ConnectorUtil, 'fetchProviderData').mockResolvedValue({
+        accounts: ['0x123'],
+        chainId: undefined
+      })
+
+      await adapter.syncConnections({
+        connectToFirstConnector: false
+      })
+
+      expect(adapter.connections).toHaveLength(0)
+    })
+
+    it('should not listen to provider events for AUTH and WALLET_CONNECT connectors', async () => {
+      const authConnector = {
+        id: 'AUTH',
+        type: 'AUTH',
+        provider: mockAuthProvider
+      }
+      const wcConnector = {
+        id: 'walletConnect',
+        type: 'WALLET_CONNECT',
+        provider: mockWalletConnectProvider
+      }
+
+      Object.defineProperty(adapter, 'connectors', {
+        value: [authConnector, wcConnector]
+      })
+
+      vi.spyOn(HelpersUtil, 'getConnectorStorageInfo').mockReturnValueOnce({
+        hasConnected: true,
+        hasDisconnected: false
+      })
+
+      vi.spyOn(ConnectorUtil, 'fetchProviderData').mockResolvedValue({
+        accounts: ['0x123'],
+        chainId: 1
+      })
+
+      const listenProviderEventsSpy = vi
+        .spyOn(adapter as any, 'listenProviderEvents')
+        .mockImplementation(() => {})
+
+      await adapter.syncConnections({
+        connectToFirstConnector: false
+      })
+
+      expect(listenProviderEventsSpy).not.toHaveBeenCalled()
     })
   })
 
@@ -362,6 +889,25 @@ describe('EthersAdapter', () => {
 
       expect(result).toEqual({
         balance: '1.5',
+        symbol: 'ETH'
+      })
+    })
+
+    it('should set balance to zero if balance call fails', async () => {
+      vi.mocked(JsonRpcProvider).mockImplementation(
+        () =>
+          ({
+            getBalance: vi.fn().mockRejectedValue(new Error('Failed to get balance'))
+          }) as any
+      )
+
+      const result = await adapter.getBalance({
+        address: '0x123',
+        chainId: 1
+      })
+
+      expect(result).toEqual({
+        balance: '0.00',
         symbol: 'ETH'
       })
     })
@@ -409,6 +955,9 @@ describe('EthersAdapter', () => {
   })
 
   describe('EthersAdapter - switchNetwork', () => {
+    beforeEach(() => {
+      ChainController.setAccountProp('preferredAccountType', 'smartAccount', 'eip155')
+    })
     const errorCodes = [
       WcConstantsUtil.ERROR_CODE_UNRECOGNIZED_CHAIN_ID,
       WcConstantsUtil.ERROR_INVALID_CHAIN_ID,
@@ -434,10 +983,13 @@ describe('EthersAdapter', () => {
         })
 
         const mockCaipNetwork = mockCaipNetworks[0]
+
+        // Set up provider in ProviderController
+        ProviderController.setProvider(mockCaipNetwork.chainNamespace, mockProvider)
+        ProviderController.setProviderId(mockCaipNetwork.chainNamespace, 'EXTERNAL')
+
         await adapter.switchNetwork({
-          caipNetwork: mockCaipNetwork,
-          provider: mockProvider,
-          providerType: 'EXTERNAL'
+          caipNetwork: mockCaipNetwork
         })
 
         expect(mockProvider.request).toHaveBeenCalledWith({
@@ -461,13 +1013,20 @@ describe('EthersAdapter', () => {
     })
 
     it('should switch network with Auth provider', async () => {
+      // Set up provider in ProviderController
+      ProviderController.setProvider(mockCaipNetworks[0].chainNamespace, mockAuthProvider)
+      ProviderController.setProviderId(mockCaipNetworks[0].chainNamespace, 'AUTH')
+
+      // Mock ConnectorController.getAuthConnector to return our mock provider
+      vi.spyOn(ConnectorController, 'getAuthConnector').mockReturnValue({
+        provider: mockAuthProvider
+      } as any)
+
       await adapter.switchNetwork({
-        caipNetwork: mockCaipNetworks[0],
-        provider: mockAuthProvider,
-        providerType: 'AUTH'
+        caipNetwork: mockCaipNetworks[0]
       })
 
-      expect(mockAuthProvider.switchNetwork).toHaveBeenCalledWith('eip155:1')
+      expect(mockAuthProvider.switchNetwork).toHaveBeenCalledWith({ chainId: 'eip155:1' })
       expect(mockAuthProvider.getUser).toHaveBeenCalledWith({
         chainId: 'eip155:1',
         preferredAccountType: 'smartAccount'
@@ -491,11 +1050,14 @@ describe('EthersAdapter', () => {
       })
 
       const mockCaipNetwork = mockCaipNetworks[0]
+
+      // Set up provider in ProviderController
+      ProviderController.setProvider(mockCaipNetwork.chainNamespace, mockProvider)
+      ProviderController.setProviderId(mockCaipNetwork.chainNamespace, 'EXTERNAL')
+
       await expect(
         adapter.switchNetwork({
-          caipNetwork: mockCaipNetwork,
-          provider: mockProvider,
-          providerType: 'EXTERNAL'
+          caipNetwork: mockCaipNetwork
         })
       ).rejects.toThrow('Chain is not supported')
     })
@@ -511,18 +1073,18 @@ describe('EthersAdapter', () => {
       const params = {
         caipNetwork: {
           id: 1,
-          caipNetworkId: 'eip155:1'
-        },
-        provider: mockProvider,
-        providerType: 'WALLET_CONNECT'
+          caipNetworkId: 'eip155:1',
+          chainNamespace: 'eip155'
+        }
       } as unknown as any
+
+      // Set up provider in ProviderController
+      ProviderController.setProvider('eip155', mockProvider)
+      ProviderController.setProviderId('eip155', 'WALLET_CONNECT')
 
       await adapter.switchNetwork(params)
 
-      expect(mockProvider.request).toHaveBeenCalledWith({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x1' }]
-      })
+      expect(mockProvider.setDefaultChain).toHaveBeenCalledWith('eip155:1')
     })
   })
 
@@ -576,7 +1138,7 @@ describe('EthersAdapter', () => {
     } as unknown as UniversalProvider
 
     beforeEach(() => {
-      vi.spyOn(ProviderUtil, 'getProvider').mockImplementation(() => mockProvider)
+      vi.spyOn(ProviderController, 'getProvider').mockImplementation(() => mockProvider)
     })
 
     it('should call wallet_getCapabilities', async () => {
@@ -605,14 +1167,12 @@ describe('EthersAdapter', () => {
     })
 
     it('should call wallet_revokePermissions', async () => {
-      vi.mocked(mockProvider.request).mockImplementation(() =>
-        Promise.resolve('0x123' as `0x${string}`)
-      )
+      vi.mocked(mockProvider.request).mockImplementation(() => Promise.resolve('0x123'))
 
       const mockParams = {
         pci: 'test-pci',
         expiry: 1234567890,
-        address: '0x123' as `0x${string}`,
+        address: 'eip155:1:0x123' as CaipAddress,
         permissions: ['eth_accounts']
       }
 
@@ -643,6 +1203,10 @@ describe('EthersAdapter', () => {
         value: [{ id: 'test', provider: mockProvider }]
       })
 
+      // Set up provider in ProviderController for switchNetwork call in connect
+      ProviderController.setProvider('eip155', mockProvider)
+      ProviderController.setProviderId('eip155', 'EXTERNAL')
+
       await adapter.connect({
         id: 'test',
         type: 'EXTERNAL',
@@ -657,6 +1221,98 @@ describe('EthersAdapter', () => {
 
       expect(disconnect).toHaveBeenCalled()
       expect(mockProvider.removeListener).toHaveBeenCalledWith('disconnect', expect.any(Function))
+    })
+
+    it('should emit accountChanged event when connected', async () => {
+      const emitter = new Emitter()
+
+      const mockAddress = '0xdadb0d80178819f2319190d340ce9a924f783711'
+      const mockProvider = {
+        connect: vi.fn(),
+        request: vi.fn().mockResolvedValue([mockAddress]),
+        removeListener: vi.fn(),
+        on: emitter.on.bind(emitter),
+        off: emitter.off.bind(emitter),
+        emit: emitter.emit.bind(emitter)
+      } as unknown as Provider
+
+      Object.defineProperty(adapter, 'connectors', {
+        value: [{ id: 'test', provider: mockProvider }]
+      })
+
+      // Set up provider in ProviderController for switchNetwork call in connect
+      ProviderController.setProvider('eip155', mockProvider)
+      ProviderController.setProviderId('eip155', 'EXTERNAL')
+
+      const accountChangedSpy = vi.fn()
+
+      adapter.on('accountChanged', accountChangedSpy)
+
+      await adapter.connect({
+        id: 'test',
+        type: 'EXTERNAL',
+        chainId: 1
+      })
+
+      expect(accountChangedSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: getAddress(mockAddress),
+          chainId: 1
+        })
+      )
+    })
+  })
+
+  describe('EthersAdapter - createEthersConfig', () => {
+    beforeAll(() => {
+      vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
+        ...OptionsController.state,
+        metadata: mockEthersConfig.metadata
+      })
+
+      vi.mock('@reown/appkit-utils/ethers', async () => {
+        const actual = await import('@reown/appkit-utils/ethers')
+        return {
+          ...actual,
+          SafeProvider: vi.fn(() => ({
+            initialize: vi.fn()
+          })),
+          BaseProvider: vi.fn(() => ({
+            initialize: vi.fn()
+          })),
+          InjectedProvider: vi.fn(() => ({
+            initialize: vi.fn()
+          }))
+        }
+      })
+    })
+
+    beforeEach(() => {
+      vi.clearAllMocks()
+    })
+
+    it('should create Ethers config with coinbase provider if not disabled', async () => {
+      const ethersAdapter = new EthersAdapter()
+      const providers = await ethersAdapter['createEthersConfig']()
+
+      expect(providers?.baseAccount).toBeDefined()
+    })
+
+    it('should create Ethers config without coinbase provider if disabled', async () => {
+      vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
+        ...OptionsController.state,
+        enableCoinbase: false
+      })
+      const providers = await adapter['createEthersConfig']()
+
+      expect(providers?.baseAccount).toBeUndefined()
+    })
+
+    it('should create Ethers config with safe provider if in iframe and ancestor is app.safe.global', async () => {
+      vi.spyOn(CoreHelperUtil, 'isSafeApp').mockReturnValue(true)
+      const providers = await adapter['createEthersConfig']()
+
+      expect(providers?.safe).toBeDefined()
     })
   })
 })

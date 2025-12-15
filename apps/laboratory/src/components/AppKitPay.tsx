@@ -29,70 +29,59 @@ import {
 } from '@chakra-ui/react'
 import { Card } from '@chakra-ui/react'
 
-import type {
-  AddressOrNative,
-  AppKitPayErrorMessage,
-  Exchange,
-  PayResult,
-  PayUrlParams,
-  PaymentAsset
-} from '@reown/appkit-pay'
+import type { CaipNetworkId } from '@reown/appkit-common'
+import type { Exchange, PayUrlParams, PaymentAsset } from '@reown/appkit-pay'
+import { baseETH, baseSepoliaETH, baseUSDC, pay } from '@reown/appkit-pay'
 import {
   type ExchangeBuyStatus,
   useAvailableExchanges,
   useExchangeBuyStatus,
-  usePay,
   usePayUrlActions
 } from '@reown/appkit-pay/react'
+import { solana, solanaDevnet } from '@reown/appkit/networks'
 
 import { useChakraToast } from './Toast'
 
-interface Metadata {
-  name: string
-  symbol: string
-  decimals: number
-}
-
 interface AppKitPaymentAssetState {
-  network: string
   recipient: string
-  asset: string
   amount: number
-  metadata: Metadata
+  asset: PaymentAsset
 }
 
-type PresetKey = 'NATIVE_BASE' | 'NATIVE_BASE_SEPOLIA' | 'USDC_BASE'
+type PresetKey = 'NATIVE_BASE' | 'NATIVE_BASE_SEPOLIA' | 'USDC_BASE' | 'USDC_SOLANA' | 'SOL_DEV'
 
 const PRESETS: Record<PresetKey, Omit<AppKitPaymentAssetState, 'recipient'>> = {
   NATIVE_BASE: {
-    network: 'eip155:8453',
-    asset: 'native',
-    amount: 0.00001,
-    metadata: {
-      name: 'Ethereum',
-      symbol: 'ETH',
-      decimals: 18
-    }
+    asset: baseETH,
+    amount: 0.00001
   },
   NATIVE_BASE_SEPOLIA: {
-    network: 'eip155:84532',
-    asset: 'native',
-    amount: 0.00001,
-    metadata: {
-      name: 'Ethereum',
-      symbol: 'ETH',
-      decimals: 18
-    }
+    asset: baseSepoliaETH,
+    amount: 0.00001
   },
   USDC_BASE: {
-    network: 'eip155:8453',
-    asset: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
-    amount: 20,
-    metadata: {
-      name: 'USD Coin',
-      symbol: 'USDC',
-      decimals: 6
-    }
+    asset: baseUSDC,
+    amount: 12
+  },
+  USDC_SOLANA: {
+    asset: {
+      network: solana.caipNetworkId,
+      asset: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      metadata: {
+        name: 'USD Coin',
+        symbol: 'USDC',
+        decimals: 6
+      }
+    },
+    amount: 1
+  },
+  SOL_DEV: {
+    asset: {
+      network: solanaDevnet.caipNetworkId,
+      asset: 'native',
+      metadata: { name: 'Solana', symbol: 'SOL', decimals: 9 }
+    },
+    amount: 0.00001
   }
 }
 
@@ -106,33 +95,12 @@ export function AppKitPay() {
   const { isOpen, onToggle } = useDisclosure()
   const toast = useChakraToast()
 
-  function handleSuccess(resultData: PayResult) {
-    toast({
-      title: 'Transaction successful',
-      description: resultData,
-      type: 'success'
-    })
-  }
-
-  function handleError(errorData: AppKitPayErrorMessage) {
-    toast({
-      title: 'Transaction failed',
-      description: errorData,
-      type: 'error'
-    })
-  }
-
-  const { open, isPending } = usePay({
-    onSuccess: handleSuccess,
-    onError: handleError
-  })
-
   const {
     data: fetchedExchangesData,
     isLoading: isLoadingExchanges,
     error: errorExchanges,
     fetch: triggerFetchExchanges
-  } = useAvailableExchanges({ isFetchOnInit: false })
+  } = useAvailableExchanges({ shouldFetchOnInit: false })
   const { openUrl } = usePayUrlActions()
   const [displayedExchanges, setDisplayedExchanges] = useState<Exchange[] | null>(null)
 
@@ -143,17 +111,15 @@ export function AppKitPay() {
     }
 
     return {
-      network: 'eip155:8453',
       recipient: initialRecipient,
-      asset: 'native',
-      amount: 0.00001,
-      metadata: {
-        name: 'Ethereum',
-        symbol: 'ETH',
-        decimals: 18
-      }
+      asset: baseETH,
+      amount: 0.00001
     }
   })
+
+  const [amountDisplayValue, setAmountDisplayValue] = useState<string>(() =>
+    paymentDetails.amount.toString()
+  )
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -164,14 +130,7 @@ export function AppKitPay() {
   const [activeCheck, setActiveCheck] = useState<ActiveStatusCheck | null>(null)
 
   function isPresetActive(preset: Omit<AppKitPaymentAssetState, 'recipient'>): boolean {
-    return (
-      paymentDetails.network === preset.network &&
-      paymentDetails.asset === preset.asset &&
-      paymentDetails.amount === preset.amount &&
-      paymentDetails.metadata.name === preset.metadata.name &&
-      paymentDetails.metadata.symbol === preset.metadata.symbol &&
-      paymentDetails.metadata.decimals === preset.metadata.decimals
-    )
+    return paymentDetails.asset === preset.asset && paymentDetails.amount === preset.amount
   }
 
   function handlePresetClick(preset: Omit<AppKitPaymentAssetState, 'recipient'>) {
@@ -179,6 +138,7 @@ export function AppKitPay() {
       ...preset,
       recipient: prev.recipient
     }))
+    setAmountDisplayValue(preset.amount.toString())
   }
 
   const handleSuccessStatus = useCallback(
@@ -227,44 +187,62 @@ export function AppKitPay() {
 
       return
     }
-    if (!/^0x[a-fA-F0-9]{40}$/u.test(paymentDetails.recipient)) {
-      toast({ title: 'Invalid Recipient', description: 'Please enter a valid Ethereum address.' })
-
-      return
-    }
-
-    const paymentAsset: PaymentAsset = {
-      ...paymentDetails,
-      network: paymentDetails.network as PaymentAsset['network'],
-      asset: paymentDetails.asset as PaymentAsset['asset'],
-      amount: paymentDetails.amount
-    }
-
-    await open({
-      paymentAsset
+    const result = await pay({
+      recipient: paymentDetails.recipient,
+      amount: paymentDetails.amount,
+      paymentAsset: paymentDetails.asset
     })
-  }
 
-  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const { name, value } = e.target
-    if (name.startsWith('metadata.')) {
-      const key = name.split('.')[1] as keyof Metadata
-      const processedValue = key === 'decimals' ? parseInt(value, 10) || 0 : value
-      setPaymentDetails((prev: AppKitPaymentAssetState) => ({
-        ...prev,
-        metadata: { ...prev.metadata, [key]: processedValue }
-      }))
+    if (result.success) {
+      toast({ title: 'Payment Succeeded', description: `Tx: ${result.result}`, type: 'success' })
     } else {
-      const fieldName = name as keyof Omit<AppKitPaymentAssetState, 'metadata'>
-      const processedValue: string | number = value
-      setPaymentDetails((prev: AppKitPaymentAssetState) => ({
-        ...prev,
-        [fieldName]: processedValue
-      }))
+      toast({
+        title: 'Payment Failed',
+        description: result.error ?? 'Unknown error',
+        type: 'error'
+      })
     }
   }
 
-  function handleAmountChange(_valueAsString: string, valueAsNumber: number) {
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target
+      setPaymentDetails((prev: AppKitPaymentAssetState) => {
+        const newDetails = { ...prev }
+        switch (name) {
+          case 'recipient':
+            newDetails.recipient = value
+            break
+          case 'network':
+            newDetails.asset = { ...newDetails.asset, network: value as CaipNetworkId }
+            break
+          case 'asset':
+            newDetails.asset = { ...newDetails.asset, asset: value }
+            break
+          case 'metadata.name':
+            newDetails.asset = {
+              ...newDetails.asset,
+              metadata: { ...newDetails.asset.metadata, name: value }
+            }
+            break
+          case 'metadata.symbol':
+            newDetails.asset = {
+              ...newDetails.asset,
+              metadata: { ...newDetails.asset.metadata, symbol: value }
+            }
+            break
+          default:
+            break
+        }
+
+        return newDetails
+      })
+    },
+    [setPaymentDetails]
+  )
+
+  function handleAmountChange(valueAsString: string, valueAsNumber: number) {
+    setAmountDisplayValue(valueAsString)
     setPaymentDetails((prev: AppKitPaymentAssetState) => ({
       ...prev,
       amount: isNaN(valueAsNumber) ? 0 : valueAsNumber
@@ -274,7 +252,10 @@ export function AppKitPay() {
   function handleDecimalsChange(_valueAsString: string, valueAsNumber: number) {
     setPaymentDetails((prev: AppKitPaymentAssetState) => ({
       ...prev,
-      metadata: { ...prev.metadata, decimals: isNaN(valueAsNumber) ? 0 : valueAsNumber }
+      asset: {
+        ...prev.asset,
+        metadata: { ...prev.asset.metadata, decimals: isNaN(valueAsNumber) ? 0 : valueAsNumber }
+      }
     }))
   }
 
@@ -299,8 +280,8 @@ export function AppKitPay() {
     }
 
     const params: PayUrlParams = {
-      network: paymentDetails.network as `eip155:${string}`,
-      asset: paymentDetails.asset as AddressOrNative,
+      network: paymentDetails.asset.network as `eip155:${string}`,
+      asset: paymentDetails.asset.asset,
       amount: paymentDetails.amount.toString(),
       recipient: paymentDetails.recipient
     }
@@ -386,12 +367,13 @@ export function AppKitPay() {
 
             <FormControl>
               <FormLabel>Presets</FormLabel>
-              <ButtonGroup spacing="4" width="full">
+              <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 5 }} spacing="3" width="full">
                 <Button
                   onClick={() => handlePresetClick(PRESETS['NATIVE_BASE'])}
                   isActive={isPresetActive(PRESETS['NATIVE_BASE'])}
                   variant={isPresetActive(PRESETS['NATIVE_BASE']) ? 'solid' : 'outline'}
-                  flex="1"
+                  width="full"
+                  minH="44px"
                 >
                   Native Base
                 </Button>
@@ -399,7 +381,8 @@ export function AppKitPay() {
                   onClick={() => handlePresetClick(PRESETS['NATIVE_BASE_SEPOLIA'])}
                   isActive={isPresetActive(PRESETS['NATIVE_BASE_SEPOLIA'])}
                   variant={isPresetActive(PRESETS['NATIVE_BASE_SEPOLIA']) ? 'solid' : 'outline'}
-                  flex="1"
+                  width="full"
+                  minH="44px"
                 >
                   Native Base Sepolia
                 </Button>
@@ -407,11 +390,30 @@ export function AppKitPay() {
                   onClick={() => handlePresetClick(PRESETS['USDC_BASE'])}
                   isActive={isPresetActive(PRESETS['USDC_BASE'])}
                   variant={isPresetActive(PRESETS['USDC_BASE']) ? 'solid' : 'outline'}
-                  flex="1"
+                  width="full"
+                  minH="44px"
                 >
                   USDC Base
                 </Button>
-              </ButtonGroup>
+                <Button
+                  onClick={() => handlePresetClick(PRESETS['USDC_SOLANA'])}
+                  isActive={isPresetActive(PRESETS['USDC_SOLANA'])}
+                  variant={isPresetActive(PRESETS['USDC_SOLANA']) ? 'solid' : 'outline'}
+                  width="full"
+                  minH="44px"
+                >
+                  USDC Solana
+                </Button>
+                <Button
+                  onClick={() => handlePresetClick(PRESETS['SOL_DEV'])}
+                  isActive={isPresetActive(PRESETS['SOL_DEV'])}
+                  variant={isPresetActive(PRESETS['SOL_DEV']) ? 'solid' : 'outline'}
+                  width="full"
+                  minH="44px"
+                >
+                  SOL Dev
+                </Button>
+              </SimpleGrid>
             </FormControl>
 
             <Button onClick={onToggle} variant="outline" width="full">
@@ -425,7 +427,7 @@ export function AppKitPay() {
                     <FormLabel>Network (Chain ID)</FormLabel>
                     <Input
                       name="network"
-                      value={paymentDetails.network}
+                      value={paymentDetails.asset.network}
                       onChange={handleInputChange}
                     />
                     <FormHelperText>Example: eip155:8453 (Base Mainnet)</FormHelperText>
@@ -433,7 +435,11 @@ export function AppKitPay() {
 
                   <FormControl>
                     <FormLabel>Asset Address</FormLabel>
-                    <Input name="asset" value={paymentDetails.asset} onChange={handleInputChange} />
+                    <Input
+                      name="asset"
+                      value={paymentDetails.asset.asset}
+                      onChange={handleInputChange}
+                    />
                     <FormHelperText>
                       Example: 0x833589fcd6edb6e08f4c7c32d4f71b54bda02913 (USDC on Base)
                     </FormHelperText>
@@ -441,14 +447,7 @@ export function AppKitPay() {
 
                   <FormControl>
                     <FormLabel>Amount</FormLabel>
-                    <NumberInput
-                      name="amount"
-                      value={paymentDetails.amount.toString()}
-                      onChange={handleAmountChange}
-                      min={0}
-                      precision={paymentDetails.metadata.decimals}
-                      step={1 / 10 ** paymentDetails.metadata.decimals}
-                    >
+                    <NumberInput value={amountDisplayValue} onChange={handleAmountChange} min={0}>
                       <NumberInputField />
                     </NumberInput>
                     <FormHelperText>Example: 20 (Input as float)</FormHelperText>
@@ -458,7 +457,7 @@ export function AppKitPay() {
                     <FormLabel>Metadata: Name</FormLabel>
                     <Input
                       name="metadata.name"
-                      value={paymentDetails.metadata.name}
+                      value={paymentDetails.asset.metadata.name}
                       onChange={handleInputChange}
                     />
                     <FormHelperText>Example: USDC</FormHelperText>
@@ -468,7 +467,7 @@ export function AppKitPay() {
                     <FormLabel>Metadata: Symbol</FormLabel>
                     <Input
                       name="metadata.symbol"
-                      value={paymentDetails.metadata.symbol}
+                      value={paymentDetails.asset.metadata.symbol}
                       onChange={handleInputChange}
                     />
                     <FormHelperText>Example: USDC</FormHelperText>
@@ -478,7 +477,7 @@ export function AppKitPay() {
                     <FormLabel>Metadata: Decimals</FormLabel>
                     <NumberInput
                       name="metadata.decimals"
-                      value={paymentDetails.metadata.decimals}
+                      value={paymentDetails.asset.metadata.decimals}
                       onChange={handleDecimalsChange}
                       min={0}
                       precision={0}
@@ -500,16 +499,8 @@ export function AppKitPay() {
         </CardHeader>
         <CardBody>
           <Stack spacing="4">
-            <Button
-              onClick={handleOpenPay}
-              isDisabled={
-                !paymentDetails.recipient ||
-                !/^0x[a-fA-F0-9]{40}$/u.test(paymentDetails.recipient) ||
-                isPending
-              }
-              width="full"
-            >
-              {isPending ? <Spinner /> : 'Open Pay Modal'}
+            <Button onClick={handleOpenPay} width="full">
+              Open Pay Modal
             </Button>
 
             <Text fontSize="sm" color="gray.500">

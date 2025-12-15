@@ -1,8 +1,9 @@
 import { type BrowserContext, test } from '@playwright/test'
 
-import { DEFAULT_SESSION_PARAMS } from './shared/constants'
+import { WalletPage } from '@reown/appkit-testing'
+import { DEFAULT_SESSION_PARAMS } from '@reown/appkit-testing'
+
 import { ModalPage } from './shared/pages/ModalPage'
-import { WalletPage } from './shared/pages/WalletPage'
 import { Email } from './shared/utils/email'
 import { ModalValidator } from './shared/validators/ModalValidator'
 
@@ -26,7 +27,7 @@ walletButtonTest.beforeAll(async ({ browser, library }) => {
   context = await browser.newContext()
   const browserPage = await context.newPage()
 
-  modalPage = new ModalPage(browserPage, library, 'wallet-button')
+  modalPage = new ModalPage(browserPage, library, 'default')
   walletPage = new WalletPage(await context.newPage())
   modalValidator = new ModalValidator(browserPage)
 
@@ -51,7 +52,7 @@ walletButtonTest('it should be connected after page refresh', async () => {
 })
 
 walletButtonTest('it should connect with email', async ({ library }) => {
-  if (library === 'bitcoin') {
+  if (library === 'bitcoin' || library === 'ton') {
     return
   }
 

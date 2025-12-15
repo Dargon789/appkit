@@ -3,7 +3,9 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { html } from 'lit'
 
+import type { CaipNetwork } from '@reown/appkit-common'
 import {
+  ChainController,
   ConnectionController,
   type Connector,
   ConnectorController,
@@ -29,6 +31,9 @@ describe('W3mConnectingWcBrowser', () => {
   beforeAll(() => {
     Element.prototype.animate = vi.fn()
     vi.spyOn(CoreHelperUtil, 'isMobile').mockReturnValue(false)
+    vi.spyOn(ChainController, 'getActiveCaipNetwork').mockReturnValue({
+      caipNetworkId: 'eip155:1'
+    } as unknown as CaipNetwork)
   })
 
   afterEach(() => {
@@ -65,11 +70,6 @@ describe('W3mConnectingWcBrowser', () => {
     await fixture(html`<w3m-connecting-wc-browser></w3m-connecting-wc-browser>`)
 
     expect(ConnectionController.connectExternal).toHaveBeenCalledWith(CONNECTOR, CONNECTOR.chain)
-    expect(EventsController.sendEvent).toHaveBeenCalledWith({
-      type: 'track',
-      event: 'CONNECT_SUCCESS',
-      properties: { method: 'browser', name: CONNECTOR.name }
-    })
   })
 
   it('it should throw an error if trying to connect when a connector does not exist', async () => {

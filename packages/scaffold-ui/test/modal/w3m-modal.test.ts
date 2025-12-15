@@ -13,7 +13,7 @@ import {
   RouterController,
   SIWXUtil
 } from '@reown/appkit-controllers'
-import type { AccountControllerState, SIWXConfig } from '@reown/appkit-controllers'
+import type { AccountState, SIWXConfig } from '@reown/appkit-controllers'
 import { ErrorUtil } from '@reown/appkit-utils'
 
 import { W3mModal } from '../../src/modal/w3m-modal'
@@ -173,17 +173,20 @@ describe('W3mModal', () => {
   describe('Network Changes', () => {
     let element: W3mModal
 
-    beforeAll(() => {
+    beforeEach(async () => {
+      vi.restoreAllMocks()
+      global.ResizeObserver = vi.fn().mockImplementation(() => ({
+        observe: vi.fn(),
+        unobserve: vi.fn(),
+        disconnect: vi.fn()
+      }))
       vi.spyOn(ChainController, 'state', 'get').mockReturnValue({
         ...ChainController.state,
         activeChain: 'eip155'
       })
       vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
         caipAddress: 'eip155:1:0x123'
-      } as unknown as AccountControllerState)
-    })
-
-    beforeEach(async () => {
+      } as unknown as AccountState)
       vi.spyOn(ApiController, 'prefetch').mockImplementation(() => Promise.resolve([]))
       vi.spyOn(ApiController, 'fetchWalletsByPage').mockImplementation(() => Promise.resolve())
       vi.spyOn(ApiController, 'prefetchAnalyticsConfig').mockImplementation(() => Promise.resolve())
@@ -208,26 +211,11 @@ describe('W3mModal', () => {
       expect(goBackSpy).not.toHaveBeenCalled()
     })
 
-    it('should handle network change when not connected and modal is open', async () => {
-      const goBackSpy = vi.spyOn(RouterController, 'goBack')
-      ModalController.open()
-      ;(element as any).caipAddress = undefined
-      ;(element as any).caipNetwork = polygon
-
-      ChainController.setActiveCaipNetwork(mainnet)
-      element.requestUpdate()
-      await elementUpdated(element)
-
-      expect(goBackSpy).toHaveBeenCalled()
-    })
-
     it('should call goBack when network changed and page is UnsupportedChain', async () => {
       ModalController.open({ view: 'UnsupportedChain' })
       const goBackSpy = vi.spyOn(RouterController, 'goBack')
-      ;(element as any).caipAddress = 'eip155:1:0x123'
-      ;(element as any).caipNetwork = mainnet
 
-      ChainController.setActiveCaipNetwork(polygon) // switch network
+      ChainController.setActiveCaipNetwork(mainnet) // switch network
 
       element.requestUpdate()
       await elementUpdated(element)
@@ -246,19 +234,6 @@ describe('W3mModal', () => {
       await elementUpdated(element)
 
       expect(goBackSpy).not.toHaveBeenCalled()
-    })
-
-    it('should handle network change when connected and modal is open', async () => {
-      ModalController.open()
-      const goBackSpy = vi.spyOn(RouterController, 'goBack')
-      ;(element as any).caipAddress = 'eip155:1:0x123'
-      ;(element as any).caipNetwork = mainnet
-
-      ChainController.setActiveCaipNetwork(polygon)
-      element.requestUpdate()
-      await elementUpdated(element)
-
-      expect(goBackSpy).toHaveBeenCalled()
     })
   })
 
@@ -374,7 +349,7 @@ describe('W3mModal', () => {
       const alertbar = HelpersUtil.querySelect(element, 'w3m-alertbar')
       expect(alertbar).toBeTruthy()
       expect(AlertController.state.open).toBe(true)
-      expect(AlertController.state.message).toBe('Project ID Not Configured')
+      expect(AlertController.state.message).toBe('Project ID Missing')
       expect(AlertController.state.variant).toBe('error')
     })
 
@@ -391,6 +366,72 @@ describe('W3mModal', () => {
 
       // Alert state should not be open since debug mode is disabled
       expect(AlertController.state.open).toBe(false)
+    })
+  })
+
+  describe('onNewAddress', () => {
+    let element: W3mModal
+
+    beforeEach(async () => {
+      vi.spyOn(ApiController, 'prefetch').mockImplementation(() => Promise.resolve([]))
+      vi.spyOn(ApiController, 'fetchWalletsByPage').mockImplementation(() => Promise.resolve())
+      vi.spyOn(ApiController, 'prefetchAnalyticsConfig').mockImplementation(() => Promise.resolve())
+      vi.spyOn(SIWXUtil, 'initializeIfEnabled').mockImplementation(() => Promise.resolve())
+      vi.spyOn(SIWXUtil, 'getSessions').mockImplementation(() => Promise.resolve([]))
+      vi.spyOn(ChainController, 'setIsSwitchingNamespace')
+      vi.spyOn(ModalController, 'close')
+      vi.spyOn(RouterController, 'goBack')
+
+      element = await fixture(html`<w3m-modal></w3m-modal>`)
+    })
+
+    afterEach(() => {
+      vi.clearAllMocks()
+      RouterController.state.view = 'Connect'
+      ChainController.state.isSwitchingNamespace = false
+    })
+
+    it('should close modal when address is undefined and not in special states', async () => {
+      await (element as any).onNewAddress(undefined)
+
+      expect(ModalController.close).toHaveBeenCalled()
+      expect(ChainController.setIsSwitchingNamespace).toHaveBeenCalledWith(false)
+      expect(SIWXUtil.initializeIfEnabled).toHaveBeenCalled()
+    })
+
+    it('should not close modal when address is undefined but switching namespace', async () => {
+      ChainController.state.isSwitchingNamespace = true
+      ;(element as any).caipAddress = 'eip155:1:0x123'
+      await (element as any).onNewAddress(undefined)
+
+      expect(ModalController.close).not.toHaveBeenCalled()
+      expect(ChainController.setIsSwitchingNamespace).toHaveBeenCalledWith(false)
+      expect(SIWXUtil.initializeIfEnabled).toHaveBeenCalled()
+    })
+
+    it('should handle namespace switching with authenticated session', async () => {
+      ChainController.state.isSwitchingNamespace = true
+      vi.spyOn(SIWXUtil, 'getSIWX').mockReturnValue({
+        getRequired: vi.fn().mockReturnValue(true)
+      } as unknown as SIWXConfig)
+      vi.spyOn(SIWXUtil, 'getSessions').mockResolvedValue([
+        { data: { accountAddress: '0x123' } }
+      ] as any)
+
+      await (element as any).onNewAddress('eip155:1:0x123')
+
+      expect(SIWXUtil.initializeIfEnabled).toHaveBeenCalledOnce()
+      expect(ChainController.setIsSwitchingNamespace).toHaveBeenCalledWith(false)
+    })
+
+    it('should not navigate when in profile view with new address', async () => {
+      RouterController.state.view = 'ProfileWallets'
+
+      await (element as any).onNewAddress('eip155:1:0x123')
+
+      expect(RouterController.goBack).not.toHaveBeenCalled()
+      expect(ModalController.close).not.toHaveBeenCalled()
+      expect(ChainController.setIsSwitchingNamespace).toHaveBeenCalledWith(false)
     })
   })
 })

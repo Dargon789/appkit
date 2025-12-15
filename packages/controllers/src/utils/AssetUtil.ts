@@ -1,9 +1,11 @@
 import { proxy } from 'valtio/vanilla'
 
 import type { CaipNetwork, ChainNamespace } from '@reown/appkit-common'
+import { ConstantsUtil } from '@reown/appkit-common'
 
 import { ApiController } from '../controllers/ApiController.js'
 import { AssetController } from '../controllers/AssetController.js'
+import { OptionsController } from '../controllers/OptionsController.js'
 import type { Connector, WcWallet } from './TypeUtil.js'
 
 // -- Types --------------------------------------------- //
@@ -21,7 +23,13 @@ const namespaceImageIds: Record<ChainNamespace, string> = {
   // Bitcoin
   bip122: '0b4838db-0161-4ffe-022d-532bf03dba00',
   // Cosmos
-  cosmos: ''
+  cosmos: '',
+  // Sui
+  sui: '',
+  // Stacks
+  stacks: '',
+  // TON
+  ton: '20f673c0-095e-49b2-07cf-eb5049dcf600'
 }
 
 // -- State --------------------------------------------- //
@@ -108,6 +116,10 @@ export const AssetUtil = {
       return connector.imageUrl
     }
 
+    if (connector?.info?.icon) {
+      return connector.info.icon
+    }
+
     if (connector?.imageId) {
       return AssetController.state.connectorImages[connector.imageId]
     }
@@ -117,5 +129,62 @@ export const AssetUtil = {
 
   getChainImage(chain: ChainNamespace) {
     return AssetController.state.networkImages[namespaceImageIds[chain]]
+  },
+
+  getTokenImage(symbol?: string) {
+    if (!symbol) {
+      return undefined
+    }
+
+    return AssetController.state.tokenImages[symbol]
+  },
+
+  /**
+   * Get the explorer wallet's image URL for the given image ID.
+   * @param imageId - The image id of the wallet.
+   * @returns The image URL for the wallet.
+   */
+  getWalletImageUrl(imageId: string | undefined) {
+    if (!imageId) {
+      return ''
+    }
+
+    const { projectId, sdkType, sdkVersion } = OptionsController.state
+
+    const url = new URL(`${ConstantsUtil.W3M_API_URL}/getWalletImage/${imageId}`)
+    url.searchParams.set('projectId', projectId)
+    url.searchParams.set('st', sdkType)
+    url.searchParams.set('sv', sdkVersion)
+
+    return url.toString()
+  },
+
+  /**
+   * Get the public asset's image URL with the given image ID.
+   * @param imageId - The image id of the asset.
+   * @returns The image URL for the asset.
+   */
+  getAssetImageUrl(imageId: string | undefined) {
+    if (!imageId) {
+      return ''
+    }
+
+    const { projectId, sdkType, sdkVersion } = OptionsController.state
+
+    const url = new URL(`${ConstantsUtil.W3M_API_URL}/public/getAssetImage/${imageId}`)
+    url.searchParams.set('projectId', projectId)
+    url.searchParams.set('st', sdkType)
+    url.searchParams.set('sv', sdkVersion)
+
+    return url.toString()
+  },
+
+  /**
+   * Get the image URL for the given chain namespace.
+   * @param chainNamespace - The chain namespace to get the image URL for.
+   * @returns The image URL for the chain namespace.
+   */
+  getChainNamespaceImageUrl(chainNamespace: ChainNamespace) {
+    return this.getAssetImageUrl(namespaceImageIds[chainNamespace])
   }
 }

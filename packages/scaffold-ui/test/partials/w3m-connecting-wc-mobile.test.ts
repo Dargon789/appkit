@@ -3,8 +3,8 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 
 import {
   ConnectionController,
-  ConstantsUtil,
   CoreHelperUtil,
+  OptionsController,
   RouterController
 } from '@reown/appkit-controllers'
 
@@ -50,6 +50,7 @@ describe('W3mConnectingWcMobile', () => {
 
     expect(openHrefSpy).toHaveBeenCalledWith(`link://wc?uri=${WC_URI}`, '_self')
   })
+
   it('should call openHref with _top if inside iframe', async () => {
     const originalTop = global.window.top
     const originalSelf = global.window.self
@@ -72,34 +73,75 @@ describe('W3mConnectingWcMobile', () => {
     }
   })
 
-  it('should reset labels and timeouts on Try Again', async () => {
+  it('should reset error values on try again', async () => {
     vi.useFakeTimers()
     const el: W3mConnectingWcMobile = await fixture(
       html`<w3m-connecting-wc-mobile></w3m-connecting-wc-mobile>`
     )
-
-    const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout')
-    const setTimeoutSpy = vi.spyOn(global, 'setTimeout')
     const setWcErrorSpy = vi.spyOn(ConnectionController, 'setWcError')
-    const onConnectSpy = vi.spyOn(el as any, 'onConnect')
-
-    el['secondaryBtnLabel'] = 'Try again'
-    el['secondaryLabel'] = `Hold tight... it's taking longer than expected`
-
-    // Clear mocks before calling the method to isolate calls within onTryAgain
-    clearTimeoutSpy.mockClear()
-    setTimeoutSpy.mockClear()
 
     el['onTryAgain']()
 
-    // Check core logic: labels reset, new timeouts set, error cleared, connect called
-    expect(el['secondaryBtnLabel']).toBeUndefined()
-    expect(el['secondaryLabel']).toBe(ConstantsUtil.CONNECT_LABELS.MOBILE)
-    expect(setTimeoutSpy).toHaveBeenCalledTimes(2)
     expect(setWcErrorSpy).toHaveBeenCalledWith(false)
-    expect(onConnectSpy).toHaveBeenCalledOnce()
+  })
 
-    // Check that the original timeouts were cleared at least once during the process
-    expect(clearTimeoutSpy).toHaveBeenCalled()
+  it('should use link_mode when enableUniversalLinks is true and wallet has link_mode', async () => {
+    vi.spyOn(RouterController, 'state', 'get').mockReturnValueOnce({
+      ...RouterController.state,
+      data: {
+        wallet: {
+          id: 'test',
+          name: 'test',
+          mobile_link: 'link',
+          link_mode: 'reown.com/appkit'
+        }
+      }
+    })
+
+    // Mock enableUniversalLinks to true
+    vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
+      ...OptionsController.state,
+      experimental_preferUniversalLinks: true
+    })
+
+    const el: W3mConnectingWcMobile = await fixture(
+      html`<w3m-connecting-wc-mobile></w3m-connecting-wc-mobile>`
+    )
+
+    const openHrefSpy = vi.spyOn(CoreHelperUtil, 'openHref')
+    el['onConnect']()
+
+    expect(openHrefSpy).toHaveBeenCalledWith(
+      expect.stringContaining('reown.com/appkit/wc?uri='),
+      '_self'
+    )
+  })
+
+  it('should use deeplink if enableUniversalLinks is enabled but wallet has no link_mode', async () => {
+    vi.spyOn(RouterController, 'state', 'get').mockReturnValueOnce({
+      ...RouterController.state,
+      data: {
+        wallet: {
+          id: 'test',
+          name: 'test',
+          mobile_link: 'test://app'
+        }
+      }
+    })
+
+    // Mock enableUniversalLinks to true
+    vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
+      ...OptionsController.state,
+      experimental_preferUniversalLinks: true
+    })
+
+    const el: W3mConnectingWcMobile = await fixture(
+      html`<w3m-connecting-wc-mobile></w3m-connecting-wc-mobile>`
+    )
+
+    const openHrefSpy = vi.spyOn(CoreHelperUtil, 'openHref')
+    el['onConnect']()
+
+    expect(openHrefSpy).toHaveBeenCalledWith(expect.stringContaining('test://app/wc?uri='), '_self')
   })
 })

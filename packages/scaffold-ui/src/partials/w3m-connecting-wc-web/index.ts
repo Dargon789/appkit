@@ -1,6 +1,12 @@
 import { state } from 'lit/decorators.js'
 
-import { ConnectionController, CoreHelperUtil, EventsController } from '@reown/appkit-controllers'
+import {
+  ConnectionController,
+  ConstantsUtil,
+  CoreHelperUtil,
+  EventsController,
+  RouterController
+} from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
 
 import { W3mConnectingWidget } from '../../utils/w3m-connecting-widget/index.js'
@@ -17,7 +23,7 @@ export class W3mConnectingWcWeb extends W3mConnectingWidget {
     }
     this.onConnect = this.onConnectProxy.bind(this)
     this.secondaryBtnLabel = 'Open'
-    this.secondaryLabel = 'Open and continue in a new browser tab'
+    this.secondaryLabel = ConstantsUtil.CONNECT_LABELS.MOBILE
     this.secondaryBtnIcon = 'externalLink'
 
     // Update isLoading state initially and whenever URI changes
@@ -31,7 +37,13 @@ export class W3mConnectingWcWeb extends W3mConnectingWidget {
     EventsController.sendEvent({
       type: 'track',
       event: 'SELECT_WALLET',
-      properties: { name: this.wallet.name, platform: 'web' }
+      properties: {
+        name: this.wallet.name,
+        platform: 'web',
+        displayIndex: this.wallet?.display_index,
+        walletRank: this.wallet?.order,
+        view: RouterController.state.view
+      }
     })
   }
 

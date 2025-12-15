@@ -1,14 +1,13 @@
-import type { Connector } from '@wagmi/core'
+import type { Connector, CreateConnectorFn } from '@wagmi/core'
 import { UniversalProvider } from '@walletconnect/universal-provider'
 import { type Hex } from 'viem'
 
-import { WcHelpersUtil } from '@reown/appkit'
-import { type CaipNetworkId } from '@reown/appkit-common'
-import { ConstantsUtil, PresetsUtil } from '@reown/appkit-utils'
+import { type CaipNetworkId, ConstantsUtil, PresetsUtil } from '@reown/appkit-common'
+import { CoreHelperUtil, WcHelpersUtil } from '@reown/appkit-controllers'
 
 export async function getWalletConnectCaipNetworks(connector?: Connector) {
   if (!connector) {
-    throw new Error('networkControllerClient:getApprovedCaipNetworks - connector is undefined')
+    throw new Error('WagmiAdapter:getApprovedCaipNetworks - connector is undefined')
   }
   const provider = (await connector?.getProvider()) as Awaited<
     ReturnType<(typeof UniversalProvider)['init']>
@@ -51,4 +50,37 @@ export function parseWalletCapabilities(str: string) {
   } catch (error) {
     throw new Error('Error parsing wallet capabilities')
   }
+}
+
+export async function getSafeConnector(
+  connectors: readonly Connector[]
+): Promise<CreateConnectorFn | null> {
+  if (CoreHelperUtil.isSafeApp()) {
+    const { safe } = await import('@wagmi/connectors')
+
+    if (safe && !connectors.some(c => c.type === 'safe')) {
+      const safeConnector = safe()
+
+      return safeConnector
+    }
+  }
+
+  return null
+}
+
+export async function getBaseAccountConnector(
+  connectors: readonly Connector[]
+): Promise<CreateConnectorFn | null> {
+  try {
+    const { baseAccount } = await import('@wagmi/connectors')
+
+    if (baseAccount && !connectors.some(c => c.id === 'baseAccount')) {
+      return baseAccount()
+    }
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Failed to import Coinbase Wallet SDK:', error)
+  }
+
+  return null
 }

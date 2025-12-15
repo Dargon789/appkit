@@ -16,15 +16,18 @@ import {
 import * as wagmiCore from '@wagmi/core'
 import { mainnet } from '@wagmi/core/chains'
 import type UniversalProvider from '@walletconnect/universal-provider'
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { type Address, checksumAddress } from 'viem'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { type AppKitNetwork, ConstantsUtil } from '@reown/appkit-common'
+import { type CaipAddress, ConstantsUtil } from '@reown/appkit-common'
 import {
-  AccountController,
+  AdapterBlueprint,
   ChainController,
   type ConnectionControllerClient,
-  type NetworkControllerClient,
-  type PreferredAccountTypes,
+  ConnectorController,
+  CoreHelperUtil,
+  OptionsController,
+  ProviderController,
   type SocialProvider
 } from '@reown/appkit-controllers'
 import { CaipNetworksUtil } from '@reown/appkit-utils'
@@ -33,7 +36,22 @@ import type { W3mFrameProvider } from '@reown/appkit-wallet'
 import { WagmiAdapter } from '../client'
 import * as auth from '../connectors/AuthConnector'
 import { LimitterUtil } from '../utils/LimitterUtil'
+import * as helpers from '../utils/helpers'
 import { mockAppKit } from './mocks/AppKit'
+
+// Define spies at the top-level for @wagmi/connectors
+const mockBaseAccountConnector = vi.fn(() => ({
+  id: 'baseAccount',
+  name: 'Base Account',
+  type: 'injected',
+  getProvider: vi.fn().mockResolvedValue({ connect: vi.fn(), request: vi.fn() })
+}))
+const mockSafe = vi.fn(() => ({
+  id: 'safe',
+  name: 'Safe',
+  type: 'injected',
+  getProvider: vi.fn().mockResolvedValue({ connect: vi.fn(), request: vi.fn() })
+}))
 
 vi.mock('@wagmi/core', async () => {
   const actual = await vi.importActual('@wagmi/core')
@@ -51,7 +69,9 @@ vi.mock('@wagmi/core', async () => {
     sendTransaction: vi.fn(),
     writeContract: vi.fn(),
     waitForTransactionReceipt: vi.fn(),
-    getAccount: vi.fn(),
+    getAccount: vi.fn(() => ({
+      chainId: 1
+    })),
     prepareTransactionRequest: vi.fn(),
     reconnect: vi.fn(),
     watchAccount: vi.fn(),
@@ -60,25 +80,44 @@ vi.mock('@wagmi/core', async () => {
   }
 })
 
+// Top-level mock for @wagmi/connectors
+
 const mockProjectId = 'test-project-id'
 const mockNetworks = [mainnet]
 const mockCaipNetworks = CaipNetworksUtil.extendCaipNetworks(mockNetworks, {
   projectId: mockProjectId,
   customNetworkImageUrls: {}
 })
-
 const mockWagmiConfig = {
+  chains: mockCaipNetworks,
   connectors: [
     {
       id: 'test-connector',
       getProvider() {
         return Promise.resolve({ connect: vi.fn(), request: vi.fn() })
       }
+    },
+    {
+      id: 'AUTH',
+      getProvider() {
+        return Promise.resolve({
+          user: {
+            address: '0x123',
+            accounts: [
+              { address: '0x123', type: 'eoa' },
+              { address: '0x456', type: 'smartAccount' }
+            ]
+          }
+        })
+      }
     }
   ],
+  state: {
+    connections: new Map()
+  },
   _internal: {
     connectors: {
-      setup: vi.fn(),
+      setup: vi.fn(connector => connector),
       setState: vi.fn()
     }
   }
@@ -94,7 +133,9 @@ const mockAuthProvider = {
   connect: vi.fn(),
   disconnect: vi.fn(),
   switchNetwork: vi.fn(),
-  getUser: vi.fn()
+  getUser: vi.fn(),
+  syncDappData: vi.fn(),
+  syncTheme: vi.fn()
 } as unknown as W3mFrameProvider
 
 describe('WagmiAdapter', () => {
@@ -102,13 +143,28 @@ describe('WagmiAdapter', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mock('@wagmi/connectors', async () => {
+      const actual = await vi.importActual('@wagmi/connectors')
+      return {
+        ...actual,
+        baseAccount: mockBaseAccountConnector,
+        safe: mockSafe
+      }
+    })
+
+    vi.spyOn(helpers, 'getBaseAccountConnector').mockResolvedValue(
+      mockBaseAccountConnector() as any
+    )
+    vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
+      ...OptionsController.state
+    })
     adapter = new WagmiAdapter({
       networks: mockNetworks,
       projectId: mockProjectId
     })
+    adapter.wagmiConfig = mockWagmiConfig
     ChainController.initialize([adapter], mockCaipNetworks, {
-      connectionControllerClient: vi.fn() as unknown as ConnectionControllerClient,
-      networkControllerClient: vi.fn() as unknown as NetworkControllerClient
+      connectionControllerClient: vi.fn() as unknown as ConnectionControllerClient
     })
     ChainController.setRequestedCaipNetworks(mockCaipNetworks, 'eip155')
   })
@@ -120,15 +176,36 @@ describe('WagmiAdapter', () => {
       expect(adapter.namespace).toBe(ConstantsUtil.CHAIN.EVM)
     })
 
+    it('should emit switchNetwork in constructor when chainId is returned from getAccount', () => {
+      const emitSpy = vi.spyOn(WagmiAdapter.prototype, 'emit' as any)
+
+      new WagmiAdapter({
+        networks: mockNetworks,
+        projectId: mockProjectId
+      })
+
+      expect(emitSpy).toHaveBeenCalledWith('switchNetwork', {
+        chainId: 1
+      })
+    })
+
+    it('should emit switchNetwork in construct when chainId is returned from getAccount', () => {
+      const emitSpy = vi.fn()
+      adapter.on('switchNetwork', emitSpy)
+      adapter.construct({})
+      expect(emitSpy).toHaveBeenCalledWith({
+        chainId: 1
+      })
+    })
+
     it('should set wagmi connectors', async () => {
       vi.spyOn(wagmiCore, 'watchConnectors').mockImplementation(vi.fn())
       vi.spyOn(wagmiCore, 'watchConnectors')
 
-      await adapter.syncConnectors(
-        { networks: [mainnet], projectId: 'YOUR_PROJECT_ID' },
-        mockAppKit
-      )
+      // Skip third-party connectors to assert only initial wagmi connectors
+      vi.spyOn(helpers, 'getBaseAccountConnector').mockResolvedValue(undefined as any)
 
+      await adapter.syncConnectors()
       expect(wagmiCore.watchConnectors).toHaveBeenCalledOnce()
       expect(adapter.connectors).toStrictEqual([
         {
@@ -149,7 +226,7 @@ describe('WagmiAdapter', () => {
       ])
     })
 
-    it('should not set info property for injected connector', () => {
+    it('should not set info property for injected connector', async () => {
       const mockConnectors = [
         {
           id: 'Browser Wallet',
@@ -159,7 +236,7 @@ describe('WagmiAdapter', () => {
         }
       ]
 
-      ;(adapter as any).syncConnectors(mockConnectors)
+      await (adapter as any).syncConnectors(mockConnectors)
 
       const injectedConnector = mockConnectors.filter((c: any) => c.id === 'injected')[0]
 
@@ -168,57 +245,61 @@ describe('WagmiAdapter', () => {
 
     it('should not add auth connector when email and socials are both false', async () => {
       const authConnectorSpy = vi.spyOn(auth, 'authConnector')
-
-      const options = {
-        enableWalletConnect: false,
-        enableInjected: false,
+      vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
+        ...OptionsController.state,
         features: {
           email: false,
-          socials: false as const
-        },
-        projectId: mockProjectId,
-        networks: [mockCaipNetworks[0]] as [AppKitNetwork, ...AppKitNetwork[]]
+          socials: false
+        }
+      })
+
+      mockAppKit.features = {
+        email: false,
+        socials: false
       }
 
-      adapter.syncConnectors(options, mockAppKit)
+      await adapter.syncConnectors()
 
       expect(authConnectorSpy).not.toHaveBeenCalled()
     })
 
-    it('should not add auth connector when email is true and socials is false', async () => {
+    it('should add auth connector when email is true and socials are false', async () => {
       const authConnectorSpy = vi.spyOn(auth, 'authConnector')
 
-      const options = {
-        enableWalletConnect: false,
-        enableInjected: false,
+      vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
+        ...OptionsController.state,
         features: {
           email: true,
-          socials: false as const
-        },
-        projectId: mockProjectId,
-        networks: [mockCaipNetworks[0]] as [AppKitNetwork, ...AppKitNetwork[]]
+          socials: false
+        }
+      })
+
+      mockAppKit.features = {
+        email: true,
+        socials: false
       }
 
-      adapter.syncConnectors(options, mockAppKit)
+      await adapter.syncConnectors()
 
-      expect(authConnectorSpy).not.toHaveBeenCalled()
+      expect(authConnectorSpy).toHaveBeenCalled()
     })
 
     it('should not add auth connector when email is false and socials is an empty array', async () => {
       const authConnectorSpy = vi.spyOn(auth, 'authConnector')
-
-      const options = {
-        enableWalletConnect: false,
-        enableInjected: false,
+      vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
+        ...OptionsController.state,
         features: {
           email: false,
-          socials: [] as SocialProvider[]
-        },
-        projectId: mockProjectId,
-        networks: [mockCaipNetworks[0]] as [AppKitNetwork, ...AppKitNetwork[]]
+          socials: []
+        }
+      })
+
+      mockAppKit.features = {
+        email: false,
+        socials: []
       }
 
-      adapter.syncConnectors(options, mockAppKit)
+      await adapter.syncConnectors()
 
       expect(authConnectorSpy).not.toHaveBeenCalled()
     })
@@ -226,18 +307,20 @@ describe('WagmiAdapter', () => {
     it('should add auth connector when email is true and socials are not false', async () => {
       const authConnectorSpy = vi.spyOn(auth, 'authConnector')
 
-      const options = {
-        enableWalletConnect: false,
-        enableInjected: false,
+      vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
+        ...OptionsController.state,
         features: {
           email: true,
           socials: ['facebook'] as SocialProvider[]
-        },
-        projectId: mockProjectId,
-        networks: [mockCaipNetworks[0]] as [AppKitNetwork, ...AppKitNetwork[]]
+        }
+      })
+
+      mockAppKit.features = {
+        email: true,
+        socials: ['facebook'] as SocialProvider[]
       }
 
-      adapter.syncConnectors(options, mockAppKit)
+      await adapter.syncConnectors()
 
       await vi.waitFor(() => {
         expect(authConnectorSpy).toHaveBeenCalled()
@@ -246,19 +329,20 @@ describe('WagmiAdapter', () => {
 
     it('should add auth connector when email is false and socials contain providers', async () => {
       const authConnectorSpy = vi.spyOn(auth, 'authConnector')
-
-      const options = {
-        enableWalletConnect: false,
-        enableInjected: false,
+      vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
+        ...OptionsController.state,
         features: {
           email: false,
           socials: ['x'] as SocialProvider[]
-        },
-        projectId: mockProjectId,
-        networks: [mockCaipNetworks[0]] as [AppKitNetwork, ...AppKitNetwork[]]
+        }
+      })
+
+      mockAppKit.features = {
+        email: false,
+        socials: ['x'] as SocialProvider[]
       }
 
-      adapter.syncConnectors(options, mockAppKit)
+      await adapter.syncConnectors()
 
       await vi.waitFor(() => {
         expect(authConnectorSpy).toHaveBeenCalled()
@@ -268,18 +352,15 @@ describe('WagmiAdapter', () => {
     it('should add auth connector when both email and socials are true', async () => {
       const authConnectorSpy = vi.spyOn(auth, 'authConnector')
 
-      const options = {
-        enableWalletConnect: false,
-        enableInjected: false,
+      vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
+        ...OptionsController.state,
         features: {
           email: true,
           socials: ['google'] as SocialProvider[]
-        },
-        projectId: mockProjectId,
-        networks: [mockCaipNetworks[0]] as [AppKitNetwork, ...AppKitNetwork[]]
-      }
+        }
+      })
 
-      adapter.syncConnectors(options, mockAppKit)
+      await adapter.syncConnectors()
 
       await vi.waitFor(() => {
         expect(authConnectorSpy).toHaveBeenCalled()
@@ -316,7 +397,9 @@ describe('WagmiAdapter', () => {
         }
       } as unknown as wagmiCore.Connector
 
-      await (adapter as any).addWagmiConnector(mockConnector)
+      await (adapter as any).addWagmiConnector(mockConnector, {
+        enableEIP6963: true
+      })
 
       expect(adapter.connectors).toStrictEqual([
         {
@@ -335,6 +418,30 @@ describe('WagmiAdapter', () => {
           type: 'INJECTED'
         }
       ])
+    })
+
+    it('should set explorerId from PresetsUtil based on connector.id or connector.name', async () => {
+      const mockConnector = {
+        id: 'MetaMask',
+        name: 'MetaMask',
+        type: 'injected',
+        icon: 'data:image/png;base64,mock',
+        getProvider() {
+          return Promise.resolve({ connect: vi.fn(), request: vi.fn() })
+        }
+      } as unknown as wagmiCore.Connector
+
+      const addConnectorSpy = vi.spyOn(adapter as any, 'addConnector')
+
+      await (adapter as any).addWagmiConnector(mockConnector, {
+        enableEIP6963: false
+      })
+
+      expect(addConnectorSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          explorerId: expect.any(String)
+        })
+      )
     })
   })
 
@@ -355,9 +462,13 @@ describe('WagmiAdapter', () => {
   describe('WagmiAdapter - sendTransaction', () => {
     it('should send transaction successfully', async () => {
       const mockTxHash = '0xtxhash'
-      vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
-        ...AccountController.state,
-        caipAddress: 'eip155:1:0x123'
+      vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
+        address: '0x123',
+        currentTab: 0,
+        tokenBalance: [],
+        smartAccountDeployed: false,
+        addressLabels: new Map(),
+        user: undefined
       })
       vi.mocked(getAccount).mockReturnValue({
         chainId: 1,
@@ -391,18 +502,34 @@ describe('WagmiAdapter', () => {
       const mockTxHash = '0xtxhash'
       vi.mocked(wagmiWriteContract).mockResolvedValue(mockTxHash)
 
-      const result = await adapter.writeContract({
+      const writeContractParams = {
         caipNetwork: mockCaipNetworks[0],
         caipAddress: 'eip155:1:0x123',
-        tokenAddress: '0x123',
-        fromAddress: '0x456',
+        tokenAddress: '0x123' as Address,
+        fromAddress: '0x456' as Address,
         args: ['0x789', BigInt(1000)],
         abi: [],
         method: 'transfer',
         chainNamespace: 'eip155'
-      })
+      }
+
+      const result = await adapter.writeContract(
+        writeContractParams as AdapterBlueprint.WriteContractParams
+      )
 
       expect(result.hash).toBe(mockTxHash)
+      expect(wagmiWriteContract).toHaveBeenCalledWith(
+        adapter.wagmiConfig,
+        expect.objectContaining({
+          chain: adapter.wagmiChains?.[0],
+          address: writeContractParams.tokenAddress,
+          account: writeContractParams.fromAddress,
+          abi: writeContractParams.abi,
+          functionName: writeContractParams.method,
+          args: writeContractParams.args,
+          __mode: 'prepared'
+        })
+      )
     })
   })
 
@@ -525,7 +652,7 @@ describe('WagmiAdapter', () => {
     })
   })
 
-  describe('WagmiAdapter - connect and disconnect', () => {
+  describe('WagmiAdapter - connect, syncConnection and disconnect', () => {
     it('should connect successfully', async () => {
       const result = await adapter.connect({
         id: 'test-connector',
@@ -538,29 +665,111 @@ describe('WagmiAdapter', () => {
       expect(result.chainId).toBe(1)
     })
 
+    it('should sync connection successfully', async () => {
+      vi.mocked(getConnections).mockReturnValue([
+        { connector: { id: 'test-connector', type: 'injected' }, accounts: ['0x123'], chainId: 1 }
+      ] as any)
+      const result = await adapter.syncConnection({
+        id: 'test-connector',
+        chainId: 1,
+        namespace: 'eip155',
+        rpcUrl: 'https://rpc.walletconnect.org'
+      })
+
+      expect(result.address).toBe('0x123')
+      expect(result.type).toBe('INJECTED')
+      expect(result.chainId).toBe(1)
+    })
+
     it('should disconnect successfully', async () => {
       const mockConnections = [
-        { connector: { id: 'connector1' } },
-        { connector: { id: 'connector2' } }
+        {
+          accounts: ['0x123'],
+          connector: {
+            id: 'connector1',
+            getProvider: vi.fn().mockImplementation(() => Promise.resolve({}))
+          }
+        },
+        {
+          accounts: ['0x123'],
+          connector: {
+            id: 'connector2',
+            getProvider: vi.fn().mockImplementation(() => Promise.resolve({}))
+          }
+        }
       ]
 
       vi.spyOn(wagmiCore, 'getConnections').mockReturnValue(mockConnections as any)
       vi.spyOn(wagmiCore, 'createConfig').mockReturnValue({
         connectors: mockConnections.map(
           ({ connector }) => connector as unknown as wagmiCore.Connector
-        )
+        ),
+        state: {
+          connections: new Map([
+            ['connector1', { connector: { id: 'connector1' } }],
+            ['connector2', { connector: { id: 'connector2' } }]
+          ])
+        }
       } as any)
+
+      const disconnectSpy = vi.spyOn(wagmiCore, 'disconnect').mockImplementationOnce(vi.fn())
 
       const adapter = new WagmiAdapter({
         networks: mockNetworks,
         projectId: mockProjectId
       })
 
-      const disconnectSpy = vi.spyOn(wagmiCore, 'disconnect').mockImplementationOnce(vi.fn())
+      adapter.construct({})
 
-      await adapter.disconnect()
+      await adapter.disconnect({})
 
       expect(disconnectSpy).toHaveBeenCalledTimes(2)
+      expect(adapter.wagmiConfig.state.connections.size).toBe(0)
+    })
+
+    it('should disconnect wagmi context succesfully even if one of the connectors fails to disconnect', async () => {
+      const mockConnections = [
+        {
+          accounts: ['0x123'],
+          connector: {
+            id: 'connector1'
+          }
+        },
+        {
+          accounts: ['0x123'],
+          connector: {
+            id: 'connector2'
+          }
+        }
+      ]
+
+      vi.spyOn(wagmiCore, 'getConnections').mockReturnValue(mockConnections as any)
+      vi.spyOn(wagmiCore, 'createConfig').mockReturnValue({
+        connectors: mockConnections.map(
+          ({ connector }) => connector as unknown as wagmiCore.Connector
+        ),
+        state: {
+          connections: new Map([
+            ['connector1', { connector: { id: 'connector1' } }],
+            ['connector2', { connector: { id: 'connector2' } }]
+          ])
+        }
+      } as any)
+
+      const disconnectSpy = vi.spyOn(wagmiCore, 'disconnect').mockImplementationOnce(vi.fn())
+      disconnectSpy.mockRejectedValueOnce(new Error('Failed to disconnect'))
+
+      const wagmiAdapter = new WagmiAdapter({
+        networks: mockNetworks,
+        projectId: mockProjectId
+      })
+
+      wagmiAdapter.construct({})
+
+      await wagmiAdapter.disconnect({})
+
+      expect(disconnectSpy).toHaveBeenCalledTimes(2)
+      expect(wagmiAdapter.wagmiConfig.state.connections.size).toBe(0)
     })
 
     it('should authenticate and connect with wagmi when using connectWalletConnect', async () => {
@@ -591,7 +800,7 @@ describe('WagmiAdapter', () => {
 
       expect(mockWalletConnectConnector.authenticate).toHaveBeenCalled()
       expect(connectSpy).toHaveBeenCalledWith(
-        expect.anything(),
+        adapter.wagmiConfig,
         expect.objectContaining({
           connector: mockWagmiConnector,
           chainId: 1
@@ -599,41 +808,142 @@ describe('WagmiAdapter', () => {
       )
       expect(result.clientId).toBe('mock-client-id')
     })
+
+    it('should disconnect specific connector when id is provided', async () => {
+      const mockConnection = {
+        accounts: ['0x123'],
+        connector: {
+          id: 'specific-connector',
+          getProvider: vi.fn().mockImplementation(() => Promise.resolve({}))
+        }
+      }
+
+      vi.spyOn(wagmiCore, 'getConnections').mockReturnValue([mockConnection] as any)
+      const disconnectSpy = vi.spyOn(wagmiCore, 'disconnect').mockImplementationOnce(vi.fn())
+
+      await adapter.disconnect({ id: 'specific-connector' })
+
+      expect(disconnectSpy).toHaveBeenCalledWith(adapter.wagmiConfig, expect.any(Object))
+    })
+
+    it('should handle empty connections gracefully', async () => {
+      vi.spyOn(wagmiCore, 'getConnections').mockReturnValue([])
+      const disconnectSpy = vi.spyOn(wagmiCore, 'disconnect').mockImplementationOnce(vi.fn())
+
+      const result = await adapter.disconnect({})
+
+      expect(disconnectSpy).not.toHaveBeenCalled()
+      expect(result.connections).toEqual([])
+    })
+
+    it('should sync connections using wagmi watchConnections', async () => {
+      const mockConnections = [
+        {
+          accounts: ['0x123'],
+          connector: { id: 'test-connector', type: 'injected' },
+          chainId: 1
+        }
+      ]
+
+      vi.spyOn(wagmiCore, 'watchConnections').mockImplementation((_config, { onChange }) => {
+        onChange(mockConnections as any, [])
+        return vi.fn()
+      })
+
+      const emitSpy = vi.spyOn(adapter, 'emit' as any)
+
+      adapter['setupWatchers']()
+
+      expect(wagmiCore.watchConnections).toHaveBeenCalledWith(
+        adapter.wagmiConfig,
+        expect.objectContaining({
+          onChange: expect.any(Function)
+        })
+      )
+
+      expect(emitSpy).toHaveBeenCalledWith('connections', expect.any(Array))
+    })
+
+    it('should handle connection changes and emit connections when connections are removed', async () => {
+      const prevConnections = [
+        {
+          accounts: ['0x123'],
+          connector: { id: 'test-connector', type: 'injected' },
+          chainId: 1
+        }
+      ]
+
+      vi.spyOn(wagmiCore, 'watchConnections').mockImplementation((_config, { onChange }) => {
+        onChange([], prevConnections as any)
+        return vi.fn()
+      })
+
+      const emitSpy = vi.spyOn(adapter, 'emit' as any)
+
+      adapter['setupWatchers']()
+
+      expect(emitSpy).toHaveBeenCalledWith('connections', [])
+    })
   })
 
   describe('WagmiAdapter - switchNetwork', () => {
     it('should switch network successfully', async () => {
+      // Set up a mock provider in ProviderController for super.switchNetwork() call
+      const mockProvider = { setDefaultChain: vi.fn() }
+      ProviderController.setProvider(mockCaipNetworks[0].chainNamespace, mockProvider)
+      ProviderController.setProviderId(mockCaipNetworks[0].chainNamespace, 'WALLET_CONNECT')
+
       await adapter.switchNetwork({
         caipNetwork: mockCaipNetworks[0]
       })
 
       expect(switchChain).toHaveBeenCalledWith(
-        expect.anything(),
+        adapter.wagmiConfig,
         expect.objectContaining({
-          chainId: 1
+          chainId: 1,
+          addEthereumChainParameter: {
+            chainName: mockCaipNetworks[0].name,
+            nativeCurrency: {
+              name: mockCaipNetworks[0].nativeCurrency.name,
+              symbol: mockCaipNetworks[0].nativeCurrency.symbol,
+              decimals: mockCaipNetworks[0].nativeCurrency.decimals
+            },
+            rpcUrls: [mockCaipNetworks[0].rpcUrls?.['chainDefault']?.http?.[0] ?? ''],
+            blockExplorerUrls: [mockCaipNetworks[0].blockExplorers?.default.url ?? '']
+          }
         })
       )
     })
 
     it('should respect preferred account type when switching network with AUTH provider', async () => {
-      vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
-        ...AccountController.state,
-        preferredAccountTypes: {
-          eip155: 'smartAccount'
-        } as PreferredAccountTypes
+      vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
+        address: '0x123',
+        currentTab: 0,
+        tokenBalance: [],
+        smartAccountDeployed: false,
+        addressLabels: new Map(),
+        user: undefined,
+        preferredAccountType: 'smartAccount'
       })
 
+      // Set up provider in ProviderController for super.switchNetwork() call
+      ProviderController.setProvider(mockCaipNetworks[0].chainNamespace, mockAuthProvider)
+      ProviderController.setProviderId(mockCaipNetworks[0].chainNamespace, 'AUTH')
+
+      // Mock ConnectorController.getAuthConnector to return our mock provider
+      vi.spyOn(ConnectorController, 'getAuthConnector').mockReturnValue({
+        provider: mockAuthProvider
+      } as any)
+
       await adapter.switchNetwork({
-        caipNetwork: mockCaipNetworks[0],
-        provider: mockAuthProvider,
-        providerType: 'AUTH'
+        caipNetwork: mockCaipNetworks[0]
       })
 
       expect(mockAuthProvider.getUser).toHaveBeenCalledWith({
         chainId: 'eip155:1',
         preferredAccountType: 'smartAccount'
       })
-      expect(mockAuthProvider.switchNetwork).toHaveBeenCalledWith('eip155:1')
+      expect(mockAuthProvider.switchNetwork).toHaveBeenCalledWith({ chainId: 'eip155:1' })
     })
   })
 
@@ -718,7 +1028,7 @@ describe('WagmiAdapter', () => {
       const mockParams = {
         pci: 'test-pci',
         expiry: 1234567890,
-        address: '0x123',
+        address: 'eip155:1:0x123' as CaipAddress,
         permissions: ['eth_accounts']
       }
 
@@ -739,7 +1049,7 @@ describe('WagmiAdapter', () => {
       const mockParams = {
         pci: 'test-pci',
         expiry: 1234567890,
-        address: '0x123' as `0x${string}`,
+        address: 'eip155:1:0x123' as CaipAddress,
         permissions: ['eth_accounts']
       }
 
@@ -808,13 +1118,20 @@ describe('WagmiAdapter', () => {
       const unsubscribe = vi.fn()
 
       vi.mocked(watchAccount).mockImplementation((_, { onChange }) => {
-        onChange({ address: '0x123', status: 'connected' } as any, {} as any)
+        onChange(
+          {
+            address: '0x123',
+            status: 'connected',
+            connector: { getProvider: vi.fn().mockImplementation(() => Promise.resolve({})) }
+          } as any,
+          {} as any
+        )
         return vi.fn()
       })
 
       vi.spyOn(wagmiCore, 'watchPendingTransactions').mockReturnValue(unsubscribe)
 
-      new WagmiAdapter({
+      const adapter = new WagmiAdapter({
         networks: mockNetworks,
         projectId: mockProjectId,
         pendingTransactionsFilter: {
@@ -822,6 +1139,8 @@ describe('WagmiAdapter', () => {
           pollingInterval: 500
         }
       })
+
+      adapter.construct({})
 
       // Set state to maximum limit so we know once we reach the limit it'll unsubscribe the watchPendingTransactions
       LimitterUtil.state.pendingTransactions = ConstantsUtil.LIMITS.PENDING_TRANSACTIONS
@@ -855,16 +1174,23 @@ describe('WagmiAdapter', () => {
       const currAccount = {
         status: 'connected',
         address: '0x123',
-        chainId: 1
+        chainId: 1,
+        connector: {
+          getProvider: vi.fn().mockImplementation(() => Promise.resolve({}))
+        }
       } as unknown as wagmiCore.GetAccountReturnType
 
       const prevAccount = {
         status: 'connecting',
         address: '0x123',
-        chainId: 1
+        chainId: 1,
+        connector: {
+          getProvider: vi.fn().mockImplementation(() => Promise.resolve({}))
+        }
       } as unknown as wagmiCore.GetAccountReturnType
 
-      vi.mocked(watchAccount).mockImplementation((_, { onChange }) => {
+      vi.mocked(watchAccount).mockImplementation((config, { onChange }) => {
+        expect(config).toBe(adapter.wagmiConfig)
         onChange(currAccount, prevAccount)
         return vi.fn()
       })
@@ -875,26 +1201,37 @@ describe('WagmiAdapter', () => {
 
       adapter['setupWatchers']()
 
-      expect(accountChangedSpy).toHaveBeenCalledWith({
-        address: currAccount.address,
-        chainId: currAccount.chainId
+      await vi.waitFor(() => {
+        expect(accountChangedSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            address: checksumAddress(currAccount.address as `0x${string}`),
+            chainId: currAccount.chainId
+          })
+        )
       })
     })
 
-    it('should emit accountChanged current address and previous address are not the same', async () => {
+    it('should emit accountChanged when status is connected', async () => {
       const currAccount = {
         status: 'connected',
         address: '0x123',
-        chainId: 1
+        chainId: 1,
+        connector: {
+          getProvider: vi.fn().mockImplementation(() => Promise.resolve({}))
+        }
       } as unknown as wagmiCore.GetAccountReturnType
 
       const prevAccount = {
         status: 'connected',
         address: '0x321',
-        chainId: 1
+        chainId: 1,
+        connector: {
+          getProvider: vi.fn().mockImplementation(() => Promise.resolve({}))
+        }
       } as unknown as wagmiCore.GetAccountReturnType
 
-      vi.mocked(watchAccount).mockImplementation((_, { onChange }) => {
+      vi.mocked(watchAccount).mockImplementation((config, { onChange }) => {
+        expect(config).toBe(adapter.wagmiConfig)
         onChange(currAccount, prevAccount)
         return vi.fn()
       })
@@ -914,9 +1251,13 @@ describe('WagmiAdapter', () => {
 
       adapter['setupWatchers']()
 
-      expect(accountChangedSpy).toHaveBeenCalledWith({
-        address: currAccount.address,
-        chainId: currAccount.chainId
+      await vi.waitFor(() => {
+        expect(accountChangedSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            address: checksumAddress(currAccount.address as `0x${string}`),
+            chainId: currAccount.chainId
+          })
+        )
       })
     })
 
@@ -933,7 +1274,8 @@ describe('WagmiAdapter', () => {
         chainId: 1
       } as unknown as wagmiCore.GetAccountReturnType
 
-      vi.mocked(watchAccount).mockImplementation((_, { onChange }) => {
+      vi.mocked(watchAccount).mockImplementation((config, { onChange }) => {
+        expect(config).toBe(adapter.wagmiConfig)
         onChange(currAccount, prevAccount)
         return vi.fn()
       })
@@ -960,7 +1302,8 @@ describe('WagmiAdapter', () => {
         chainId: 1
       } as unknown as wagmiCore.GetAccountReturnType
 
-      vi.mocked(watchAccount).mockImplementation((_, { onChange }) => {
+      vi.mocked(watchAccount).mockImplementation((config, { onChange }) => {
+        expect(config).toBe(adapter.wagmiConfig)
         onChange(currAccount, prevAccount)
         return vi.fn()
       })
@@ -987,7 +1330,8 @@ describe('WagmiAdapter', () => {
         chainId: 1
       } as unknown as wagmiCore.GetAccountReturnType
 
-      vi.mocked(watchAccount).mockImplementation((_, { onChange }) => {
+      vi.mocked(watchAccount).mockImplementation((config, { onChange }) => {
+        expect(config).toBe(adapter.wagmiConfig)
         onChange(currAccount, prevAccount)
         return vi.fn()
       })
@@ -1000,5 +1344,346 @@ describe('WagmiAdapter', () => {
 
       expect(disconnectSpy).not.toHaveBeenCalled()
     })
+
+    it('should emit switchNetwork when chainId changes regardless of connection status', async () => {
+      const currAccount = {
+        status: 'disconnected',
+        address: undefined,
+        chainId: 137
+      } as unknown as wagmiCore.GetAccountReturnType
+
+      const prevAccount = {
+        status: 'disconnected',
+        address: undefined,
+        chainId: undefined
+      } as unknown as wagmiCore.GetAccountReturnType
+
+      vi.mocked(watchAccount).mockImplementation((config, { onChange }) => {
+        expect(config).toBe(adapter.wagmiConfig)
+        onChange(currAccount, prevAccount)
+        return vi.fn()
+      })
+
+      const switchNetworkSpy = vi.fn()
+
+      adapter.on('switchNetwork', switchNetworkSpy)
+
+      adapter['setupWatchers']()
+
+      expect(switchNetworkSpy).toHaveBeenCalledWith({
+        chainId: currAccount.chainId
+      })
+    })
+
+    it('should return accounts successfully when using auth connector', async () => {
+      vi.spyOn(wagmiCore, 'createConfig').mockReturnValue({
+        ...mockWagmiConfig,
+        connectors: mockWagmiConfig.connectors
+      } as any)
+
+      const adapter = new WagmiAdapter({
+        networks: mockNetworks,
+        projectId: mockProjectId,
+        pendingTransactionsFilter: {
+          enable: true,
+          pollingInterval: 5000
+        }
+      })
+
+      const accounts = await adapter.getAccounts({ id: 'AUTH' })
+
+      expect(accounts).toEqual({
+        accounts: [
+          {
+            namespace: 'eip155',
+            address: '0x123',
+            type: 'eoa',
+            publicKey: undefined,
+            path: undefined
+          },
+          {
+            namespace: 'eip155',
+            address: '0x456',
+            type: 'smartAccount',
+            publicKey: undefined,
+            path: undefined
+          }
+        ]
+      })
+    })
+  })
+})
+
+describe('WagmiAdapter - setUniversalProvider', () => {
+  let adapter: WagmiAdapter
+  let mockUniversalProvider: UniversalProvider
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+
+    mockUniversalProvider = {
+      on: vi.fn(),
+      emit: vi.fn(),
+      removeListener: vi.fn()
+    } as unknown as UniversalProvider
+
+    adapter = new WagmiAdapter({
+      networks: mockNetworks,
+      projectId: mockProjectId
+    })
+
+    vi.mocked(getConnections).mockReturnValue([
+      {
+        connector: {
+          id: 'walletConnect1'
+        }
+      }
+    ] as any)
+
+    vi.spyOn(adapter as any, 'getWagmiConnector').mockReturnValue({
+      id: 'walletConnect'
+    })
+  })
+
+  it('should not trigger reconnect when activeChain is eip155', () => {
+    vi.spyOn(ChainController, 'state', 'get').mockReturnValue({
+      ...ChainController.state,
+      activeChain: 'eip155'
+    })
+
+    const reconnectSpy = vi.spyOn(wagmiCore, 'reconnect')
+
+    adapter.setUniversalProvider(mockUniversalProvider)
+
+    const connectHandler = vi
+      .mocked(mockUniversalProvider.on)
+      .mock.calls.find(call => call[0] === 'connect')?.[1]
+
+    expect(connectHandler).toBeDefined()
+
+    connectHandler?.()
+
+    expect(reconnectSpy).not.toHaveBeenCalled()
+  })
+
+  it('should trigger reconnect when activeChain is not eip155', () => {
+    vi.spyOn(ChainController, 'state', 'get').mockReturnValue({
+      ...ChainController.state,
+      activeChain: 'cosmos'
+    })
+
+    const reconnectSpy = vi.spyOn(wagmiCore, 'reconnect')
+
+    adapter.setUniversalProvider(mockUniversalProvider)
+
+    const connectHandler = vi
+      .mocked(mockUniversalProvider.on)
+      .mock.calls.find(call => call[0] === 'connect')?.[1]
+
+    expect(connectHandler).toBeDefined()
+
+    connectHandler?.()
+
+    expect(reconnectSpy).toHaveBeenCalledWith(adapter.wagmiConfig, {
+      connectors: [{ id: 'walletConnect' }]
+    })
+  })
+})
+
+describe('WagmiAdapter - addThirdPartyConnectors', () => {
+  let adapter: WagmiAdapter
+  let originalWindow: Window & typeof globalThis
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+
+    if (typeof window !== 'undefined') {
+      originalWindow = window
+    }
+
+    const mockWindow = {
+      self: undefined,
+      top: undefined,
+      location: {
+        ancestorOrigins: [],
+        hostname: 'localhost'
+      },
+      document: {},
+      URL: vi.fn(url => ({
+        hostname: new URL(url).hostname,
+        href: url
+      }))
+    }
+
+    vi.stubGlobal('window', mockWindow)
+    if (!vi.isMockFunction(CoreHelperUtil.isClient)) {
+      vi.spyOn(CoreHelperUtil, 'isClient').mockReturnValue(true)
+    }
+
+    adapter = new WagmiAdapter({
+      networks: mockNetworks,
+      projectId: mockProjectId
+    })
+    const mockConnectorsArray: wagmiCore.Connector[] = []
+    adapter.wagmiConfig = {
+      ...mockWagmiConfig,
+      connectors: mockConnectorsArray,
+      _internal: {
+        connectors: {
+          setup: vi.fn(connector => connector),
+          setState: vi.fn(fn => {
+            const newConnectors = fn(mockConnectorsArray)
+            mockConnectorsArray.splice(0, mockConnectorsArray.length, ...newConnectors)
+          })
+        }
+      }
+    } as unknown as Config
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    if (originalWindow) {
+      global.window = originalWindow
+    }
+    vi.restoreAllMocks()
+  })
+
+  it('should add Coinbase connector if enableCoinbase is not false', async () => {
+    const getCoinbaseConnectorSpy = vi
+      .spyOn(helpers, 'getBaseAccountConnector')
+      .mockResolvedValue(mockBaseAccountConnector() as any)
+    await adapter['addThirdPartyConnectors']()
+    expect(getCoinbaseConnectorSpy).toHaveBeenCalled()
+    expect(adapter.wagmiConfig.connectors.length).toBe(1)
+  })
+
+  it('should not add Coinbase connector if enableCoinbase is false', async () => {
+    vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
+      ...(OptionsController.state || {}),
+      enableCoinbase: false
+    })
+    await adapter['addThirdPartyConnectors']()
+    expect(mockBaseAccountConnector).not.toHaveBeenCalled()
+    expect(adapter.wagmiConfig.connectors.length).toBe(0)
+  })
+
+  it('should add Safe connector if in iframe and ancestor is app.safe.global', async () => {
+    const mockSpecificWindow = {
+      self: 'iframe_mock_self',
+      top: 'mock_top',
+      location: {
+        ancestorOrigins: ['https://app.safe.global'],
+        hostname: 'current.app'
+      },
+      document: {},
+      URL: window.URL
+    }
+    vi.stubGlobal('window', mockSpecificWindow)
+    vi.spyOn(CoreHelperUtil, 'isClient').mockReturnValue(true)
+
+    await adapter['addThirdPartyConnectors']()
+    expect(mockSafe).toHaveBeenCalled()
+    expect(adapter.wagmiConfig.connectors.some(c => c.id === 'safe')).toBe(true)
+  })
+
+  it('should not add Safe connector if not in iframe', async () => {
+    const mockSpecificWindow = {
+      self: globalThis,
+      top: globalThis,
+      location: {
+        ancestorOrigins: [],
+        hostname: 'current.app'
+      },
+      document: {},
+      URL: window.URL
+    }
+    vi.stubGlobal('window', mockSpecificWindow)
+    vi.spyOn(CoreHelperUtil, 'isClient').mockReturnValue(true)
+
+    await adapter['addThirdPartyConnectors']()
+    expect(mockSafe).not.toHaveBeenCalled()
+    expect(adapter.wagmiConfig.connectors.some(c => c.id === 'safe')).toBe(false)
+  })
+
+  it('should not add Safe connector if ancestor is not app.safe.global', async () => {
+    const mockSpecificWindow = {
+      self: 'iframe_mock_self',
+      top: 'mock_top',
+      location: {
+        ancestorOrigins: ['https://some.other.domain'],
+        hostname: 'current.app'
+      },
+      document: {},
+      URL: window.URL
+    }
+    vi.stubGlobal('window', mockSpecificWindow)
+    vi.spyOn(CoreHelperUtil, 'isClient').mockReturnValue(true)
+    vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
+      ...OptionsController.state
+    })
+    await adapter['addThirdPartyConnectors']()
+    expect(mockSafe).not.toHaveBeenCalled()
+    expect(adapter.wagmiConfig.connectors.some(c => c.id === 'safe')).toBe(false)
+  })
+})
+
+describe('WagmiAdapter - BaseAccount lazy initialization', () => {
+  let adapter: WagmiAdapter
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    // Ensure coinbase/base account is enabled by default
+    vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
+      ...OptionsController.state
+    })
+
+    adapter = new WagmiAdapter({
+      networks: [mainnet],
+      projectId: 'test-project-id'
+    })
+
+    // Use the standard mock wagmi config
+    adapter.wagmiConfig = mockWagmiConfig
+  })
+
+  it('should not initialize Base Account provider during syncConnectors', async () => {
+    vi.spyOn(wagmiCore, 'watchConnectors').mockImplementation(vi.fn())
+
+    const baseConnector = mockBaseAccountConnector() as unknown as wagmiCore.Connector
+    // Ensure we can observe provider initialization attempts
+    const getProviderSpy = vi
+      .spyOn(baseConnector, 'getProvider')
+      .mockResolvedValue({ connect: vi.fn(), request: vi.fn() })
+
+    vi.spyOn(helpers, 'getBaseAccountConnector').mockResolvedValue(baseConnector as any)
+
+    await adapter.syncConnectors()
+
+    expect(getProviderSpy).not.toHaveBeenCalled()
+  })
+
+  it('should initialize Base Account provider when connecting', async () => {
+    vi.spyOn(wagmiCore, 'watchConnectors').mockImplementation(vi.fn())
+
+    const baseConnector = mockBaseAccountConnector() as unknown as wagmiCore.Connector
+    const providedProvider = { connect: vi.fn(), request: vi.fn() }
+    const getProviderSpy = vi
+      .spyOn(baseConnector, 'getProvider')
+      .mockResolvedValue(providedProvider)
+
+    // Ensure the base connector is available in wagmi config for connect()
+    adapter.wagmiConfig = {
+      ...adapter.wagmiConfig,
+      connectors: [...adapter.wagmiConfig.connectors, baseConnector as any]
+    } as unknown as wagmiCore.Config
+
+    const result = await adapter.connect({
+      id: 'baseAccount',
+      chainId: 1,
+      type: 'injected'
+    } as any)
+
+    expect(getProviderSpy).toHaveBeenCalled()
+    expect(result.provider).toBe(providedProvider as any)
   })
 })

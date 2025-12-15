@@ -15,15 +15,21 @@ export class WuiUxByReown extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <a href=${REOWN_URL} rel="noreferrer" target="_blank" style="text-decoration: none;">
+      <a
+        data-testid="ux-branding-reown"
+        href=${REOWN_URL}
+        rel="noreferrer"
+        target="_blank"
+        style="text-decoration: none;"
+      >
         <wui-flex
           justifyContent="center"
           alignItems="center"
-          gap="xs"
-          .padding=${['0', '0', 'l', '0']}
+          gap="1"
+          .padding=${['01', '0', '3', '0'] as const}
         >
-          <wui-text variant="small-500" color="fg-100"> UX by </wui-text>
-          <wui-icon name="reown" size="xxxl" class="reown-logo"></wui-icon>
+          <wui-text variant="sm-regular" color="inherit"> UX by </wui-text>
+          <wui-icon name="reown" size="inherit" class="reown-logo"></wui-icon>
         </wui-flex>
       </a>
     `

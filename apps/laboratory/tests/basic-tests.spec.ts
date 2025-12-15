@@ -1,6 +1,7 @@
 import { type BrowserContext, type Page, test } from '@playwright/test'
 
-import { BASE_URL } from './shared/constants'
+import { BASE_URL } from '@reown/appkit-testing'
+
 import { expect } from './shared/fixtures/w3m-fixture'
 import { ModalPage } from './shared/pages/ModalPage'
 import { ModalValidator } from './shared/validators/ModalValidator'
@@ -48,7 +49,7 @@ basicTest('Should be able to open modal with the open hook', async () => {
 })
 
 basicTest('Should show socials enabled by default', async ({ library }) => {
-  if (library === 'bitcoin') {
+  if (library === 'bitcoin' || library === 'ton') {
     return
   }
 
@@ -68,7 +69,7 @@ basicTest('Should show external connectors', async ({ library }) => {
     return
   }
 
-  await modalPage.page.goto(`${BASE_URL}/library/external/`)
+  await modalPage.page.goto(`${BASE_URL}/appkit?name=external`)
   await modalPage.page.getByTestId('connect-button').click()
   await modalValidator.expectExternalVisible()
 })
@@ -78,7 +79,7 @@ basicTest('Should show Coinbase as featured wallet', async ({ library }) => {
     return
   }
 
-  await modalPage.page.goto(`${BASE_URL}/library/external/`)
+  await modalPage.page.goto(`${BASE_URL}/appkit?name=external`)
   await modalPage.page.getByTestId('connect-button').click()
   await modalValidator.expectCoinbaseVisible()
 })

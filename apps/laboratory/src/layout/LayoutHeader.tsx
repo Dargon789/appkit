@@ -16,7 +16,6 @@ import {
   useDisclosure
 } from '@chakra-ui/react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 
 import { useChakraToast } from '@/src/components/Toast'
 import { DOCS_URL, GALLERY_URL, REPO_URL } from '@/src/utils/ConstantsUtil'
@@ -24,6 +23,7 @@ import { DOCS_URL, GALLERY_URL, REPO_URL } from '@/src/utils/ConstantsUtil'
 import { CustomWallet } from './CustomWallet'
 import { NetworksDrawer } from './NetworksDrawer'
 import { OptionsDrawer } from './OptionsDrawer'
+import { ProjectIdDrawer } from './ProjectIdDrawer'
 
 function downloadLogs(toast: ReturnType<typeof useChakraToast>) {
   type WindowWithLogs = typeof Window & {
@@ -43,15 +43,16 @@ function downloadLogs(toast: ReturnType<typeof useChakraToast>) {
 }
 
 export function LayoutHeader() {
-  const pathname = usePathname()
   const controls = useDisclosure()
   const controlsCW = useDisclosure({ id: 'customWallet' })
   const controlsNW = useDisclosure({ id: 'networks' })
+  const controlsPID = useDisclosure({ id: 'projectId' })
   const toast = useChakraToast()
   const { colorMode } = useColorMode()
   const [origin, setOrigin] = useState('')
+
   useEffect(() => {
-    setOrigin(window.location.origin)
+    setOrigin(window.location.href)
   }, [])
 
   return (
@@ -81,6 +82,13 @@ export function LayoutHeader() {
         <Button rightIcon={<IoSettingsOutline />} onClick={controlsNW.onOpen}>
           Networks
         </Button>
+        <Button
+          data-testid="project-id-button"
+          rightIcon={<IoSettingsOutline />}
+          onClick={controlsPID.onOpen}
+        >
+          Project ID
+        </Button>
         <Button rightIcon={<IoSettingsOutline />} onClick={controls.onOpen}>
           Options
         </Button>
@@ -88,12 +96,12 @@ export function LayoutHeader() {
           Logs
         </Button>
       </Stack>
-      <Text fontSize="2xs">{origin + pathname}</Text>
+      <Text fontSize="2xs">{origin}</Text>
 
-      <OptionsDrawer controls={controls} />
       <OptionsDrawer controls={controls} />
       <NetworksDrawer controls={controlsNW} />
       <CustomWallet controls={controlsCW} />
+      <ProjectIdDrawer controls={controlsPID} />
     </>
   )
 }

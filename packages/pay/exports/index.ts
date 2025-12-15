@@ -8,7 +8,8 @@ export {
   getExchanges,
   getPayResult,
   getPayError,
-  getIsPaymentInProgress
+  getIsPaymentInProgress,
+  pay
 } from '../src/client.js'
 
 // -- Types ----------------------------------------- //
@@ -18,5 +19,8 @@ export type { CurrentPayment } from '../src/controllers/PayController.js'
 export type { PaymentAsset } from '../src/types/options.js'
 export type { AppKitPayErrorMessage } from '../src/types/errors.js'
 export type { Exchange } from '../src/types/exchange.js'
-export type { AddressOrNative } from '../src/types/options.js'
 export type { PayUrlParams } from '../src/types/options.js'
+export type { PaymentResult } from '../src/types/payment.js'
+
+// -- Assets ----------------------------------------- //
+export * from '../src/types/assets.js'
