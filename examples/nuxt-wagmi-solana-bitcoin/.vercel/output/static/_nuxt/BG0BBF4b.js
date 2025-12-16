@@ -1,6 +1,4 @@
-import { as as l } from './cxC4FtgZ.js'
-
-const h = l`<svg fill="none" viewBox="0 0 41 40">
+import{as as l}from"./cxC4FtgZ.js";const h=l`<svg fill="none" viewBox="0 0 41 40">
   <g clip-path="url(#a)">
     <path fill="#000" d="M.8 0h40v40H.8z" />
     <path
@@ -11,5 +9,4 @@ const h = l`<svg fill="none" viewBox="0 0 41 40">
   <defs>
     <clipPath id="a"><path fill="#fff" d="M.8 20a20 20 0 1 1 40 0 20 20 0 0 1-40 0Z" /></clipPath>
   </defs>
-</svg>`
-export { h as xSvg }
+</svg>`;export{h as xSvg};

@@ -1,6 +1,4 @@
-import { as as l } from './cxC4FtgZ.js'
-
-const i = l`<svg fill="none" viewBox="0 0 40 40">
+import{as as l}from"./cxC4FtgZ.js";const i=l`<svg fill="none" viewBox="0 0 40 40">
   <g clip-path="url(#a)">
     <g clip-path="url(#b)">
       <circle cx="20" cy="19.89" r="20" fill="#5865F2" />
@@ -16,5 +14,4 @@ const i = l`<svg fill="none" viewBox="0 0 40 40">
     <clipPath id="a"><rect width="40" height="40" fill="#fff" rx="20" /></clipPath>
     <clipPath id="b"><path fill="#fff" d="M0 0h40v40H0z" /></clipPath>
   </defs>
-</svg>`
-export { i as discordSvg }
+</svg>`;export{i as discordSvg};

@@ -1,6 +1,4 @@
-import { as as C } from './cxC4FtgZ.js'
-
-const l = C`<svg fill="none" viewBox="0 0 21 20">
+import{as as C}from"./cxC4FtgZ.js";const l=C`<svg fill="none" viewBox="0 0 21 20">
   <path
     fill="currentColor"
     fill-rule="evenodd"
@@ -14,5 +12,4 @@ const l = C`<svg fill="none" viewBox="0 0 21 20">
     viewBox="0 0 21 20"
     fill="none"
   ></svg></svg
->`
-export { l as sendSvg }
+>`;export{l as sendSvg};
