@@ -71,19 +71,9 @@ export class TonConnectConnector implements TonConnector {
       }
 
       const jsBridgeKey = TonConnectUtil.getJSBridgeKey(this.wallet as TonWalletInfoInjectable)
-      const wallet = TonConnectUtil.getTonConnect(jsBridgeKey)
 
-      if (!wallet) {
-        return
-      }
-
-      if (typeof wallet.disconnect === 'function') {
-        await wallet.disconnect()
-      }
-
-      if (typeof wallet.send === 'function') {
-        const id = String(CoreHelperUtil.getUUID())
-        wallet.send({ method: 'disconnect', params: [], id })
+      if (jsBridgeKey) {
+        await TonConnectUtil.disconnectInjected(jsBridgeKey)
       }
 
       this.clearSession()
@@ -228,10 +218,7 @@ export class TonConnectConnector implements TonConnector {
       valid_until: tx.validUntil ?? Math.floor(Date.now() / 1000) + 60,
       network,
       from,
-      messages: (tx.messages || []).map(m => ({
-        address: m.address,
-        amount: String(m.amount ?? '0')
-      }))
+      messages
     }
 
     const req = {
