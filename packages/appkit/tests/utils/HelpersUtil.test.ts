@@ -462,7 +462,7 @@ describe('WcHelpersUtil', () => {
   describe('isOriginAllowed', () => {
     const defaultOrigins = [
       'https://default.com',
-      'https://*.safe.org',
+      'https://*.safe\.org',
       'https://reown.com/appkit',
       'https://demo.reown.com'
     ]
