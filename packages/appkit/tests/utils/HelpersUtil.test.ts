@@ -464,7 +464,7 @@ describe('WcHelpersUtil', () => {
       'https://default.com',
       'https://*.safe\.org',
       'https://reown.com/appkit',
-      'https://demo.reown.com'
+      'https://demo\.reown\.com'
     ]
     const allowedPatterns = [
       'https://explicit.com',
