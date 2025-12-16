@@ -3,15 +3,15 @@ import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 
 import { type Address, ConstantsUtil, ParseUtil } from '@reown/appkit-common'
 import {
-  AccountController,
   ChainController,
+  ConnectionController,
   CoreHelperUtil,
   EventsController,
   ModalController,
+  ProviderController,
   RouterController,
   SnackController
 } from '@reown/appkit-controllers'
-import { ProviderUtil } from '@reown/appkit-utils'
 
 import {
   AppKitPayErrorCodes,
@@ -224,6 +224,7 @@ export const PayController = {
         type: 'track',
         event: 'PAY_EXCHANGE_SELECTED',
         properties: {
+          source: 'pay',
           exchange: {
             id: exchangeId
           },
@@ -246,6 +247,7 @@ export const PayController = {
           type: 'track',
           event: 'PAY_INITIATED',
           properties: {
+            source: 'pay',
             paymentId: state.paymentId || DEFAULT_PAYMENT_ID,
             configuration: {
               network: params.network,
@@ -296,19 +298,27 @@ export const PayController = {
     if (state.isConfigured) {
       return
     }
-    ProviderUtil.subscribeProviders(async _ => {
-      const provider = ProviderUtil.getProvider(ChainController.state.activeChain)
-      if (!provider) {
-        return
+
+    ConnectionController.subscribeKey('connections', connections => {
+      if (connections.size > 0) {
+        this.handlePayment()
       }
-      await this.handlePayment()
     })
 
-    AccountController.subscribeKey('caipAddress', async caipAddress => {
-      if (!caipAddress) {
-        return
+    ChainController.subscribeChainProp('accountState', accountState => {
+      const hasWcConnection = ConnectionController.hasAnyConnection(
+        ConstantsUtil.CONNECTOR_ID.WALLET_CONNECT
+      )
+      if (accountState?.caipAddress) {
+        // WalletConnect connections sometimes fail down the line due to state not being updated atomically
+        if (hasWcConnection) {
+          setTimeout(() => {
+            this.handlePayment()
+          }, 100)
+        } else {
+          this.handlePayment()
+        }
       }
-      await this.handlePayment()
     })
   },
   async handlePayment() {
@@ -316,23 +326,26 @@ export const PayController = {
       type: 'wallet',
       status: 'IN_PROGRESS'
     }
-    const caipAddress = AccountController.state.caipAddress
+    const caipAddress = ChainController.getActiveCaipAddress()
     if (!caipAddress) {
       return
     }
 
     const { chainId, address } = ParseUtil.parseCaipAddress(caipAddress)
     const chainNamespace = ChainController.state.activeChain
+
     if (!address || !chainId || !chainNamespace) {
       return
     }
 
-    const provider = ProviderUtil.getProvider(chainNamespace)
+    const provider = ProviderController.getProvider(chainNamespace)
+
     if (!provider) {
       return
     }
 
     const caipNetwork = ChainController.state.activeCaipNetwork
+
     if (!caipNetwork) {
       return
     }
@@ -431,7 +444,7 @@ export const PayController = {
   },
 
   handlePayWithWallet() {
-    const caipAddress = AccountController.state.caipAddress
+    const caipAddress = ChainController.getActiveCaipAddress()
     if (!caipAddress) {
       RouterController.push('Connect')
 
@@ -496,6 +509,9 @@ export const PayController = {
           type: 'track',
           event: status.status === 'SUCCESS' ? 'PAY_SUCCESS' : 'PAY_ERROR',
           properties: {
+            message:
+              status.status === 'FAILED' ? CoreHelperUtil.parseError(state.error) : undefined,
+            source: 'pay',
             paymentId: state.paymentId || DEFAULT_PAYMENT_ID,
             configuration: {
               network: state.paymentAsset.network,
@@ -557,6 +573,11 @@ export const PayController = {
           type: 'track',
           event: eventType as 'PAY_INITIATED' | 'PAY_SUCCESS' | 'PAY_ERROR',
           properties: {
+            message:
+              state.currentPayment.status === 'FAILED'
+                ? CoreHelperUtil.parseError(state.error)
+                : undefined,
+            source: 'pay',
             paymentId: state.paymentId || DEFAULT_PAYMENT_ID,
             configuration: {
               network: state.paymentAsset.network,

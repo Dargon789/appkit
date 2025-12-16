@@ -1,7 +1,7 @@
 import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { CaipNetwork } from '@reown/appkit-common'
-import { CoreHelperUtil } from '@reown/appkit-controllers'
+import { ChainController, CoreHelperUtil } from '@reown/appkit-controllers'
 import { bitcoin, bitcoinTestnet } from '@reown/appkit/networks'
 
 import { OKXConnector } from '../../src/connectors/OKXConnector'
@@ -26,15 +26,14 @@ describe('OKXConnector', () => {
   let wallet: ReturnType<typeof mockOKXWallet>
   let requestedChains: CaipNetwork[]
   let connector: OKXConnector
-  let getActiveNetwork: Mock<() => CaipNetwork | undefined>
   let imageUrl: string
 
   beforeEach(() => {
     imageUrl = 'mock_image_url'
     requestedChains = [bitcoin, bitcoinTestnet]
-    getActiveNetwork = vi.fn(() => bitcoin)
+    vi.spyOn(ChainController, 'getActiveCaipNetwork').mockReturnValue(bitcoin)
     wallet = mockOKXWallet()
-    connector = new OKXConnector({ wallet, requestedChains, getActiveNetwork, imageUrl })
+    connector = new OKXConnector({ wallet, requestedChains, imageUrl })
   })
 
   it('should validate metadata', () => {
@@ -45,7 +44,7 @@ describe('OKXConnector', () => {
     expect(connector.imageUrl).toBe('mock_image_url')
   })
 
-  it('should return only mainnet chain', () => {
+  it('should return chain that is active', () => {
     expect(connector.chains).toEqual([bitcoin])
   })
 
@@ -70,6 +69,24 @@ describe('OKXConnector', () => {
       expect(wallet.removeAllListeners).toHaveBeenCalled()
       expect(wallet.on).toHaveBeenNthCalledWith(1, 'accountChanged', expect.any(Function))
       expect(wallet.on).toHaveBeenNthCalledWith(2, 'disconnect', expect.any(Function))
+    })
+
+    it('should connect with testnet', async () => {
+      vi.spyOn(ChainController, 'getActiveCaipNetwork').mockReturnValue(bitcoinTestnet)
+
+      const testnetWallet = mockOKXWallet()
+      const testnetConnector = new OKXConnector({
+        wallet: testnetWallet,
+        requestedChains: [bitcoin, bitcoinTestnet],
+        imageUrl: 'mock_image_url',
+        requestedCaipNetworkId: bitcoinTestnet.caipNetworkId
+      })
+
+      const address = await testnetConnector.connect()
+
+      expect(address).toBe('mock_address')
+      expect(testnetWallet.connect).toHaveBeenCalled()
+      expect(testnetConnector.chains).toEqual([bitcoinTestnet])
     })
   })
 
@@ -142,7 +159,7 @@ describe('OKXConnector', () => {
     })
 
     it('should throw an error if the network is unavailable', async () => {
-      getActiveNetwork.mockReturnValueOnce(undefined)
+      vi.spyOn(ChainController, 'getActiveCaipNetwork').mockReturnValue(undefined)
 
       await expect(
         connector.sendTransfer({ amount: '1500', recipient: 'mock_to_address' })
@@ -170,7 +187,7 @@ describe('OKXConnector', () => {
     })
 
     it('should sign a PSBT with broadcast', async () => {
-      getActiveNetwork.mockReturnValueOnce(bitcoinTestnet)
+      vi.spyOn(ChainController, 'getActiveCaipNetwork').mockReturnValue(bitcoinTestnet)
 
       const result = await connector.signPSBT({
         psbt: Buffer.from('mock_psbt').toString('base64'),
@@ -179,6 +196,59 @@ describe('OKXConnector', () => {
       })
 
       expect(result).toEqual({ psbt: 'bW9ja19wc2J0', txid: 'mock_txhash' })
+    })
+
+    it('should sign a PSBT with partial signing without broadcast', async () => {
+      const signInputs = [
+        {
+          index: 0,
+          address: 'mock_address',
+          publicKey: 'mock_pubkey',
+          sighashTypes: [1, 3],
+          disableTweakSigner: true
+        }
+      ]
+      const psbtBase64 = Buffer.from('mock_psbt').toString('base64')
+      const result = await connector.signPSBT({
+        psbt: psbtBase64,
+        signInputs,
+        broadcast: false
+      })
+      expect(result).toEqual({ psbt: 'bW9ja19wc2J0', txid: undefined })
+      expect(wallet.signPsbt).toHaveBeenCalledWith(
+        Buffer.from(psbtBase64, 'base64').toString('hex'),
+        {
+          autoFinalized: false,
+          toSignInputs: [
+            {
+              index: 0,
+              address: 'mock_address',
+              publicKey: 'mock_pubkey',
+              sighashTypes: [1, 3],
+              disableTweakSigner: true
+            }
+          ]
+        }
+      )
+      expect(wallet.pushPsbt).not.toHaveBeenCalled()
+    })
+    it('should throw error when trying to broadcast with partial signing', async () => {
+      const signInputs = [
+        {
+          index: 0,
+          address: 'mock_address',
+          publicKey: 'mock_pubkey',
+          sighashTypes: [1, 3],
+          disableTweakSigner: true
+        }
+      ]
+      await expect(
+        connector.signPSBT({
+          psbt: Buffer.from('mock_psbt').toString('base64'),
+          signInputs,
+          broadcast: true
+        })
+      ).rejects.toThrow('Broadcast not supported for partial signing')
     })
   })
 
@@ -214,25 +284,25 @@ describe('OKXConnector', () => {
 
   describe('getWallet', () => {
     it('should return undefined if there is no wallet', () => {
-      expect(OKXConnector.getWallet({ getActiveNetwork, requestedChains: [] })).toBeUndefined()
+      expect(OKXConnector.getWallet({ requestedChains: [] })).toBeUndefined()
     })
 
     it('should return the Connector if there is a wallet', () => {
       ;(window as any).okxwallet = { bitcoin: wallet }
-      const connector = OKXConnector.getWallet({ getActiveNetwork, requestedChains })
+      const connector = OKXConnector.getWallet({ requestedChains })
       expect(connector).toBeInstanceOf(OKXConnector)
     })
 
     it('should get image url', () => {
       ;(window as any).okxwallet = { bitcoin: wallet, cardano: { icon: 'mock_image' } }
-      const connector = OKXConnector.getWallet({ getActiveNetwork, requestedChains })
+      const connector = OKXConnector.getWallet({ requestedChains })
       expect(connector?.imageUrl).toBe('mock_image')
     })
 
     it('should return undefined if window is undefined (server-side)', () => {
       vi.spyOn(CoreHelperUtil, 'isClient').mockReturnValue(false)
 
-      expect(OKXConnector.getWallet({ getActiveNetwork, requestedChains })).toBeUndefined()
+      expect(OKXConnector.getWallet({ requestedChains })).toBeUndefined()
     })
   })
 
@@ -245,10 +315,32 @@ describe('OKXConnector', () => {
   })
 
   describe('switchNetwork', () => {
-    it('should throw error saying network switching is not supported', async () => {
-      await expect(
-        connector.switchNetwork('bip122:000000000019d6689c085ae165831e93')
-      ).rejects.toThrow('OKX Wallet wallet does not support network switching')
+    it('should switch to testnet network and connect', async () => {
+      const testnetWallet = mockOKXWallet()
+      const testnetConnector = new OKXConnector({
+        wallet: testnetWallet,
+        requestedChains,
+        imageUrl: 'mock_image'
+      })
+
+      vi.spyOn(OKXConnector, 'getWallet').mockReturnValue(testnetConnector)
+
+      const accountsChangedListener = vi.fn()
+      connector.on('accountsChanged', accountsChangedListener)
+
+      // Switch to testnet bitcoin
+      await connector.switchNetwork('bip122:000000000933ea01ad0ee984209779ba')
+
+      expect(testnetWallet.connect).toHaveBeenCalled()
+      expect(accountsChangedListener).toHaveBeenCalledWith(['mock_address'])
+    })
+
+    it('should throw error when wallet is not available', async () => {
+      vi.spyOn(OKXConnector, 'getWallet').mockReturnValue(undefined)
+
+      await expect(connector.switchNetwork('bip122:fake-network')).rejects.toThrow(
+        'OKX Wallet wallet does not support network switching'
+      )
     })
   })
 })

@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 /* eslint-disable consistent-return */
-import { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
+import { createComponent } from '@lit/react'
 import { useSnapshot } from 'valtio'
 
-import type { ParsedCaipAddress } from '@reown/appkit-common'
+import type { ChainNamespace, ParsedCaipAddress } from '@reown/appkit-common'
 import {
   ChainController,
   type Connector,
@@ -19,12 +20,18 @@ import { WalletButtonController } from '../src/controllers/WalletButtonControlle
 import { ConstantsUtil } from '../src/utils/ConstantsUtil.js'
 import type { SocialProvider } from '../src/utils/TypeUtil.js'
 import { WalletUtil } from '../src/utils/WalletUtil.js'
-import type { AppKitWalletButton, Wallet } from './index.js'
+import { AppKitWalletButton as AppKitWalletButtonComponent, type Wallet } from './index.js'
 
 export * from './index.js'
 
+export const AppKitWalletButton = createComponent({
+  tagName: 'appkit-wallet-button',
+  elementClass: AppKitWalletButtonComponent,
+  react: React
+})
+
 interface AppKitElements {
-  'appkit-wallet-button': Pick<AppKitWalletButton, 'wallet'>
+  'appkit-wallet-button': Pick<AppKitWalletButtonComponent, 'wallet' | 'namespace'>
 }
 /* ------------------------------------------------------------------ */
 /* Declare global namespace for React 18     */
@@ -48,6 +55,7 @@ declare module 'react' {
   }
 }
 export function useAppKitWallet(parameters?: {
+  namespace?: ChainNamespace
   onSuccess?: (data: ParsedCaipAddress) => void
   onError?: (error: Error) => void
 }) {
@@ -59,7 +67,7 @@ export function useAppKitWallet(parameters?: {
     data: walletButtonData
   } = useSnapshot(WalletButtonController.state)
 
-  const { onSuccess, onError } = parameters ?? {}
+  const { namespace, onSuccess, onError } = parameters ?? {}
 
   // Prefetch wallet buttons
   useEffect(() => {
@@ -118,8 +126,9 @@ export function useAppKitWallet(parameters?: {
 
         if (wallet === ConstantsUtil.Email) {
           await ConnectorControllerUtil.connectEmail({
+            namespace,
             onOpen() {
-              ModalController.open().then(() => RouterController.push('EmailLogin'))
+              ModalController.open({ view: 'EmailLogin' })
             }
           }).then(handleSuccess)
 
@@ -129,6 +138,7 @@ export function useAppKitWallet(parameters?: {
         if (ConstantsUtil.Socials.some(social => social === wallet)) {
           await ConnectorControllerUtil.connectSocial({
             social: wallet as SocialProvider,
+            namespace,
             onOpenFarcaster() {
               ModalController.open({ view: 'ConnectingFarcaster' })
             },
@@ -142,9 +152,10 @@ export function useAppKitWallet(parameters?: {
 
         const walletButton = WalletUtil.getWalletButton(wallet)
 
-        const connector = walletButton
-          ? ConnectorController.getConnector(walletButton.id, walletButton.rdns)
-          : undefined
+        const connector =
+          walletButton && namespace
+            ? ConnectorController.getConnector({ id: walletButton.id, namespace })
+            : undefined
 
         if (connector) {
           await ConnectorControllerUtil.connectExternal(connector).then(handleSuccess)
@@ -156,14 +167,9 @@ export function useAppKitWallet(parameters?: {
           walletConnect: wallet === 'walletConnect',
           connector: connectors.find(c => c.id === 'walletConnect') as Connector | undefined,
           onOpen(isMobile) {
-            ModalController.open().then(() => {
-              if (isMobile) {
-                RouterController.replace('AllWallets')
-              } else {
-                RouterController.replace('ConnectingWalletConnect', {
-                  wallet: walletButton
-                })
-              }
+            ModalController.open({
+              view: isMobile ? 'AllWallets' : 'ConnectingWalletConnect',
+              data: isMobile ? undefined : { wallet: walletButton }
             })
           },
           onConnect() {
@@ -176,7 +182,7 @@ export function useAppKitWallet(parameters?: {
         WalletButtonController.setPending(false)
       }
     },
-    [connectors, handleSuccess, handleError]
+    [namespace, connectors, handleSuccess, handleError]
   )
 
   return {

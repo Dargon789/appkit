@@ -1,11 +1,11 @@
+import type { AuthTypes } from '@walletconnect/types'
 import UniversalProvider from '@walletconnect/universal-provider'
 
 import type { CaipNetworkId, ChainNamespace } from '@reown/appkit-common'
-import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
+import { ConstantsUtil as CommonConstantsUtil, ParseUtil } from '@reown/appkit-common'
 import type { W3mFrameProvider } from '@reown/appkit-wallet'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet/utils'
 
-import { AccountController } from '../controllers/AccountController.js'
 import { ChainController } from '../controllers/ChainController.js'
 import { ConnectionController } from '../controllers/ConnectionController.js'
 import { ConnectorController } from '../controllers/ConnectorController.js'
@@ -14,7 +14,7 @@ import { ModalController } from '../controllers/ModalController.js'
 import { OptionsController } from '../controllers/OptionsController.js'
 import { RouterController } from '../controllers/RouterController.js'
 import { SnackController } from '../controllers/SnackController.js'
-import { getPreferredAccountType } from './ChainControllerUtil.js'
+import { getActiveCaipNetwork, getPreferredAccountType } from './ChainControllerUtil.js'
 import { CoreHelperUtil } from './CoreHelperUtil.js'
 
 /**
@@ -28,30 +28,38 @@ export const SIWXUtil = {
     return OptionsController.state.siwx
   },
 
-  async initializeIfEnabled() {
+  async initializeIfEnabled(caipAddress = ChainController.getActiveCaipAddress()) {
     const siwx = OptionsController.state.siwx
-    const caipAddress = ChainController.getActiveCaipAddress()
 
     if (!(siwx && caipAddress)) {
       return
     }
     const [namespace, chainId, address] = caipAddress.split(':') as [ChainNamespace, string, string]
 
-    if (!ChainController.checkIfSupportedNetwork(namespace)) {
+    if (!ChainController.checkIfSupportedNetwork(namespace, `${namespace}:${chainId}`)) {
       return
     }
 
     try {
+      if (OptionsController.state.remoteFeatures?.emailCapture) {
+        const user = ChainController.getAccountData(namespace)?.user
+        await ModalController.open({
+          view: 'DataCapture',
+          data: {
+            email: user?.email ?? undefined
+          }
+        })
+
+        return
+      }
       if (addEmbeddedWalletSessionPromise) {
         await addEmbeddedWalletSessionPromise
       }
 
       const sessions = await siwx.getSessions(`${namespace}:${chainId}`, address)
-
       if (sessions.length) {
         return
       }
-
       await ModalController.open({
         view: 'SIWXSignMessage'
       })
@@ -62,7 +70,7 @@ export const SIWXUtil = {
       EventsController.sendEvent({
         type: 'track',
         event: 'SIWX_AUTH_ERROR',
-        properties: this.getSIWXEventProperties()
+        properties: this.getSIWXEventProperties(error)
       })
 
       // eslint-disable-next-line no-console
@@ -71,11 +79,30 @@ export const SIWXUtil = {
       SnackController.showError('A problem occurred while trying initialize authentication')
     }
   },
+  async isAuthenticated(caipAddress = ChainController.getActiveCaipAddress()) {
+    const siwx = OptionsController.state.siwx
+    if (!siwx) {
+      return true
+    }
+
+    // If there is no active caip address, there is nothing to authenticate
+    if (!caipAddress) {
+      return true
+    }
+
+    const { chainNamespace, chainId, address } = ParseUtil.parseCaipAddress(caipAddress)
+    const caipNetworkId = `${chainNamespace}:${chainId}` as const
+    const sessions = await SIWXUtil.getSessions({
+      address,
+      caipNetworkId
+    })
+
+    return sessions.length > 0
+  },
   async requestSignMessage() {
     const siwx = OptionsController.state.siwx
     const address = CoreHelperUtil.getPlainAddress(ChainController.getActiveCaipAddress())
-    const network = ChainController.getActiveCaipNetwork()
-    const client = ConnectionController._getClient()
+    const network = getActiveCaipNetwork()
 
     if (!siwx) {
       throw new Error('SIWX is not enabled')
@@ -89,10 +116,6 @@ export const SIWXUtil = {
       throw new Error('No ActiveCaipNetwork or client found')
     }
 
-    if (!client) {
-      throw new Error('No ConnectionController client found')
-    }
-
     try {
       const siwxMessage = await siwx.createMessage({
         chainId: network.caipNetworkId,
@@ -100,13 +123,21 @@ export const SIWXUtil = {
       })
 
       const message = siwxMessage.toString()
-      const connectorId = ConnectorController.getConnectorId(network.chainNamespace)
 
-      if (connectorId === CommonConstantsUtil.CONNECTOR_ID.AUTH) {
-        RouterController.pushTransactionStack({})
+      let signature = ''
+      if (siwx.signMessage) {
+        signature = await siwx.signMessage({
+          message,
+          chainId: network.caipNetworkId,
+          accountAddress: address
+        })
+      } else {
+        const connectorId = ConnectorController.getConnectorId(network.chainNamespace)
+        if (connectorId === CommonConstantsUtil.CONNECTOR_ID.AUTH) {
+          RouterController.pushTransactionStack({})
+        }
+        signature = (await ConnectionController.signMessage(message)) || ''
       }
-
-      const signature = await client.signMessage(message)
 
       await siwx.addSession({
         data: siwxMessage,
@@ -124,8 +155,6 @@ export const SIWXUtil = {
         properties: this.getSIWXEventProperties()
       })
     } catch (error) {
-      const properties = this.getSIWXEventProperties()
-
       if (!ModalController.state.open || RouterController.state.view === 'ApproveTransaction') {
         await ModalController.open({
           view: 'SIWXSignMessage'
@@ -136,7 +165,7 @@ export const SIWXUtil = {
       EventsController.sendEvent({
         type: 'track',
         event: 'SIWX_AUTH_ERROR',
-        properties
+        properties: this.getSIWXEventProperties(error)
       })
 
       // eslint-disable-next-line no-console
@@ -245,8 +274,14 @@ export const SIWXUtil = {
     chainNamespace: ChainNamespace
   }) {
     const siwx = SIWXUtil.getSIWX()
+    const network = getActiveCaipNetwork()
 
-    if (!siwx || !chainNamespace.includes(CommonConstantsUtil.CHAIN.EVM)) {
+    if (
+      !siwx ||
+      !chainNamespace.includes(CommonConstantsUtil.CHAIN.EVM) ||
+      // Request to input email and sign message when email capture is enabled
+      OptionsController.state.remoteFeatures?.emailCapture
+    ) {
       const result = await authConnector.connect({
         chainId,
         socialUri,
@@ -260,8 +295,10 @@ export const SIWXUtil = {
       }
     }
 
+    const caipNetwork = `${chainNamespace}:${chainId}` as CaipNetworkId
+
     const siwxMessage = await siwx.createMessage({
-      chainId: ChainController.getActiveCaipNetwork()?.caipNetworkId || ('' as CaipNetworkId),
+      chainId: caipNetwork,
       accountAddress: '<<AccountAddress>>'
     })
 
@@ -301,6 +338,8 @@ export const SIWXUtil = {
 
       await promise
     }
+
+    ChainController.setLastConnectedSIWECaipNetwork(network)
 
     return {
       address: result.address,
@@ -346,7 +385,7 @@ export const SIWXUtil = {
     methods: string[]
   }) {
     const siwx = SIWXUtil.getSIWX()
-
+    const network = getActiveCaipNetwork()
     const namespaces = new Set(chains.map(chain => chain.split(':')[0] as ChainNamespace))
 
     if (!siwx || namespaces.size !== 1 || !namespaces.has('eip155')) {
@@ -355,7 +394,7 @@ export const SIWXUtil = {
 
     // Ignores chainId and account address to get other message data
     const siwxMessage = await siwx.createMessage({
-      chainId: ChainController.getActiveCaipNetwork()?.caipNetworkId || ('' as CaipNetworkId),
+      chainId: getActiveCaipNetwork()?.caipNetworkId || ('' as CaipNetworkId),
       accountAddress: ''
     })
 
@@ -378,13 +417,16 @@ export const SIWXUtil = {
 
     SnackController.showLoading('Authenticating...', { autoClose: false })
 
-    AccountController.setConnectedWalletInfo(
-      {
-        ...result.session.peer.metadata,
-        name: result.session.peer.metadata.name,
-        icon: result.session.peer.metadata.icons?.[0],
-        type: 'WALLET_CONNECT'
-      },
+    const walletInfo = {
+      ...result.session.peer.metadata,
+      name: result.session.peer.metadata.name,
+      icon: result.session.peer.metadata.icons?.[0],
+      type: 'WALLET_CONNECT'
+    }
+
+    ChainController.setAccountProp(
+      'connectedWalletInfo',
+      walletInfo,
       Array.from(namespaces)[0] as ChainNamespace
     )
 
@@ -400,7 +442,7 @@ export const SIWXUtil = {
             ...cacao.p,
             accountAddress: cacao.p.iss.split(':').slice(-1).join(''),
             chainId: cacao.p.iss.split(':').slice(2, 4).join(':') as CaipNetworkId,
-            uri: cacao.p.aud,
+            uri: cacao.p.aud ?? '',
             version: cacao.p.version || siwxMessage.version,
             expirationTime: cacao.p.exp,
             issuedAt: cacao.p.iat,
@@ -415,6 +457,10 @@ export const SIWXUtil = {
       try {
         await siwx.setSessions(sessions)
 
+        if (network) {
+          ChainController.setLastConnectedSIWECaipNetwork(network)
+        }
+
         EventsController.sendEvent({
           type: 'track',
           event: 'SIWX_AUTH_SUCCESS',
@@ -427,7 +473,7 @@ export const SIWXUtil = {
         EventsController.sendEvent({
           type: 'track',
           event: 'SIWX_AUTH_ERROR',
-          properties: SIWXUtil.getSIWXEventProperties()
+          properties: SIWXUtil.getSIWXEventProperties(error)
         })
 
         // eslint-disable-next-line no-console
@@ -440,7 +486,7 @@ export const SIWXUtil = {
 
     return true
   },
-  getSIWXEventProperties() {
+  getSIWXEventProperties(error?: unknown) {
     const namespace = ChainController.state.activeChain
 
     if (!namespace) {
@@ -450,7 +496,8 @@ export const SIWXUtil = {
     return {
       network: ChainController.state.activeCaipNetwork?.caipNetworkId || '',
       isSmartAccount:
-        getPreferredAccountType(namespace) === W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT
+        getPreferredAccountType(namespace) === W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT,
+      message: error ? CoreHelperUtil.parseError(error) : undefined
     }
   },
   async clearSessions() {
@@ -479,6 +526,28 @@ export interface SIWXConfig {
    * @returns SIWXMessage
    */
   createMessage: (input: SIWXMessage.Input) => Promise<SIWXMessage>
+
+  /**
+   * This method will be called to sign a message with the wallet using the signer handler.
+   * This behavior can be overriden by passing in a `signer` parameter to the `SIWXConfig` constructor.
+   * Constraints:
+   * - This method MUST forward the message to the wallet for a signature request.
+   * - If the signature process fails or is cancelled it MUST throw an error.
+   *
+   * @param message string
+   * @param chainId CaipNetworkId
+   * @param accountAddress string
+   * @returns string
+   */
+  signMessage?: ({
+    message,
+    chainId,
+    accountAddress
+  }: {
+    message: string
+    chainId: string
+    accountAddress: string
+  }) => Promise<string>
 
   /**
    * This method will be called to store a new single session.
@@ -548,7 +617,7 @@ export interface SIWXSession {
   data: SIWXMessage.Data
   message: string
   signature: string
-  cacao?: Cacao
+  cacao?: AuthTypes.Cacao
 }
 
 /**
@@ -615,13 +684,9 @@ export namespace SIWXMessage {
  * https://chainagnostic.org/CAIPs/caip-74
  */
 export interface Cacao {
-  h: Cacao.Header
-  p: Cacao.Payload
-  s: {
-    t: 'eip191' | 'eip1271'
-    s: string
-    m?: string
-  }
+  h: AuthTypes.CacaoHeader
+  p: AuthTypes.BaseAuthRequestParams
+  s: AuthTypes.CacaoSignature
 }
 
 export namespace Cacao {
@@ -631,16 +696,17 @@ export namespace Cacao {
 
   export interface Payload {
     domain: string
-    aud: string
+    aud?: string
     nonce: string
-    iss: string
     version?: string
     iat?: string
     nbf?: string
     exp?: string
+    chainId?: string
     statement?: string
     requestId?: string
     resources?: string[]
+    expiry?: number
     type?: string
   }
 }

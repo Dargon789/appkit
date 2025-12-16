@@ -3,6 +3,7 @@ import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
+import type { CaipAddress, ChainNamespace } from '@reown/appkit-common'
 import {
   AssetUtil,
   ChainController,
@@ -28,9 +29,11 @@ export class AppKitWalletButton extends LitElement {
   // -- State & Properties -------------------------------- //
   @property() wallet: Wallet = 'metamask'
 
+  @property() namespace?: ChainNamespace
+
   @state() private connectors = ConnectorController.state.connectors
 
-  @state() private caipAddress = ChainController.state.activeCaipAddress
+  @state() private caipAddress: CaipAddress | undefined
 
   @state() private loading = false
 
@@ -46,12 +49,6 @@ export class AppKitWalletButton extends LitElement {
       ...[
         ModalController.subscribeKey('loading', val => (this.modalLoading = val)),
         ConnectorController.subscribeKey('connectors', val => (this.connectors = val)),
-        ChainController.subscribeKey('activeCaipAddress', val => {
-          if (val) {
-            this.error = false
-          }
-          this.caipAddress = val
-        }),
         ApiController.subscribeKey('walletButtons', () => {
           this.ready = WalletUtil.isWalletButtonReady(this.wallet)
         })
@@ -64,15 +61,41 @@ export class AppKitWalletButton extends LitElement {
     this.unsubscribe.forEach(unsubscribe => unsubscribe())
   }
 
+  // -- Lifecycle ----------------------------------------- //
+  public override connectedCallback() {
+    super.connectedCallback()
+    this.caipAddress = this.namespace
+      ? ChainController.state.chains.get(this.namespace)?.accountState?.caipAddress
+      : ChainController.state.activeCaipAddress
+  }
+
   public override firstUpdated() {
     if (!WalletUtil.isWalletButtonReady(this.wallet)) {
       // Prefetch wallet buttons
       ApiController.fetchWalletButtons()
     }
+
+    if (this.namespace) {
+      this.unsubscribe.push(
+        ChainController.subscribeChainProp(
+          'accountState',
+          val => {
+            this.caipAddress = val?.caipAddress
+          },
+          this.namespace
+        )
+      )
+    } else {
+      this.unsubscribe.push(
+        ChainController.subscribeKey('activeCaipAddress', val => (this.caipAddress = val))
+      )
+    }
   }
 
   // -- Render -------------------------------------------- //
   public override render() {
+    const namespace = this.namespace || ChainController.state.activeChain
+
     if (this.wallet === 'email') {
       return this.emailTemplate()
     }
@@ -83,9 +106,10 @@ export class AppKitWalletButton extends LitElement {
 
     const walletButton = WalletUtil.getWalletButton(this.wallet)
 
-    const connector = walletButton
-      ? ConnectorController.getConnector(walletButton.id, walletButton.rdns)
-      : undefined
+    const connector =
+      walletButton && namespace
+        ? ConnectorController.getConnector({ id: walletButton.id, namespace })
+        : undefined
 
     if (connector) {
       return this.externalTemplate(connector)
@@ -117,14 +141,9 @@ export class AppKitWalletButton extends LitElement {
             walletConnect: this.wallet === 'walletConnect',
             connector: this.connectors.find(c => c.id === 'walletConnect'),
             onOpen(isMobile) {
-              ModalController.open().then(() => {
-                if (isMobile) {
-                  RouterController.replace('AllWallets')
-                } else {
-                  RouterController.replace('ConnectingWalletConnect', {
-                    wallet: walletButton
-                  })
-                }
+              ModalController.open({
+                view: isMobile ? 'AllWallets' : 'ConnectingWalletConnect',
+                data: isMobile ? undefined : { wallet: walletButton }
               })
             },
             onConnect() {
@@ -136,7 +155,7 @@ export class AppKitWalletButton extends LitElement {
             })
             .finally(() => (this.loading = false))
         }}
-        .icon=${ifDefined(this.wallet === 'walletConnect' ? 'walletConnect' : undefined)}
+        .icon=${ifDefined(this.wallet === 'walletConnect' ? 'walletConnectInvert' : undefined)}
         .imageSrc=${ifDefined(walletImage)}
         ?disabled=${Boolean(this.caipAddress) || loading || this.modalLoading}
         ?loading=${loading || this.modalLoading}
@@ -174,12 +193,13 @@ export class AppKitWalletButton extends LitElement {
     return html`<wui-wallet-button
       data-testid="apkt-wallet-button-social"
       name=${this.modalLoading ? 'Loading...' : this.wallet}
-      @click=${async () => {
+      @click=${() => {
         this.loading = true
         this.error = false
 
         return ConnectorControllerUtil.connectSocial({
           social: this.wallet as SocialProvider,
+          namespace: this.namespace,
           onOpenFarcaster() {
             ModalController.open({ view: 'ConnectingFarcaster' })
           },
@@ -205,8 +225,9 @@ export class AppKitWalletButton extends LitElement {
         this.loading = true
         this.error = false
         await ConnectorControllerUtil.connectEmail({
+          namespace: this.namespace,
           onOpen() {
-            ModalController.open().then(() => RouterController.push('EmailLogin'))
+            ModalController.open({ view: 'EmailLogin' })
           },
           onConnect() {
             RouterController.push('Connect')

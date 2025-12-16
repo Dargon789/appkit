@@ -3,12 +3,13 @@ import {
   type EmbeddedWalletTimeoutReason,
   ParseUtil
 } from '@reown/appkit-common'
-import type { CaipNetwork, CaipNetworkId } from '@reown/appkit-common'
+import type { CaipNetwork, CaipNetworkId, SdkVersion } from '@reown/appkit-common'
 
 import { W3mFrame } from './W3mFrame.js'
 import { W3mFrameConstants, W3mFrameRpcConstants } from './W3mFrameConstants.js'
 import { W3mFrameHelpers } from './W3mFrameHelpers.js'
 import { W3mFrameLogger } from './W3mFrameLogger.js'
+import type { SdkType } from './W3mFrameSchema.js'
 import { W3mFrameStorage } from './W3mFrameStorage.js'
 import type { W3mFrameTypes } from './W3mFrameTypes.js'
 
@@ -20,17 +21,29 @@ interface W3mFrameProviderConfig {
   enableLogger?: boolean
   onTimeout?: (reason: EmbeddedWalletTimeoutReason) => void
   abortController: AbortController
+  enableCloudAuthAccount?: boolean
   getActiveCaipNetwork: (namespace?: ChainNamespace) => CaipNetwork | undefined
+  getCaipNetworks: (namespace?: ChainNamespace) => CaipNetwork[]
+  metadata: W3mFrameTypes.Requests['AppSyncDappDataRequest']['metadata']
+  sdkVersion: SdkVersion
+  sdkType: SdkType
 }
 
 // -- Provider --------------------------------------------------------
 export class W3mFrameProvider {
   public w3mLogger?: W3mFrameLogger
+  private projectId: string
+  private sdkVersion: SdkVersion
+  private sdkType: SdkType
+  private metadata: W3mFrameTypes.Requests['AppSyncDappDataRequest']['metadata']
   private w3mFrame: W3mFrame
   private abortController: AbortController
   private getActiveCaipNetwork: (namespace?: ChainNamespace) => CaipNetwork | undefined
-  private openRpcRequests: Array<W3mFrameTypes.RPCRequest & { abortController: AbortController }> =
-    []
+  private getCaipNetworks: (namespace?: ChainNamespace) => CaipNetwork[]
+  private openRpcRequests = new Map<
+    string,
+    W3mFrameTypes.RPCRequest & { abortController: AbortController }
+  >()
 
   private rpcRequestHandler?: (request: W3mFrameTypes.RPCRequest) => void
   private rpcSuccessHandler?: (
@@ -50,15 +63,32 @@ export class W3mFrameProvider {
     enableLogger = true,
     onTimeout,
     abortController,
-    getActiveCaipNetwork
+    getActiveCaipNetwork,
+    getCaipNetworks,
+    enableCloudAuthAccount,
+    metadata,
+    sdkVersion,
+    sdkType
   }: W3mFrameProviderConfig) {
     if (enableLogger) {
       this.w3mLogger = new W3mFrameLogger(projectId)
     }
     this.abortController = abortController
     this.getActiveCaipNetwork = getActiveCaipNetwork
+    this.getCaipNetworks = getCaipNetworks
     const rpcUrl = this.getRpcUrl(chainId)
-    this.w3mFrame = new W3mFrame({ projectId, isAppClient: true, chainId, enableLogger, rpcUrl })
+    this.projectId = projectId
+    this.sdkVersion = sdkVersion
+    this.sdkType = sdkType
+    this.metadata = metadata
+    this.w3mFrame = new W3mFrame({
+      projectId,
+      isAppClient: true,
+      chainId,
+      enableLogger,
+      rpcUrl,
+      enableCloudAuthAccount
+    })
     this.onTimeout = onTimeout
     if (this.getLoginEmailUsed()) {
       this.createFrame()
@@ -78,6 +108,13 @@ export class W3mFrameProvider {
       })
     })
     await this.initPromise
+    await this.syncDappData({
+      metadata: this.metadata,
+      projectId: this.projectId,
+      sdkVersion: this.sdkVersion,
+      sdkType: this.sdkType
+    })
+    await this.getSmartAccountEnabledNetworks()
     this.isInitialized = true
     this.initPromise = undefined
   }
@@ -374,7 +411,7 @@ export class W3mFrameProvider {
       const chainId = payload?.chainId || this.getLastUsedChainId() || 1
       const response = await this.appEvent<'GetUser'>({
         type: W3mFrameConstants.APP_GET_USER,
-        payload: { ...payload, chainId }
+        payload: { ...payload, chainId, rpcUrl: this.getRpcUrl(chainId) }
       } as W3mFrameTypes.AppEvent)
       this.user = response
 
@@ -490,7 +527,10 @@ export class W3mFrameProvider {
       }
 
       /*
-       * If chainNamespace is provided in the request, use that namespace to get the chainId, otherwise fallback to 'eip155' namespace since Ethers and Wagmi RPC requests are limited to be modified to include the chainNamespace, so requests from Ethers and Wagmi will never include a chainNamespace
+       * If chainNamespace is provided in the request, use that namespace to get the chainId
+       * otherwise fallback to 'eip155' namespace since Ethers and Wagmi RPC requests are limited
+       * to be modified to include the chainNamespace, so requests from Ethers and Wagmi will never
+       * include a chainNamespace
        */
       const namespace = req.chainNamespace || 'eip155'
       const chainId = this.getActiveCaipNetwork(namespace)?.id
@@ -604,7 +644,7 @@ export class W3mFrameProvider {
   public async rejectRpcRequests() {
     try {
       await Promise.all(
-        this.openRpcRequests.map(async ({ abortController, method }) => {
+        Array.from(this.openRpcRequests.values()).map(async ({ abortController, method }) => {
           if (!W3mFrameRpcConstants.SAFE_RPC_METHODS.includes(method)) {
             abortController.abort()
           }
@@ -614,7 +654,7 @@ export class W3mFrameProvider {
           })
         })
       )
-      this.openRpcRequests = []
+      this.openRpcRequests.clear()
     } catch (e) {
       this.w3mLogger?.logger.error({ error: e }, 'Error aborting RPC request')
     }
@@ -679,7 +719,7 @@ export class W3mFrameProvider {
       const abortController = new AbortController()
       if (type === 'RPC_REQUEST') {
         const rpcEvent = event as Extract<W3mFrameTypes.AppEvent, { type: '@w3m-app/RPC_REQUEST' }>
-        this.openRpcRequests = [...this.openRpcRequests, { ...rpcEvent.payload, abortController }]
+        this.openRpcRequests.set(id, { ...rpcEvent.payload, abortController })
       }
       abortController.signal.addEventListener('abort', () => {
         if (type === 'RPC_REQUEST') {
@@ -689,12 +729,12 @@ export class W3mFrameProvider {
         }
       })
 
-      function handler(framEvent: W3mFrameTypes.FrameEvent, logger?: W3mFrameLogger) {
+      const handler = (framEvent: W3mFrameTypes.FrameEvent, logger?: W3mFrameLogger) => {
         if (framEvent.id !== id) {
           return
         }
         logger?.logger.info?.({ framEvent, id }, 'Received frame response')
-
+        this.openRpcRequests.delete(framEvent.id)
         if (framEvent.type === `@w3m-frame/${type}_SUCCESS`) {
           if (requestTimeout) {
             clearTimeout(requestTimeout)
@@ -781,7 +821,12 @@ export class W3mFrameProvider {
       }
     }
 
-    const activeNetwork = this.getActiveCaipNetwork(namespace)
+    const caipNetworks = this.getCaipNetworks(namespace)
+    const activeNetwork = chainId
+      ? caipNetworks.find(
+          network => String(network.id) === String(chainId) || network.caipNetworkId === chainId
+        )
+      : caipNetworks[0]
 
     return activeNetwork?.rpcUrls.default.http?.[0]
   }

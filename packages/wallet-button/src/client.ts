@@ -1,4 +1,6 @@
+import type { ChainNamespace } from '@reown/appkit-common'
 import {
+  ChainController,
   type Connector,
   ConnectorController,
   ConnectorControllerUtil,
@@ -13,7 +15,11 @@ import type { SocialProvider, Wallet } from './utils/TypeUtil.js'
 import { WalletUtil } from './utils/WalletUtil.js'
 
 export class AppKitWalletButton {
-  constructor() {
+  private namespace?: ChainNamespace
+
+  constructor({ namespace }: { namespace?: ChainNamespace } = {}) {
+    this.namespace = namespace
+
     if (!this.isReady()) {
       ApiController.fetchWalletButtons().then(() => {
         if (ApiController.state.walletButtons.length) {
@@ -39,10 +45,16 @@ export class AppKitWalletButton {
   }
 
   async connect(wallet: Wallet) {
+    const namespace = this.namespace || ChainController.state.activeChain
     const connectors = ConnectorController.state.connectors
+
+    if (!namespace) {
+      throw new Error('Namespace not found')
+    }
 
     if (wallet === ConstantsUtil.Email) {
       return ConnectorControllerUtil.connectEmail({
+        namespace,
         onOpen() {
           ModalController.open().then(() => RouterController.push('EmailLogin'))
         },
@@ -55,6 +67,7 @@ export class AppKitWalletButton {
     if (ConstantsUtil.Socials.some(social => social === wallet)) {
       return ConnectorControllerUtil.connectSocial({
         social: wallet as SocialProvider,
+        namespace,
         onOpenFarcaster() {
           ModalController.open({ view: 'ConnectingFarcaster' })
         },
@@ -67,7 +80,7 @@ export class AppKitWalletButton {
     const walletButton = WalletUtil.getWalletButton(wallet)
 
     const connector = walletButton
-      ? ConnectorController.getConnector(walletButton.id, walletButton.rdns)
+      ? ConnectorController.getConnector({ id: walletButton.id, namespace })
       : undefined
 
     if (connector && connector.type !== 'AUTH') {

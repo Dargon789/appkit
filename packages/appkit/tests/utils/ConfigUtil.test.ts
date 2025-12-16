@@ -24,6 +24,8 @@ vi.mock('@reown/appkit-controllers', async () => {
   )) as typeof import('@reown/appkit-controllers')
 
   return {
+    baseUSDC: actualModule.baseUSDC,
+    baseSepoliaUSDC: actualModule.baseSepoliaUSDC,
     ApiController: {
       fetchProjectConfig: vi.fn()
     },
@@ -65,7 +67,12 @@ describe('ConfigUtil', () => {
         onramp: ConstantsUtil.DEFAULT_REMOTE_FEATURES.onramp,
         activity: true,
         reownBranding: true,
-        multiWallet: false
+        multiWallet: false,
+        emailCapture: false,
+        payWithExchange: false,
+        payments: false,
+        reownAuthentication: false,
+        headless: false
       })
       expect(AlertController.open).not.toHaveBeenCalled()
     })
@@ -86,7 +93,12 @@ describe('ConfigUtil', () => {
         onramp: ConstantsUtil.DEFAULT_REMOTE_FEATURES.onramp,
         activity: ConstantsUtil.DEFAULT_REMOTE_FEATURES.activity,
         reownBranding: true,
-        multiWallet: false
+        multiWallet: false,
+        emailCapture: false,
+        payWithExchange: false,
+        payments: false,
+        reownAuthentication: false,
+        headless: false
       })
       expect(AlertController.open).not.toHaveBeenCalled()
     })
@@ -126,7 +138,12 @@ describe('ConfigUtil', () => {
         onramp: ['meld'],
         activity: true,
         reownBranding: true,
-        multiWallet: false
+        multiWallet: false,
+        emailCapture: false,
+        reownAuthentication: false,
+        payWithExchange: false,
+        payments: false,
+        headless: false
       })
     })
 
@@ -144,13 +161,17 @@ describe('ConfigUtil', () => {
         onramp: false,
         multiWallet: false,
         activity: false,
-        reownBranding: false
+        reownBranding: false,
+        emailCapture: false,
+        payWithExchange: false,
+        payments: false,
+        reownAuthentication: false,
+        headless: false
       })
       expect(AlertController.open).toHaveBeenCalledTimes(1)
       expect(AlertController.open).toHaveBeenCalledWith(
         expect.objectContaining({
-          shortMessage: 'Local configuration ignored',
-          longMessage: expect.stringContaining(
+          debugMessage: expect.stringContaining(
             'Your local configuration for "features.socials" was ignored because a remote configuration was successfully fetched'
           )
         }),
@@ -175,7 +196,12 @@ describe('ConfigUtil', () => {
         onramp: false,
         activity: false,
         multiWallet: false,
-        reownBranding: false
+        reownBranding: false,
+        emailCapture: false,
+        payWithExchange: false,
+        payments: false,
+        reownAuthentication: false,
+        headless: false
       })
     })
 
@@ -202,13 +228,17 @@ describe('ConfigUtil', () => {
         onramp: false,
         multiWallet: false,
         activity: false,
-        reownBranding: false
+        reownBranding: false,
+        emailCapture: false,
+        payWithExchange: false,
+        payments: false,
+        reownAuthentication: false,
+        headless: false
       })
       expect(AlertController.open).toHaveBeenCalledTimes(1)
       expect(AlertController.open).toHaveBeenCalledWith(
         expect.objectContaining({
-          shortMessage: 'Local configuration ignored',
-          longMessage: expect.stringContaining(
+          debugMessage: expect.stringContaining(
             'Your local configuration for "features.email", "features.socials", "features.swaps", "features.onramp", "features.history" (now "activity") was ignored because a remote configuration was successfully fetched'
           )
         }),
@@ -231,7 +261,12 @@ describe('ConfigUtil', () => {
         onramp: false,
         multiWallet: false,
         activity: false,
-        reownBranding: false
+        reownBranding: false,
+        emailCapture: false,
+        payWithExchange: false,
+        payments: false,
+        reownAuthentication: false,
+        headless: false
       })
       expect(AlertController.open).not.toHaveBeenCalled()
     })
@@ -250,7 +285,12 @@ describe('ConfigUtil', () => {
         multiWallet: false,
         onramp: false,
         activity: false,
-        reownBranding: false
+        reownBranding: false,
+        emailCapture: false,
+        payWithExchange: false,
+        payments: false,
+        reownAuthentication: false,
+        headless: false
       })
       expect(AlertController.open).not.toHaveBeenCalled()
     })
@@ -272,7 +312,12 @@ describe('ConfigUtil', () => {
         onramp: false,
         multiWallet: false,
         activity: false,
-        reownBranding: false
+        reownBranding: false,
+        emailCapture: false,
+        payWithExchange: false,
+        payments: false,
+        reownAuthentication: false,
+        headless: false
       })
       expect(AlertController.open).not.toHaveBeenCalled()
     })

@@ -3,6 +3,7 @@ import { ConstantsUtil } from '@reown/appkit-common'
 import { SECURE_SITE_SDK, SECURE_SITE_SDK_VERSION, W3mFrameConstants } from './W3mFrameConstants.js'
 import { W3mFrameHelpers } from './W3mFrameHelpers.js'
 import { W3mFrameSchema } from './W3mFrameSchema.js'
+import { W3mFrameStorage } from './W3mFrameStorage.js'
 import type { W3mFrameTypes } from './W3mFrameTypes.js'
 
 type EventKey = typeof W3mFrameConstants.APP_EVENT_KEY | typeof W3mFrameConstants.FRAME_EVENT_KEY
@@ -16,28 +17,35 @@ interface W3mFrameConfig {
   isAppClient?: boolean
   chainId?: W3mFrameTypes.Network['chainId']
   enableLogger?: boolean
+  enableCloudAuthAccount?: boolean
   rpcUrl?: string
 }
 
 function createSecureSiteSdkUrl({
   projectId,
   chainId,
-  version,
   enableLogger,
-  rpcUrl = ConstantsUtil.BLOCKCHAIN_API_RPC_URL
-}: {
-  projectId: string
-  chainId: W3mFrameTypes.Network['chainId']
-  version: string
-  enableLogger: boolean
-  rpcUrl?: string
-}): string {
+  rpcUrl = ConstantsUtil.BLOCKCHAIN_API_RPC_URL,
+  enableCloudAuthAccount = false
+}: Pick<
+  W3mFrameConfig,
+  'projectId' | 'chainId' | 'enableLogger' | 'rpcUrl' | 'enableCloudAuthAccount'
+>): string {
   const url = new URL(SECURE_SITE_SDK)
   url.searchParams.set('projectId', projectId)
   url.searchParams.set('chainId', String(chainId))
-  url.searchParams.set('version', version)
+  url.searchParams.set('version', SECURE_SITE_SDK_VERSION)
   url.searchParams.set('enableLogger', String(enableLogger))
   url.searchParams.set('rpcUrl', rpcUrl)
+  // Intended for debug usage only
+  const smartAccountVersion = W3mFrameStorage.get('dapp_smart_account_version')
+  if (smartAccountVersion && (smartAccountVersion === 'v6' || smartAccountVersion === 'v7')) {
+    console.warn('>> AppKit - Forcing smart account version', smartAccountVersion)
+    url.searchParams.set('smartAccountVersion', smartAccountVersion)
+  }
+  if (enableCloudAuthAccount) {
+    url.searchParams.set('enableCloudAuthAccount', 'true')
+  }
 
   return url.toString()
 }
@@ -66,6 +74,7 @@ export class W3mFrame {
     isAppClient = false,
     chainId = 'eip155:1',
     enableLogger = true,
+    enableCloudAuthAccount = false,
     rpcUrl = ConstantsUtil.BLOCKCHAIN_API_RPC_URL
   }: W3mFrameConfig) {
     this.projectId = projectId
@@ -85,9 +94,9 @@ export class W3mFrame {
         iframe.src = createSecureSiteSdkUrl({
           projectId,
           chainId,
-          version: SECURE_SITE_SDK_VERSION,
           enableLogger,
-          rpcUrl: this.rpcUrl
+          rpcUrl: this.rpcUrl,
+          enableCloudAuthAccount
         })
         iframe.name = 'w3m-secure-iframe'
         iframe.style.position = 'fixed'
@@ -95,8 +104,8 @@ export class W3mFrame {
         iframe.style.display = 'none'
         iframe.style.border = 'none'
         iframe.style.animationDelay = '0s, 50ms'
-        iframe.style.borderBottomLeftRadius = `clamp(0px, var(--wui-border-radius-l), 44px)`
-        iframe.style.borderBottomRightRadius = `clamp(0px, var(--wui-border-radius-l), 44px)`
+        iframe.style.borderBottomLeftRadius = `clamp(0px, var(--apkt-borderRadius-8), 44px)`
+        iframe.style.borderBottomRightRadius = `clamp(0px, var(--apkt-borderRadius-8), 44px)`
         this.iframe = iframe
         this.iframe.onerror = () => {
           this.frameLoadPromiseResolver?.reject('Unable to load email login dependency')

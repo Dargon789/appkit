@@ -2,12 +2,14 @@
 import type { OnRampProvider, SocialProvider, SwapProvider } from '@reown/appkit-common'
 import { AlertController, ApiController, ConstantsUtil } from '@reown/appkit-controllers'
 import type {
+  EmailCaptureOptions,
   FeatureConfigMap,
   FeatureID,
   RemoteFeatures,
   TypedFeatureConfig
 } from '@reown/appkit-controllers'
 import type {} from '@reown/appkit-controllers'
+import { ErrorUtil } from '@reown/appkit-utils'
 
 import type { AppKitOptionsWithSdk } from '../client/appkit-base-client.js'
 
@@ -20,7 +22,12 @@ const FEATURE_KEYS: FeatureKey[] = [
   'onramp',
   'activity',
   'reownBranding',
-  'multiWallet'
+  'multiWallet',
+  'emailCapture',
+  'payWithExchange',
+  'payments',
+  'reownAuthentication',
+  'headless'
 ]
 
 const featureConfig = {
@@ -153,6 +160,16 @@ const featureConfig = {
       return Boolean(localValue)
     }
   },
+  emailCapture: {
+    apiFeatureName: 'email_capture' as const,
+    localFeatureName: 'emailCapture',
+    returnType: false as EmailCaptureOptions[] | boolean,
+    isLegacy: false,
+    isAvailableOnBasic: false,
+    processApi: (apiConfig: TypedFeatureConfig): EmailCaptureOptions[] | false =>
+      apiConfig.isEnabled && ((apiConfig.config ?? []) as EmailCaptureOptions[]),
+    processFallback: (_localValue: unknown): EmailCaptureOptions[] | boolean => false
+  },
   multiWallet: {
     apiFeatureName: 'multi_wallet' as const,
     localFeatureName: 'multiWallet',
@@ -161,6 +178,48 @@ const featureConfig = {
     isAvailableOnBasic: false,
     processApi: (apiConfig: TypedFeatureConfig) => Boolean(apiConfig.isEnabled),
     processFallback: () => ConstantsUtil.DEFAULT_REMOTE_FEATURES.multiWallet
+  },
+  payWithExchange: {
+    apiFeatureName: 'fund_from_exchange' as const,
+    localFeatureName: 'payWithExchange',
+    returnType: false as boolean,
+    isLegacy: false,
+    isAvailableOnBasic: false,
+    processApi: (apiConfig: TypedFeatureConfig) => Boolean(apiConfig.isEnabled),
+    processFallback: () => ConstantsUtil.DEFAULT_REMOTE_FEATURES.payWithExchange
+  },
+  payments: {
+    apiFeatureName: 'payments' as const,
+    localFeatureName: 'payments',
+    returnType: false as boolean,
+    isLegacy: false,
+    isAvailableOnBasic: false,
+    processApi: (apiConfig: TypedFeatureConfig) => Boolean(apiConfig.isEnabled),
+    processFallback: () => ConstantsUtil.DEFAULT_REMOTE_FEATURES.payments
+  },
+  reownAuthentication: {
+    apiFeatureName: 'reown_authentication' as const,
+    localFeatureName: 'reownAuthentication',
+    returnType: false as boolean,
+    isLegacy: false,
+    isAvailableOnBasic: false,
+    processApi: (apiConfig: TypedFeatureConfig) => Boolean(apiConfig.isEnabled),
+    processFallback: (localValue: unknown): boolean => {
+      if (typeof localValue === 'undefined') {
+        return ConstantsUtil.DEFAULT_REMOTE_FEATURES.reownAuthentication
+      }
+
+      return Boolean(localValue)
+    }
+  },
+  headless: {
+    apiFeatureName: 'headless' as const,
+    localFeatureName: 'headless',
+    returnType: false as boolean,
+    isLegacy: false,
+    isAvailableOnBasic: false,
+    processApi: (apiConfig: TypedFeatureConfig) => Boolean(apiConfig.isEnabled),
+    processFallback: () => ConstantsUtil.DEFAULT_REMOTE_FEATURES.headless
   }
 }
 
@@ -237,11 +296,11 @@ export const ConfigUtil = {
     this.localSettingsOverridden.clear()
 
     let apiProjectConfig: TypedFeatureConfig[] | null = null
-    let useApiConfig = false
+    let shouldUseApiConfig = false
 
     try {
       apiProjectConfig = await ApiController.fetchProjectConfig()
-      useApiConfig = apiProjectConfig !== null && apiProjectConfig !== undefined
+      shouldUseApiConfig = apiProjectConfig !== null && apiProjectConfig !== undefined
     } catch (e) {
       console.warn(
         '[Reown Config] Failed to fetch remote project configuration. Using local/default values.',
@@ -250,7 +309,7 @@ export const ConfigUtil = {
     }
 
     const remoteFeaturesConfig: RemoteFeatures =
-      useApiConfig && !isBasic
+      shouldUseApiConfig && !isBasic
         ? ConstantsUtil.DEFAULT_REMOTE_FEATURES
         : ConstantsUtil.DEFAULT_REMOTE_FEATURES_DISABLED
 
@@ -260,7 +319,7 @@ export const ConfigUtil = {
           featureKey,
           localFeatures,
           apiProjectConfig,
-          useApiConfig,
+          shouldUseApiConfig,
           isBasic
         )
         Object.assign(remoteFeaturesConfig, { [featureKey]: result })
@@ -274,12 +333,12 @@ export const ConfigUtil = {
       return ConstantsUtil.DEFAULT_REMOTE_FEATURES
     }
 
-    if (useApiConfig && this.localSettingsOverridden.size > 0) {
+    if (shouldUseApiConfig && this.localSettingsOverridden.size > 0) {
       const warningMessage = `Your local configuration for ${Array.from(this.localSettingsOverridden).join(', ')} was ignored because a remote configuration was successfully fetched. Please manage these features via your project dashboard on dashboard.reown.com.`
       AlertController.open(
         {
-          shortMessage: 'Local configuration ignored',
-          longMessage: `[Reown Config Notice] ${warningMessage}`
+          debugMessage:
+            ErrorUtil.ALERT_WARNINGS.LOCAL_CONFIGURATION_IGNORED.debugMessage(warningMessage)
         },
         'warning'
       )

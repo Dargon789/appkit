@@ -13,6 +13,8 @@ import type {
   BlockchainApiBalanceResponse,
   BlockchainApiIdentityResponse,
   BlockchainApiLookupEnsName,
+  BlockchainApiTokenPriceResponse,
+  BlockchainApiTransactionsResponse,
   ConnectionStatus,
   PreferredAccountTypes,
   SocialProvider,
@@ -33,7 +35,13 @@ export const StorageUtil = {
     portfolio: 30000,
     nativeBalance: 30000,
     ens: 300000,
-    identity: 300000
+    identity: 300000,
+    transactionsHistory: 15000,
+    tokenPrice: 15000,
+    // 7 Days
+    latestAppKitVersion: 604_800_000,
+    // 1 Day
+    tonWallets: 86_400_000
   },
   isCacheExpired(timestamp: number, cacheExpiry: number) {
     return Date.now() - timestamp > cacheExpiry
@@ -142,6 +150,7 @@ export const StorageUtil = {
           recentWallets.pop()
         }
         SafeLocalStorage.setItem(SafeLocalStorageKeys.RECENT_WALLETS, JSON.stringify(recentWallets))
+        SafeLocalStorage.setItem(SafeLocalStorageKeys.RECENT_WALLET, JSON.stringify(wallet))
       }
     } catch {
       console.info('Unable to set AppKit recent')
@@ -158,6 +167,26 @@ export const StorageUtil = {
     }
 
     return []
+  },
+
+  getRecentWallet(): WcWallet | null {
+    try {
+      const recent = SafeLocalStorage.getItem(SafeLocalStorageKeys.RECENT_WALLET)
+
+      return recent ? JSON.parse(recent) : null
+    } catch {
+      console.info('Unable to get AppKit recent')
+    }
+
+    return null
+  },
+
+  deleteRecentWallet() {
+    try {
+      SafeLocalStorage.removeItem(SafeLocalStorageKeys.RECENT_WALLET)
+    } catch {
+      console.info('Unable to delete AppKit recent')
+    }
   },
 
   setConnectedConnectorId(namespace: ChainNamespace, connectorId: string) {
@@ -560,13 +589,46 @@ export const StorageUtil = {
       console.info('Unable to remove identity from cache', address)
     }
   },
+  getTonWalletsCache() {
+    try {
+      const cache = SafeLocalStorage.getItem(SafeLocalStorageKeys.TON_WALLETS_CACHE)
+      const parsedCache = cache ? JSON.parse(cache) : undefined
 
+      if (parsedCache && !this.isCacheExpired(parsedCache.timestamp, this.cacheExpiry.tonWallets)) {
+        return parsedCache
+      }
+
+      StorageUtil.removeTonWalletsCache()
+    } catch {
+      console.info('Unable to get ton wallets cache')
+    }
+
+    return undefined
+  },
+  updateTonWalletsCache(wallets: unknown[]) {
+    try {
+      const cache = StorageUtil.getTonWalletsCache() || { timestamp: 0, wallets: [] }
+      cache.timestamp = new Date().getTime()
+      cache.wallets = wallets
+      SafeLocalStorage.setItem(SafeLocalStorageKeys.TON_WALLETS_CACHE, JSON.stringify(cache))
+    } catch {
+      console.info('Unable to update ton wallets cache', wallets)
+    }
+  },
+  removeTonWalletsCache() {
+    try {
+      SafeLocalStorage.removeItem(SafeLocalStorageKeys.TON_WALLETS_CACHE)
+    } catch {
+      console.info('Unable to remove ton wallets cache')
+    }
+  },
   clearAddressCache() {
     try {
       SafeLocalStorage.removeItem(SafeLocalStorageKeys.PORTFOLIO_CACHE)
       SafeLocalStorage.removeItem(SafeLocalStorageKeys.NATIVE_BALANCE_CACHE)
       SafeLocalStorage.removeItem(SafeLocalStorageKeys.ENS_CACHE)
       SafeLocalStorage.removeItem(SafeLocalStorageKeys.IDENTITY_CACHE)
+      SafeLocalStorage.removeItem(SafeLocalStorageKeys.HISTORY_TRANSACTIONS_CACHE)
     } catch {
       console.info('Unable to clear address cache')
     }
@@ -765,5 +827,183 @@ export const StorageUtil = {
     }
 
     return false
+  },
+  getTransactionsCache() {
+    try {
+      const result = SafeLocalStorage.getItem(SafeLocalStorageKeys.HISTORY_TRANSACTIONS_CACHE)
+
+      return result ? JSON.parse(result) : {}
+    } catch {
+      console.info('Unable to get transactions cache')
+    }
+
+    return {}
+  },
+
+  getTransactionsCacheForAddress({ address, chainId = '' }: { address: string; chainId?: string }) {
+    try {
+      const cache = StorageUtil.getTransactionsCache()
+      const transactionsCache = cache[address]?.[chainId]
+
+      // We want to discard cache if it's older than the cache expiry
+      if (
+        transactionsCache &&
+        !this.isCacheExpired(transactionsCache.timestamp, this.cacheExpiry.transactionsHistory)
+      ) {
+        return transactionsCache.transactions
+      }
+      StorageUtil.removeTransactionsCache({ address, chainId })
+    } catch {
+      console.info('Unable to get transactions cache')
+    }
+
+    return undefined
+  },
+  updateTransactionsCache({
+    address,
+    chainId = '',
+    timestamp,
+    transactions
+  }: {
+    address: string
+    chainId?: string
+    timestamp: number
+    transactions: BlockchainApiTransactionsResponse
+  }) {
+    try {
+      const cache = StorageUtil.getTransactionsCache()
+      cache[address] = {
+        ...cache[address],
+        [chainId]: {
+          timestamp,
+          transactions
+        }
+      }
+      SafeLocalStorage.setItem(
+        SafeLocalStorageKeys.HISTORY_TRANSACTIONS_CACHE,
+        JSON.stringify(cache)
+      )
+    } catch {
+      console.info('Unable to update transactions cache', {
+        address,
+        chainId,
+        timestamp,
+        transactions
+      })
+    }
+  },
+  removeTransactionsCache({ address, chainId }: { address: string; chainId: string }) {
+    try {
+      const cache = StorageUtil.getTransactionsCache()
+      const addressCache = cache?.[address] || {}
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [chainId]: _removed, ...updatedChainData } = addressCache
+
+      SafeLocalStorage.setItem(
+        SafeLocalStorageKeys.HISTORY_TRANSACTIONS_CACHE,
+        JSON.stringify({
+          ...cache,
+          [address]: updatedChainData
+        })
+      )
+    } catch {
+      console.info('Unable to remove transactions cache', { address, chainId })
+    }
+  },
+  getTokenPriceCache() {
+    try {
+      const result = SafeLocalStorage.getItem(SafeLocalStorageKeys.TOKEN_PRICE_CACHE)
+
+      return result ? JSON.parse(result) : {}
+    } catch {
+      console.info('Unable to get token price cache')
+    }
+
+    return {}
+  },
+  getTokenPriceCacheForAddresses(addresses: string[]) {
+    try {
+      const cache = StorageUtil.getTokenPriceCache()
+      const tokenPriceCache = cache[addresses.join(',')]
+      if (
+        tokenPriceCache &&
+        !this.isCacheExpired(tokenPriceCache.timestamp, this.cacheExpiry.tokenPrice)
+      ) {
+        return tokenPriceCache.tokenPrice
+      }
+      StorageUtil.removeTokenPriceCache(addresses)
+    } catch {
+      console.info('Unable to get token price cache for addresses', addresses)
+    }
+
+    return undefined
+  },
+  updateTokenPriceCache(params: {
+    addresses: string[]
+    timestamp: number
+    tokenPrice: BlockchainApiTokenPriceResponse
+  }) {
+    try {
+      const cache = StorageUtil.getTokenPriceCache()
+      cache[params.addresses.join(',')] = {
+        timestamp: params.timestamp,
+        tokenPrice: params.tokenPrice
+      }
+      SafeLocalStorage.setItem(SafeLocalStorageKeys.TOKEN_PRICE_CACHE, JSON.stringify(cache))
+    } catch {
+      console.info('Unable to update token price cache', params)
+    }
+  },
+  removeTokenPriceCache(addresses: string[]) {
+    try {
+      const cache = StorageUtil.getTokenPriceCache()
+      SafeLocalStorage.setItem(
+        SafeLocalStorageKeys.TOKEN_PRICE_CACHE,
+        JSON.stringify({ ...cache, [addresses.join(',')]: undefined })
+      )
+    } catch {
+      console.info('Unable to remove token price cache', addresses)
+    }
+  },
+
+  /* ----- AppKit Latest Version ------------------------- */
+  getLatestAppKitVersion() {
+    try {
+      const result = this.getLatestAppKitVersionCache()
+      const version = result?.version
+
+      if (version && !this.isCacheExpired(result.timestamp, this.cacheExpiry.latestAppKitVersion)) {
+        return version
+      }
+
+      return undefined
+    } catch {
+      console.info('Unable to get latest AppKit version')
+    }
+
+    return undefined
+  },
+  getLatestAppKitVersionCache() {
+    try {
+      const result = SafeLocalStorage.getItem(SafeLocalStorageKeys.LATEST_APPKIT_VERSION)
+
+      return result ? JSON.parse(result) : {}
+    } catch {
+      console.info('Unable to get latest AppKit version cache')
+    }
+
+    return {}
+  },
+  updateLatestAppKitVersion(params: { timestamp: number; version: string }) {
+    try {
+      const cache = StorageUtil.getLatestAppKitVersionCache()
+      cache.timestamp = params.timestamp
+      cache.version = params.version
+
+      SafeLocalStorage.setItem(SafeLocalStorageKeys.LATEST_APPKIT_VERSION, JSON.stringify(cache))
+    } catch {
+      console.info('Unable to update latest AppKit version on local storage', params)
+    }
   }
 }

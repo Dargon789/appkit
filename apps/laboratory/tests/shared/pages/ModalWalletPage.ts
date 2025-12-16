@@ -6,12 +6,14 @@ import { setupNetworkListener } from '@/src/utils/NetworkUtil'
 
 import { ModalPage } from './ModalPage'
 
+type ModalWalletFlavor = 'default' | 'all' | 'siwe' | 'siwx'
+
 export class ModalWalletPage extends ModalPage {
   public override readonly page: Page
   public override readonly library: string
-  public override readonly flavor: 'default' | 'all' | 'siwe'
+  public override readonly flavor: ModalWalletFlavor
 
-  constructor(page: Page, library: string, flavor: 'default' | 'all' | 'siwe') {
+  constructor(page: Page, library: string, flavor: ModalWalletFlavor) {
     super(page, library, flavor)
     setupNetworkListener(page)
     this.page = page
@@ -54,12 +56,15 @@ export class ModalWalletPage extends ModalPage {
 
   async togglePreferredAccountType() {
     const toggleButton = this.page.getByTestId('account-toggle-preferred-account-type')
+    const loadingSpinner = this.page.getByTestId('wui-list-item-loading-spinner')
+
     await expect(toggleButton, 'Toggle button should be visible').toBeVisible()
     await expect(toggleButton, 'Toggle button should be enabled').toBeEnabled()
+
     await toggleButton.click()
-    const loadingSpinner = this.page.getByTestId('wui-list-item-loading-spinner')
-    await expect(loadingSpinner, 'Loading spinner should be visible').toBeVisible()
+
     await expect(loadingSpinner, 'Loading spinner should not be visible').toBeHidden()
+    await this.page.waitForTimeout(500)
   }
 
   override async disconnect(): Promise<void> {
@@ -68,5 +73,9 @@ export class ModalWalletPage extends ModalPage {
     await expect(disconnectBtn, 'Disconnect button should be enabled').toBeEnabled()
     await disconnectBtn.click()
     await this.page.getByTestId('connect-button').waitFor({ state: 'visible', timeout: 5000 })
+  }
+
+  async clickSmartAccountSettingsButton() {
+    await this.page.getByTestId('account-smart-account-settings-button').click()
   }
 }

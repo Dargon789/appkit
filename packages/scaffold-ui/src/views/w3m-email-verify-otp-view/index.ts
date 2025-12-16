@@ -31,27 +31,28 @@ export class W3mEmailVerifyOtpView extends W3mEmailOtpWidget {
         if (namespace) {
           await ConnectionController.connectExternal(this.authConnector, namespace)
         } else {
-          throw new Error('Active chain is not set on ChainControll')
+          throw new Error('Active chain is not set on ChainController')
         }
 
-        EventsController.sendEvent({
-          type: 'track',
-          event: 'CONNECT_SUCCESS',
-          properties: {
-            method: 'email',
-            name: this.authConnector.name || 'Unknown',
-            caipNetworkId: ChainController.getActiveCaipNetwork()?.caipNetworkId
-          }
-        })
+        if (OptionsController.state.remoteFeatures?.emailCapture) {
+          // Email capture is enabled, SIWXUtil will handle the data capture
+          return
+        }
 
         if (OptionsController.state.siwx) {
           ModalController.close()
-        } else if (hasConnections && isMultiWalletEnabled) {
+
+          return
+        }
+
+        if (hasConnections && isMultiWalletEnabled) {
           RouterController.replace('ProfileWallets')
           SnackController.showSuccess('New Wallet Added')
-        } else {
-          ModalController.close()
+
+          return
         }
+
+        ModalController.close()
       }
     } catch (error) {
       EventsController.sendEvent({

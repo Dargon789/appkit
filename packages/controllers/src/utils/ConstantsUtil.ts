@@ -1,4 +1,4 @@
-import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
+import { ConstantsUtil as CommonConstantsUtil, PresetsUtil } from '@reown/appkit-common'
 import {
   type ChainNamespace,
   type OnRampProvider,
@@ -7,7 +7,7 @@ import {
 } from '@reown/appkit-common'
 
 import type { SIWXConfig } from './SIWXUtil.js'
-import type { Features, PreferredAccountTypes, RemoteFeatures } from './TypeUtil.js'
+import type { ConnectMethod, Features, PreferredAccountTypes, RemoteFeatures } from './TypeUtil.js'
 
 const SECURE_SITE =
   // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
@@ -43,6 +43,8 @@ export const ConstantsUtil = {
   SECURE_SITE_DASHBOARD: `${SECURE_SITE}/dashboard`,
 
   SECURE_SITE_FAVICON: `${SECURE_SITE}/images/favicon.png`,
+
+  SOLANA_NATIVE_TOKEN_ADDRESS: 'So11111111111111111111111111111111111111111',
 
   RESTRICTED_TIMEZONES: [
     'ASIA/SHANGHAI',
@@ -115,7 +117,6 @@ export const ConstantsUtil = {
     'ENS',
     'MATIC',
     'OP',
-
     'METAL',
     'DAI',
     'CHAMP',
@@ -147,10 +148,15 @@ export const ConstantsUtil = {
     'DE',
     'WNT'
   ],
+  SUGGESTED_TOKENS_BY_CHAIN: {
+    // Arbitrum One
+    'eip155:42161': ['USD₮0']
+  },
   BALANCE_SUPPORTED_CHAINS: [
     CommonConstantsUtil.CHAIN.EVM,
     CommonConstantsUtil.CHAIN.SOLANA
   ] as ChainNamespace[],
+  SEND_PARAMS_SUPPORTED_CHAINS: [CommonConstantsUtil.CHAIN.EVM] as ChainNamespace[],
   SWAP_SUPPORTED_NETWORKS: [
     // Ethereum'
     'eip155:1',
@@ -183,13 +189,23 @@ export const ConstantsUtil = {
     CommonConstantsUtil.CHAIN.EVM,
     CommonConstantsUtil.CHAIN.SOLANA
   ] as ChainNamespace[],
-  ACTIVITY_ENABLED_CHAIN_NAMESPACES: [CommonConstantsUtil.CHAIN.EVM] as ChainNamespace[],
+  PAY_WITH_EXCHANGE_SUPPORTED_CHAIN_NAMESPACES: [
+    CommonConstantsUtil.CHAIN.EVM,
+    CommonConstantsUtil.CHAIN.SOLANA
+  ] as ChainNamespace[],
+  ACTIVITY_ENABLED_CHAIN_NAMESPACES: [
+    CommonConstantsUtil.CHAIN.EVM,
+    CommonConstantsUtil.CHAIN.TON
+  ] as ChainNamespace[],
   NATIVE_TOKEN_ADDRESS: {
     eip155: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
     solana: 'So11111111111111111111111111111111111111111',
     polkadot: '0x',
     bip122: '0x',
-    cosmos: '0x'
+    cosmos: '0x',
+    sui: '0x',
+    stacks: '0x',
+    ton: '0x'
   } as const satisfies Record<ChainNamespace, string>,
 
   CONVERT_SLIPPAGE_TOLERANCE: 1,
@@ -218,7 +234,12 @@ export const ConstantsUtil = {
     ] as SocialProvider[],
     activity: true,
     reownBranding: true,
-    multiWallet: false
+    multiWallet: false,
+    emailCapture: false,
+    payWithExchange: false,
+    payments: false,
+    reownAuthentication: false,
+    headless: false
   },
   DEFAULT_REMOTE_FEATURES_DISABLED: {
     email: false,
@@ -226,7 +247,10 @@ export const ConstantsUtil = {
     swaps: false,
     onramp: false,
     activity: false,
-    reownBranding: false
+    reownBranding: false,
+    emailCapture: false,
+    reownAuthentication: false,
+    headless: false
   } as const satisfies RemoteFeatures,
   DEFAULT_FEATURES: {
     receive: true,
@@ -248,7 +272,9 @@ export const ConstantsUtil = {
     collapseWallets: false,
     walletFeaturesOrder: ['onramp', 'swaps', 'receive', 'send'],
     connectMethodsOrder: undefined,
-    pay: false
+    pay: false,
+    reownAuthentication: false,
+    headless: false
   } satisfies Features,
 
   DEFAULT_SOCIALS: [
@@ -265,7 +291,8 @@ export const ConstantsUtil = {
     bip122: 'payment',
     eip155: 'smartAccount',
     polkadot: 'eoa',
-    solana: 'eoa'
+    solana: 'eoa',
+    ton: 'eoa'
   } as const satisfies PreferredAccountTypes,
   ADAPTER_TYPES: {
     UNIVERSAL: 'universal',
@@ -278,5 +305,16 @@ export const ConstantsUtil = {
 
   SIWX_DEFAULTS: {
     signOutOnDisconnect: true
-  } as const satisfies Pick<SIWXConfig, 'signOutOnDisconnect'>
+  } as const satisfies Pick<SIWXConfig, 'signOutOnDisconnect'>,
+
+  MANDATORY_WALLET_IDS_ON_MOBILE: [
+    PresetsUtil.ConnectorExplorerIds[CommonConstantsUtil.CONNECTOR_ID.COINBASE],
+    PresetsUtil.ConnectorExplorerIds[CommonConstantsUtil.CONNECTOR_ID.COINBASE_SDK],
+    PresetsUtil.ConnectorExplorerIds[CommonConstantsUtil.CONNECTOR_ID.BASE_ACCOUNT],
+    PresetsUtil.ConnectorExplorerIds[CommonConstantsUtil.SOLFLARE_CONNECTOR_NAME],
+    PresetsUtil.ConnectorExplorerIds[CommonConstantsUtil.PHANTOM_CONNECTOR_NAME],
+    PresetsUtil.ConnectorExplorerIds[CommonConstantsUtil.BINANCE_CONNECTOR_NAME]
+  ],
+
+  DEFAULT_CONNECT_METHOD_ORDER: ['email', 'social', 'wallet'] as ConnectMethod[]
 }

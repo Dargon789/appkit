@@ -30,6 +30,14 @@ export type CustomCaipNetwork<T extends string = InternalChainNamespace> = CaipN
 
 export type CustomRpcUrlMap = Record<CaipNetworkId, CustomRpcUrl[]>
 
+export type ConnectorType =
+  | 'EXTERNAL'
+  | 'WALLET_CONNECT'
+  | 'INJECTED'
+  | 'ANNOUNCED'
+  | 'AUTH'
+  | 'MULTI_CHAIN'
+
 export type CustomRpcUrl = {
   url: string
   config?: HttpTransportConfig
@@ -44,7 +52,15 @@ export type CaipAddress = `${ChainNamespace}:${ChainId}:${string}`
 
 export type ChainId = string | number
 
-export type InternalChainNamespace = 'eip155' | 'solana' | 'polkadot' | 'bip122' | 'cosmos'
+export type InternalChainNamespace =
+  | 'eip155'
+  | 'solana'
+  | 'polkadot'
+  | 'bip122'
+  | 'cosmos'
+  | 'sui'
+  | 'stacks'
+  | 'ton'
 
 export type ChainNamespace<T extends string = InternalChainNamespace> = T | InternalChainNamespace
 
@@ -54,8 +70,9 @@ export type AdapterType =
   | 'ethers'
   | 'ethers5'
   | 'universal'
-  | 'polkadot'
   | 'bip122'
+  | 'polkadot'
+  | 'ton'
 
 export type TransactionStatus = 'confirmed' | 'failed' | 'pending'
 
@@ -69,7 +86,7 @@ export type TransactionImage = {
 export interface Transaction {
   id: string
   metadata: TransactionMetadata
-  transfers: TransactionTransfer[]
+  transfers: TransactionTransfer[] | null
 }
 
 export interface TransactionMetadata {
@@ -214,7 +231,7 @@ export type Connection = {
   name?: string
   icon?: string
   networkIcon?: string
-  accounts: { type?: string; address: string }[]
+  accounts: { type?: string; address: string; publicKey?: string }[]
   caipNetwork?: CaipNetwork
   connectorId: string
   auth?: {

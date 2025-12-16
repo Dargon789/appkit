@@ -10,6 +10,7 @@ export type SafeLocalStorageItems = {
   '@appkit/connected_social': string
   '@appkit-wallet/SOCIAL_USERNAME': string
   '@appkit/recent_wallets': string
+  '@appkit/recent_wallet': string
   '@appkit/active_namespace': string
   '@appkit/connected_namespaces': string
   '@appkit/connection_status': string
@@ -23,11 +24,16 @@ export type SafeLocalStorageItems = {
   '@appkit/preferred_account_types': string
   '@appkit/connections': string
   '@appkit/disconnected_connector_ids': string
+  '@appkit/history_transactions_cache': string
+  '@appkit/token_price_cache': string
+  '@appkit/recent_emails': string
+  '@appkit/latest_version': string
   /*
    * DO NOT CHANGE: @walletconnect/universal-provider requires us to set this specific key
    *  This value is a stringified version of { href: stiring; name: string }
    */
   WALLETCONNECT_DEEPLINK_CHOICE: string
+  '@appkit/ton_wallets_cache': string
 }
 
 export const SafeLocalStorageKeys = {
@@ -39,6 +45,7 @@ export const SafeLocalStorageKeys = {
   CONNECTED_SOCIAL: '@appkit/connected_social',
   CONNECTED_SOCIAL_USERNAME: '@appkit-wallet/SOCIAL_USERNAME',
   RECENT_WALLETS: '@appkit/recent_wallets',
+  RECENT_WALLET: '@appkit/recent_wallet',
   DEEPLINK_CHOICE: 'WALLETCONNECT_DEEPLINK_CHOICE',
   ACTIVE_NAMESPACE: '@appkit/active_namespace',
   CONNECTED_NAMESPACES: '@appkit/connected_namespaces',
@@ -52,7 +59,12 @@ export const SafeLocalStorageKeys = {
   IDENTITY_CACHE: '@appkit/identity_cache',
   PREFERRED_ACCOUNT_TYPES: '@appkit/preferred_account_types',
   CONNECTIONS: '@appkit/connections',
-  DISCONNECTED_CONNECTOR_IDS: '@appkit/disconnected_connector_ids'
+  DISCONNECTED_CONNECTOR_IDS: '@appkit/disconnected_connector_ids',
+  HISTORY_TRANSACTIONS_CACHE: '@appkit/history_transactions_cache',
+  TOKEN_PRICE_CACHE: '@appkit/token_price_cache',
+  RECENT_EMAILS: '@appkit/recent_emails',
+  LATEST_APPKIT_VERSION: '@appkit/latest_version',
+  TON_WALLETS_CACHE: '@appkit/ton_wallets_cache'
 } as const satisfies Record<string, keyof SafeLocalStorageItems>
 
 export type SafeLocalStorageKey = keyof SafeLocalStorageItems | NamespacedConnectorKey
