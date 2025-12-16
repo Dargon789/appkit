@@ -11,6 +11,6 @@ export const WcConstantsUtil = {
     'https://*.vercel.app',
     'https://*.ngrok-free.app',
     'https://secure-mobile\.walletconnect\.com',
-    'https://secure-mobile.walletconnect\.org'
+    'https://secure-mobile\.walletconnect\.org'
   ]
 }
