@@ -71,8 +71,7 @@ describe('ConfigUtil', () => {
         emailCapture: false,
         payWithExchange: false,
         payments: false,
-        reownAuthentication: false,
-        headless: false
+        reownAuthentication: false
       })
       expect(AlertController.open).not.toHaveBeenCalled()
     })
@@ -97,8 +96,7 @@ describe('ConfigUtil', () => {
         emailCapture: false,
         payWithExchange: false,
         payments: false,
-        reownAuthentication: false,
-        headless: false
+        reownAuthentication: false
       })
       expect(AlertController.open).not.toHaveBeenCalled()
     })
@@ -142,8 +140,7 @@ describe('ConfigUtil', () => {
         emailCapture: false,
         reownAuthentication: false,
         payWithExchange: false,
-        payments: false,
-        headless: false
+        payments: false
       })
     })
 
@@ -165,8 +162,7 @@ describe('ConfigUtil', () => {
         emailCapture: false,
         payWithExchange: false,
         payments: false,
-        reownAuthentication: false,
-        headless: false
+        reownAuthentication: false
       })
       expect(AlertController.open).toHaveBeenCalledTimes(1)
       expect(AlertController.open).toHaveBeenCalledWith(
@@ -200,8 +196,7 @@ describe('ConfigUtil', () => {
         emailCapture: false,
         payWithExchange: false,
         payments: false,
-        reownAuthentication: false,
-        headless: false
+        reownAuthentication: false
       })
     })
 
@@ -232,8 +227,7 @@ describe('ConfigUtil', () => {
         emailCapture: false,
         payWithExchange: false,
         payments: false,
-        reownAuthentication: false,
-        headless: false
+        reownAuthentication: false
       })
       expect(AlertController.open).toHaveBeenCalledTimes(1)
       expect(AlertController.open).toHaveBeenCalledWith(
@@ -265,8 +259,7 @@ describe('ConfigUtil', () => {
         emailCapture: false,
         payWithExchange: false,
         payments: false,
-        reownAuthentication: false,
-        headless: false
+        reownAuthentication: false
       })
       expect(AlertController.open).not.toHaveBeenCalled()
     })
@@ -289,8 +282,7 @@ describe('ConfigUtil', () => {
         emailCapture: false,
         payWithExchange: false,
         payments: false,
-        reownAuthentication: false,
-        headless: false
+        reownAuthentication: false
       })
       expect(AlertController.open).not.toHaveBeenCalled()
     })
@@ -316,8 +308,7 @@ describe('ConfigUtil', () => {
         emailCapture: false,
         payWithExchange: false,
         payments: false,
-        reownAuthentication: false,
-        headless: false
+        reownAuthentication: false
       })
       expect(AlertController.open).not.toHaveBeenCalled()
     })

@@ -28,12 +28,7 @@ export class WuiTag extends LitElement {
 
     return html`
       ${this.icon ? html`<wui-icon size=${iconSize} name=${this.icon}></wui-icon>` : null}
-      <wui-text
-        display="inline"
-        data-variant=${this.variant}
-        variant=${textVariant}
-        color="inherit"
-      >
+      <wui-text data-variant=${this.variant} variant=${textVariant} color="inherit">
         <slot></slot>
       </wui-text>
     `

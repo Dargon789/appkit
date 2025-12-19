@@ -12,12 +12,7 @@ import { W3mFrameRpcConstants } from '@reown/appkit-wallet/utils'
 import { getPreferredAccountType } from '../utils/ChainControllerUtil.js'
 import { MobileWalletUtil } from '../utils/MobileWallet.js'
 import { StorageUtil } from '../utils/StorageUtil.js'
-import type {
-  AuthConnector,
-  Connector,
-  ConnectorWithProviders,
-  WcWallet
-} from '../utils/TypeUtil.js'
+import type { AuthConnector, Connector, WcWallet } from '../utils/TypeUtil.js'
 import { withErrorBoundary } from '../utils/withErrorBoundary.js'
 import { ApiController } from './ApiController.js'
 import { ChainController } from './ChainController.js'
@@ -26,6 +21,9 @@ import { RouterController } from './RouterController.js'
 import { ThemeController } from './ThemeController.js'
 
 // -- Types --------------------------------------------- //
+export interface ConnectorWithProviders extends Connector {
+  connectors?: Connector[]
+}
 export interface ConnectorControllerState {
   allConnectors: Connector[]
   connectors: ConnectorWithProviders[]
@@ -283,17 +281,24 @@ const controller = {
     return state.allConnectors.find(c => c.id === id)
   },
 
-  getConnector({ id, namespace }: { id: string; namespace: ChainNamespace }) {
+  getConnector({
+    id,
+    rdns,
+    namespace
+  }: {
+    id?: string
+    rdns?: string | null
+    namespace?: ChainNamespace
+  }) {
     const namespaceToUse = namespace || ChainController.state.activeChain
 
     const connectorsByNamespace = state.allConnectors.filter(c => c.chain === namespaceToUse)
-    const connector = connectorsByNamespace.find(c => c.id === id || c.explorerId === id)
 
-    return connector
+    return connectorsByNamespace.find(c => c.explorerId === id || c.info?.rdns === rdns)
   },
 
   syncIfAuthConnector(connector: Connector | AuthConnector) {
-    if (connector.id !== 'AUTH') {
+    if (connector.id !== 'ID_AUTH') {
       return
     }
 
@@ -339,12 +344,10 @@ const controller = {
   },
 
   selectWalletConnector(wallet: WcWallet) {
-    const redirectView = RouterController.state.data?.redirectView
-    const namespace = ChainController.state.activeChain
-
-    const connector = namespace
-      ? ConnectorController.getConnector({ id: wallet.id, namespace })
-      : undefined
+    const connector = ConnectorController.getConnector({
+      id: wallet.id,
+      rdns: wallet.rdns
+    })
 
     MobileWalletUtil.handleMobileDeeplinkRedirect(
       connector?.explorerId || wallet.id,
@@ -352,9 +355,9 @@ const controller = {
     )
 
     if (connector) {
-      RouterController.push('ConnectingExternal', { connector, wallet, redirectView })
+      RouterController.push('ConnectingExternal', { connector, wallet })
     } else {
-      RouterController.push('ConnectingWalletConnect', { wallet, redirectView })
+      RouterController.push('ConnectingWalletConnect', { wallet })
     }
   },
 
@@ -417,23 +420,6 @@ const controller = {
 
   resetConnectorIds() {
     state.activeConnectorIds = { ...defaultActiveConnectors }
-  },
-
-  extendConnectorsWithExplorerWallets(explorerWallets: WcWallet[]) {
-    state.allConnectors.forEach(connector => {
-      const explorerWallet = explorerWallets.find(
-        wallet =>
-          wallet.id === connector.id || (wallet.rdns && wallet.rdns === connector.info?.rdns)
-      )
-
-      if (explorerWallet) {
-        connector.explorerWallet = explorerWallet
-      }
-    })
-
-    const enabledNamespaces = ConnectorController.getEnabledNamespaces()
-    const enabledConnectors = ConnectorController.getEnabledConnectors(enabledNamespaces)
-    state.connectors = ConnectorController.mergeMultiChainConnectors(enabledConnectors)
   }
 }
 

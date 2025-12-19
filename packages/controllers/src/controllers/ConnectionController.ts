@@ -29,11 +29,11 @@ import type {
   WriteContractArgs
 } from '../utils/TypeUtil.js'
 import { AppKitError, withErrorBoundary } from '../utils/withErrorBoundary.js'
+import { AccountController } from './AccountController.js'
 import { ChainController, type ChainControllerState } from './ChainController.js'
 import { ConnectorController } from './ConnectorController.js'
 import { EventsController } from './EventsController.js'
 import { ModalController } from './ModalController.js'
-import { PublicStateController } from './PublicStateController.js'
 import { RouterController } from './RouterController.js'
 import { TransactionsController } from './TransactionsController.js'
 
@@ -94,11 +94,6 @@ export interface DisconnectParameters {
   initialDisconnect?: boolean
 }
 
-interface DisconnectConnectorParameters {
-  id: string
-  namespace: ChainNamespace
-}
-
 interface ConnectWalletConnectParameters {
   cache?: 'auto' | 'always' | 'never'
 }
@@ -106,7 +101,6 @@ interface ConnectWalletConnectParameters {
 export interface ConnectionControllerClient {
   connectWalletConnect?: (params?: ConnectWalletConnectParameters) => Promise<void>
   disconnect: (params?: DisconnectParameters) => Promise<void>
-  disconnectConnector: (params: DisconnectConnectorParameters) => Promise<void>
   signMessage: (message: string) => Promise<string>
   sendTransaction: (args: SendTransactionArgs) => Promise<string | null>
   estimateGas: (args: EstimateGasTransactionArgs) => Promise<bigint>
@@ -143,7 +137,6 @@ export interface ConnectionControllerState {
   }
   wcBasic?: boolean
   wcError?: boolean
-  wcFetchingUri: boolean
   recentWallet?: WcWallet
   buffering: boolean
   status?: 'connecting' | 'connected' | 'disconnected'
@@ -158,7 +151,6 @@ const state = proxy<ConnectionControllerState>({
   recentConnections: new Map(),
   isSwitchingConnection: false,
   wcError: false,
-  wcFetchingUri: false,
   buffering: false,
   status: 'disconnected'
 })
@@ -224,7 +216,6 @@ const controller = {
   },
 
   async connectWalletConnect({ cache = 'auto' }: ConnectWalletConnectParameters = {}) {
-    state.wcFetchingUri = true
     const isInTelegramOrSafariIos =
       CoreHelperUtil.isTelegram() || (CoreHelperUtil.isSafari() && CoreHelperUtil.isIos())
 
@@ -266,19 +257,6 @@ const controller = {
       ChainController.setActiveNamespace(chain)
     }
 
-    const connector = ConnectorController.state.allConnectors.find(c => c.id === options?.id)
-    const connectSuccessEventMethod = options.type === 'AUTH' ? 'email' : 'browser'
-    EventsController.sendEvent({
-      type: 'track',
-      event: 'CONNECT_SUCCESS',
-      properties: {
-        method: connectSuccessEventMethod,
-        name: connector?.name || 'Unknown',
-        view: RouterController.state.view,
-        walletRank: connector?.explorerWallet?.order
-      }
-    })
-
     return connectData
   },
 
@@ -303,7 +281,7 @@ const controller = {
     if (!authConnector) {
       return
     }
-    ChainController.setAccountProp('preferredAccountType', accountType, namespace)
+    AccountController.setPreferredAccountType(accountType, namespace)
     await authConnector.provider.setPreferredAccount(accountType)
     StorageUtil.setPreferredAccountTypes(
       Object.entries(ChainController.state.chains).reduce((acc, [key, _]) => {
@@ -385,20 +363,15 @@ const controller = {
     state.wcPairingExpiry = undefined
     state.wcLinking = undefined
     state.recentWallet = undefined
-    state.wcFetchingUri = false
     state.status = 'disconnected'
     TransactionsController.resetTransactions()
     StorageUtil.deleteWalletConnectDeepLink()
-    StorageUtil.deleteRecentWallet()
-    PublicStateController.set({ connectingWallet: undefined })
   },
 
   resetUri() {
     state.wcUri = undefined
     state.wcPairingExpiry = undefined
     wcConnectionPromise = undefined
-    state.wcFetchingUri = false
-    PublicStateController.set({ connectingWallet: undefined })
   },
 
   finalizeWcConnection(address?: string) {
@@ -421,7 +394,7 @@ const controller = {
           method: wcLinking ? 'mobile' : 'qrcode',
           name: RouterController.state.data?.wallet?.name || 'Unknown',
           view: RouterController.state.view,
-          walletRank: recentWallet?.order
+          walletRank: RouterController.state.data?.wallet?.order
         }
       })
     }
@@ -433,7 +406,6 @@ const controller = {
 
   setUri(uri: string) {
     state.wcUri = uri
-    state.wcFetchingUri = false
     state.wcPairingExpiry = CoreHelperUtil.getPairingExpiry()
   },
 
@@ -443,7 +415,6 @@ const controller = {
 
   setWcError(wcError: ConnectionControllerState['wcError']) {
     state.wcError = wcError
-    state.wcFetchingUri = false
     state.buffering = false
   },
 
@@ -477,14 +448,6 @@ const controller = {
     }
   },
 
-  async disconnectConnector({ id, namespace }: DisconnectConnectorParameters) {
-    try {
-      await ConnectionController._getClient()?.disconnectConnector({ id, namespace })
-    } catch (error) {
-      throw new AppKitError('Failed to disconnect connector', 'INTERNAL_SDK_ERROR', error)
-    }
-  },
-
   setConnections(connections: Connection[], chainNamespace: ChainNamespace) {
     const connectionsMap = new Map(state.connections)
     connectionsMap.set(chainNamespace, connections)
@@ -492,8 +455,9 @@ const controller = {
   },
 
   async handleAuthAccountSwitch({ address, namespace }: HandleAuthAccountSwitchParams) {
-    const accountData = ChainController.getAccountData(namespace)
-    const smartAccount = accountData?.user?.accounts?.find(c => c.type === 'smartAccount')
+    const smartAccount = AccountController.state.user?.accounts?.find(
+      c => c.type === 'smartAccount'
+    )
 
     const accountType =
       smartAccount &&
@@ -526,7 +490,7 @@ const controller = {
       )
 
       return connectData?.address
-    } else if (address) {
+    } else if (isAuthConnector && address) {
       await ConnectionController.handleAuthAccountSwitch({ address, namespace })
     }
 
@@ -629,7 +593,7 @@ const controller = {
   }: SwitchConnectionParams) {
     let currentAddress: string | undefined = undefined
 
-    const caipAddress = ChainController.getAccountData(namespace)?.caipAddress
+    const caipAddress = AccountController.getCaipAddress(namespace)
 
     if (caipAddress) {
       const { address: currentAddressParsed } = ParseUtil.parseCaipAddress(caipAddress)

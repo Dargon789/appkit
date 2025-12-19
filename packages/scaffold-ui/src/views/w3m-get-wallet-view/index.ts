@@ -43,9 +43,8 @@ export class W3mGetWalletView extends LitElement {
     const wallets = [...featured, ...(customWallets ?? []), ...recommended].slice(0, 4)
 
     return wallets.map(
-      (wallet, index) => html`
+      wallet => html`
         <w3m-list-wallet
-          displayIndex=${index}
           name=${wallet.name ?? 'Unknown'}
           tagVariant="accent"
           size="sm"
@@ -62,12 +61,7 @@ export class W3mGetWalletView extends LitElement {
     EventsController.sendEvent({
       type: 'track',
       event: 'GET_WALLET',
-      properties: {
-        name: wallet.name,
-        walletRank: undefined,
-        explorerId: wallet.id,
-        type: 'homepage'
-      }
+      properties: { name: wallet.name, walletRank: undefined, explorerId: wallet.id }
     })
     CoreHelperUtil.openHref(wallet.homepage ?? EXPLORER, '_blank')
   }

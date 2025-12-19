@@ -4,7 +4,7 @@ import { beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import { html } from 'lit'
 
 import {
-  type AccountState,
+  AccountController,
   ChainController,
   ConnectionController,
   ModalController,
@@ -40,14 +40,12 @@ describe('W3mPayView', () => {
     PayController.state.amount = 10
     PayController.state.recipient = '0x1234567890123456789012345678901234567890'
 
-    // Reset Account state
-    vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-      ...ChainController.getAccountData(),
+    // Reset AccountController state
+    vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
+      ...AccountController.state,
       status: 'disconnected',
       caipAddress: undefined,
-      connectedWalletInfo: undefined,
-      currentTab: 0,
-      addressLabels: new Map()
+      connectedWalletInfo: undefined
     })
 
     // Mock ChainController
@@ -98,10 +96,10 @@ describe('W3mPayView', () => {
 
   test('should render connected wallet view when connected', async () => {
     // Mock connected state
-    vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-      ...ChainController.getAccountData(),
+    vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
+      ...AccountController.state,
       ...(mockConnectionState as any)
-    } as unknown as AccountState)
+    })
 
     const element = await fixture<W3mPayView>(html`<w3m-pay-view></w3m-pay-view>`)
 
@@ -181,10 +179,10 @@ describe('W3mPayView', () => {
   })
 
   test('should disconnect wallet when disconnect button is clicked', async () => {
-    vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-      ...ChainController.getAccountData(),
+    vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
+      ...AccountController.state,
       ...(mockConnectionState as any)
-    } as unknown as AccountState)
+    })
 
     const element = await fixture<W3mPayView>(html`<w3m-pay-view></w3m-pay-view>`)
 
@@ -198,10 +196,10 @@ describe('W3mPayView', () => {
   })
 
   test('should show error snackbar if disconnection fails', async () => {
-    vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-      ...ChainController.getAccountData(),
+    vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
+      ...AccountController.state,
       ...(mockConnectionState as any)
-    } as unknown as AccountState)
+    })
 
     vi.spyOn(ConnectionController, 'disconnect').mockRejectedValueOnce(
       new Error('Disconnect failed')
@@ -249,10 +247,10 @@ describe('W3mPayView', () => {
 
   test('should call handlePayment on main button click if wallet connected', async () => {
     // Mock connected state
-    vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-      ...ChainController.getAccountData(),
+    vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
+      ...AccountController.state,
       ...(mockConnectionState as any)
-    } as unknown as AccountState)
+    })
 
     const element = await fixture<W3mPayView>(html`<w3m-pay-view></w3m-pay-view>`)
 
