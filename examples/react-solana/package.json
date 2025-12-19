@@ -10,8 +10,13 @@
     "@reown/appkit": "workspace:*",
     "@reown/appkit-adapter-solana": "workspace:*",
     "@tanstack/react-query": "5.75.5",
+<<<<<<< HEAD
     "react": "19.1.0",
     "react-dom": "19.1.0",
+=======
+    "react": "19.1.2",
+    "react-dom": "19.1.2",
+>>>>>>> upstream/main
     "@solana/wallet-adapter-backpack": "0.1.14"
   },
   "devDependencies": {

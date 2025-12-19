@@ -1,6 +1,10 @@
 {
   "name": "@reown/appkit-ui",
+<<<<<<< HEAD
   "version": "1.8.15",
+=======
+  "version": "1.8.14",
+>>>>>>> upstream/main
   "type": "module",
   "main": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",

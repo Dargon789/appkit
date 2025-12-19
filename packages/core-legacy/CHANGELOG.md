@@ -1,5 +1,6 @@
 # @reown/appkit-core
 
+<<<<<<< HEAD
 ## 1.8.15
 
 ### Patch Changes
@@ -11,6 +12,8 @@
 - Updated dependencies [[`2867bfd`](https://github.com/reown-com/appkit/commit/2867bfd3f06394e559b918d46dc379dd498d1abf), [`d186212`](https://github.com/reown-com/appkit/commit/d1862126d3b7da93b52b99a4d709656311926c34), [`e330f62`](https://github.com/reown-com/appkit/commit/e330f62532f95683ed69bdb0f4fef77f3039df30)]:
   - @reown/appkit-controllers@1.8.15
 
+=======
+>>>>>>> upstream/main
 ## 1.8.14
 
 ### Patch Changes

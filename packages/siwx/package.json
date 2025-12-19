@@ -1,6 +1,10 @@
 {
   "name": "@reown/appkit-siwx",
+<<<<<<< HEAD
   "version": "1.8.15",
+=======
+  "version": "1.8.14",
+>>>>>>> upstream/main
   "sideEffects": false,
   "type": "module",
   "main": "./dist/esm/src/index.js",

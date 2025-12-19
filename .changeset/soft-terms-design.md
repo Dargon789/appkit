@@ -1,10 +1,15 @@
 ---
+<<<<<<<< HEAD:.changeset/soft-terms-design.md
 '@reown/appkit-scaffold-ui': patch
+========
+'@reown/appkit-controllers': patch
+>>>>>>>> upstream/main:.changeset/vast-trams-pull.md
 'pay-test-exchange': patch
 '@reown/appkit-adapter-bitcoin': patch
 '@reown/appkit-adapter-ethers': patch
 '@reown/appkit-adapter-ethers5': patch
 '@reown/appkit-adapter-solana': patch
+'@reown/appkit-adapter-ton': patch
 '@reown/appkit-adapter-wagmi': patch
 '@reown/appkit': patch
 '@reown/appkit-utils': patch
@@ -17,6 +22,7 @@
 '@reown/appkit-experimental': patch
 '@reown/appkit-pay': patch
 '@reown/appkit-polyfills': patch
+'@reown/appkit-scaffold-ui': patch
 '@reown/appkit-siwe': patch
 '@reown/appkit-siwx': patch
 '@reown/appkit-testing': patch
@@ -26,4 +32,8 @@
 '@reown/appkit-wallet-button': patch
 ---
 
+<<<<<<<< HEAD:.changeset/soft-terms-design.md
 Enhanced connection UX by allowing scanning of QR code with main device camera and prompting the target wallet
+========
+Fixed an issue where selecting Base Account incorrectly triggered the Coinbase Wallet extension connection instead of the Base Account SDK connection
+>>>>>>>> upstream/main:.changeset/vast-trams-pull.md

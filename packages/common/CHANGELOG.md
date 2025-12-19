@@ -1,5 +1,6 @@
 # @reown/appkit-common
 
+<<<<<<< HEAD
 ## 1.8.15
 
 ### Patch Changes
@@ -8,6 +9,8 @@
 
 - [#5364](https://github.com/reown-com/appkit/pull/5364) [`d186212`](https://github.com/reown-com/appkit/commit/d1862126d3b7da93b52b99a4d709656311926c34) Thanks [@magiziz](https://github.com/magiziz)! - Fixed an issue where wallet buttons were not working in the in-app wallet browser
 
+=======
+>>>>>>> upstream/main
 ## 1.8.14
 
 ### Patch Changes

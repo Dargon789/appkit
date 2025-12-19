@@ -13,9 +13,15 @@
   "dependencies": {
     "@reown/appkit": "workspace:*",
     "@reown/appkit-adapter-wagmi": "workspace:*",
+<<<<<<< HEAD
     "@walletconnect/logger": "2.1.2",
     "viem": "2.37.2",
     "wagmi": "2.16.9"
+=======
+    "@walletconnect/logger": "3.0.1",
+    "viem": "2.37.9",
+    "wagmi": "2.17.5"
+>>>>>>> upstream/main
   },
   "devDependencies": {
     "@eslint/compat": "1.2.3",

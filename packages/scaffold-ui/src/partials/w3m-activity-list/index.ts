@@ -242,9 +242,16 @@ export class W3mActivityList extends LitElement {
 
   private templateLoading() {
     if (this.page === 'activity') {
-      return Array(LOADING_ITEM_COUNT)
-        .fill(html` <wui-transaction-list-item-loader></wui-transaction-list-item-loader> `)
-        .map(item => item)
+      return html` <wui-flex flexDirection="column" width="100%">
+        <wui-flex .padding=${['2', '3', '3', '3'] as const}>
+          <wui-shimmer width="70px" height="16px" rounded></wui-shimmer>
+        </wui-flex>
+        <wui-flex flexDirection="column" gap="2" width="100%">
+          ${Array(LOADING_ITEM_COUNT)
+            .fill(html` <wui-transaction-list-item-loader></wui-transaction-list-item-loader> `)
+            .map(item => item)}
+        </wui-flex>
+      </wui-flex>`
     }
 
     return null
@@ -288,9 +295,14 @@ export class W3mActivityList extends LitElement {
 
   private getTransactionListItemProps(transaction: Transaction) {
     const date = DateUtil.formatDate(transaction?.metadata?.minedAt)
+<<<<<<< HEAD
     const descriptions = TransactionUtil.getTransactionDescriptions(transaction)
 
     const transfers = TransactionUtil.mergeTransfers(transaction?.transfers)
+=======
+    const transfers = TransactionUtil.mergeTransfers(transaction?.transfers || [])
+    const descriptions = TransactionUtil.getTransactionDescriptions(transaction, transfers)
+>>>>>>> upstream/main
     const transfer = transfers?.[0]
     const isAllNFT = Boolean(transfer) && transfers?.every(item => Boolean(item.nft_info))
     const images = TransactionUtil.getTransactionImages(transfers)

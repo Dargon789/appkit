@@ -1,5 +1,6 @@
 # @reown/appkit-pay
 
+<<<<<<< HEAD
 ## 1.8.15
 
 ### Patch Changes
@@ -14,6 +15,8 @@
   - @reown/appkit-controllers@1.8.15
   - @reown/appkit-ui@1.8.15
 
+=======
+>>>>>>> upstream/main
 ## 1.8.14
 
 ### Patch Changes

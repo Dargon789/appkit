@@ -10,6 +10,7 @@ import {
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet/utils'
 
 import { getPreferredAccountType } from '../utils/ChainControllerUtil.js'
+import { ConnectorUtil } from '../utils/ConnectorUtil.js'
 import { MobileWalletUtil } from '../utils/MobileWallet.js'
 import { StorageUtil } from '../utils/StorageUtil.js'
 import type { AuthConnector, Connector, WcWallet } from '../utils/TypeUtil.js'
@@ -278,7 +279,9 @@ const controller = {
   },
 
   getConnectorById(id: string) {
-    return state.allConnectors.find(c => c.id === id)
+    const sortedConnectors = ConnectorUtil.sortConnectorsByPriority(state.allConnectors)
+
+    return sortedConnectors.find(c => c.id === id)
   },
 
   getConnector({
@@ -293,6 +296,12 @@ const controller = {
     const namespaceToUse = namespace || ChainController.state.activeChain
 
     const connectorsByNamespace = state.allConnectors.filter(c => c.chain === namespaceToUse)
+<<<<<<< HEAD
+=======
+    const sortedConnectorsByNamespace =
+      ConnectorUtil.sortConnectorsByPriority(connectorsByNamespace)
+    const connector = sortedConnectorsByNamespace.find(c => c.id === id || c.explorerId === id)
+>>>>>>> upstream/main
 
     return connectorsByNamespace.find(c => c.explorerId === id || c.info?.rdns === rdns)
   },
