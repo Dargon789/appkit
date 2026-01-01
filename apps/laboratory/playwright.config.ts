@@ -1,21 +1,26 @@
 import { defineConfig } from '@playwright/test'
 import { config } from 'dotenv'
 
-import { BASE_URL } from './tests/shared/constants'
+import { BASE_URL } from '@reown/appkit-testing'
+
 import type { ModalFixture } from './tests/shared/fixtures/w3m-fixture'
 import { getValue } from './tests/shared/utils/config'
 import { getProjects } from './tests/shared/utils/project'
 
 config({ path: './.env.local' })
 
+// Read environment variable for shard suffix, to make blob report filenames unique
+const shardSuffix = process.env['PLAYWRIGHT_SHARD_SUFFIX']
+const blobOutputDir = 'playwright-blob-reports'
+const blobFileName = shardSuffix ? `report-${shardSuffix}.zip` : 'report.zip'
+
 export default defineConfig<ModalFixture>({
   testDir: './tests',
   fullyParallel: true,
   workers: getValue(8, 4),
-  reporter: getValue(
-    [['list'], ['html', { host: '0.0.0.0' }]],
-    [['list'], ['html', { host: '0.0.0.0' }]]
-  ),
+  reporter: process.env['CI']
+    ? [['blob', { outputDir: blobOutputDir, fileName: blobFileName }]]
+    : [['list'], ['html', { host: '0.0.0.0' }], ['json', { outputFile: 'test-results.json' }]],
   // Limits the number of failed tests in the whole test suite. Playwright Test will stop after reaching this number of failed tests and skip any tests that were not executed yet
   maxFailures: getValue(10, undefined),
   expect: {
@@ -33,7 +38,11 @@ export default defineConfig<ModalFixture>({
     /* Collect trace regardless so we can debug latency regressions. See https://playwright.dev/docs/trace-viewer */
     trace: 'on',
 
-    video: 'retain-on-failure'
+    video: 'retain-on-failure',
+
+    extraHTTPHeaders: {
+      'x-vercel-protection-bypass': process.env['VERCEL_AUTOMATION_BYPASS_SECRET'] || ''
+    }
   },
 
   /* Configure projects for major browsers */

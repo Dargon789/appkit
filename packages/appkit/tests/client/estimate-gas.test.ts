@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ConstantsUtil } from '@reown/appkit-common'
-import { ChainController } from '@reown/appkit-controllers'
+import { type Address, ConstantsUtil, type Hex } from '@reown/appkit-common'
+import { ProviderController } from '@reown/appkit-controllers'
 import type { EstimateGasTransactionArgs } from '@reown/appkit-controllers'
-import { ProviderUtil } from '@reown/appkit-utils'
+import { mockChainControllerState } from '@reown/appkit-controllers/testing'
 
 import { AppKitBaseClient } from '../../src/client/appkit-base-client.js'
 import { mockEvmAdapter } from '../mocks/Adapter.js'
@@ -29,12 +29,10 @@ describe('AppKit Gas Estimation', () => {
   let appKit: TestAppKit
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.restoreAllMocks()
     mockWindowAndDocument()
     mockStorageUtil()
     mockBlockchainApiController()
-    // Mock ChainController.initialize before creating TestAppKit
-    vi.spyOn(ChainController, 'initialize').mockImplementation(() => {})
 
     appKit = new TestAppKit(mockOptions)
   })
@@ -43,24 +41,24 @@ describe('AppKit Gas Estimation', () => {
     const mockProvider = { provider: 'mock' }
     const mockGasEstimate = 21000n
 
-    vi.spyOn(ChainController, 'state', 'get').mockReturnValue({
+    mockChainControllerState({
       activeChain: ConstantsUtil.CHAIN.EVM,
-      activeCaipNetwork: mainnet
-    } as any)
+      chains: new Map([[ConstantsUtil.CHAIN.EVM, {}]])
+    })
 
-    vi.spyOn(ProviderUtil, 'getProvider').mockReturnValue(mockProvider)
+    vi.spyOn(ProviderController, 'getProvider').mockReturnValue(mockProvider)
     vi.spyOn(mockEvmAdapter, 'estimateGas').mockResolvedValue({ gas: mockGasEstimate })
 
     const transactionArgs: EstimateGasTransactionArgs = {
       chainNamespace: ConstantsUtil.CHAIN.EVM,
-      address: '0x1234567890123456789012345678901234567890' as `0x${string}`,
-      to: '0x1234567890123456789012345678901234567890' as `0x${string}`,
-      data: '0x' as `0x${string}`
+      address: '0x1234567890123456789012345678901234567890' as Address,
+      to: '0x1234567890123456789012345678901234567890' as Address,
+      data: '0x' as Hex
     }
 
     const result = await appKit.testConnectionControllerClient?.estimateGas(transactionArgs)
 
-    expect(ProviderUtil.getProvider).toHaveBeenCalledWith(ConstantsUtil.CHAIN.EVM)
+    expect(ProviderController.getProvider).toHaveBeenCalledWith(ConstantsUtil.CHAIN.EVM)
     expect(mockEvmAdapter.estimateGas).toHaveBeenCalledWith({
       ...transactionArgs,
       provider: mockProvider,
@@ -70,10 +68,10 @@ describe('AppKit Gas Estimation', () => {
   })
 
   it('should return 0n for non-EVM chain', async () => {
-    vi.spyOn(ChainController, 'state', 'get').mockReturnValue({
+    mockChainControllerState({
       activeChain: ConstantsUtil.CHAIN.SOLANA,
-      activeCaipNetwork: { id: '1', chainNamespace: ConstantsUtil.CHAIN.SOLANA }
-    } as any)
+      chains: new Map([[ConstantsUtil.CHAIN.SOLANA, {}]])
+    })
 
     const transactionArgs: EstimateGasTransactionArgs = {
       chainNamespace: ConstantsUtil.CHAIN.SOLANA
@@ -88,19 +86,19 @@ describe('AppKit Gas Estimation', () => {
   it('should handle errors during gas estimation', async () => {
     const mockProvider = { provider: 'mock' }
 
-    vi.spyOn(ChainController, 'state', 'get').mockReturnValue({
+    mockChainControllerState({
       activeChain: ConstantsUtil.CHAIN.EVM,
-      activeCaipNetwork: mainnet
-    } as any)
+      chains: new Map([[ConstantsUtil.CHAIN.EVM, {}]])
+    })
 
-    vi.spyOn(ProviderUtil, 'getProvider').mockReturnValue(mockProvider)
+    vi.spyOn(ProviderController, 'getProvider').mockReturnValue(mockProvider)
     vi.spyOn(mockEvmAdapter, 'estimateGas').mockRejectedValue(new Error('Gas estimation failed'))
 
     const transactionArgs: EstimateGasTransactionArgs = {
       chainNamespace: ConstantsUtil.CHAIN.EVM,
-      address: '0x1234567890123456789012345678901234567890' as `0x${string}`,
-      to: '0x1234567890123456789012345678901234567890' as `0x${string}`,
-      data: '0x' as `0x${string}`
+      address: '0x1234567890123456789012345678901234567890' as Address,
+      to: '0x1234567890123456789012345678901234567890' as Address,
+      data: '0x' as Hex
     }
 
     await expect(
@@ -114,43 +112,42 @@ describe('AppKit Gas Estimation', () => {
     // Mock the getCaipNetwork method to return undefined
     vi.spyOn(appKit, 'getCaipNetwork').mockReturnValue(undefined)
 
-    vi.spyOn(ChainController, 'state', 'get').mockReturnValue({
+    mockChainControllerState({
       activeChain: ConstantsUtil.CHAIN.EVM,
-      activeCaipNetwork: undefined
-    } as any)
+      chains: new Map([[ConstantsUtil.CHAIN.EVM, {}]])
+    })
 
-    vi.spyOn(ProviderUtil, 'getProvider').mockReturnValue(mockProvider)
-
+    vi.spyOn(ProviderController, 'getProvider').mockReturnValue(mockProvider)
     vi.spyOn(mockEvmAdapter, 'estimateGas').mockReset()
 
     const transactionArgs: EstimateGasTransactionArgs = {
       chainNamespace: ConstantsUtil.CHAIN.EVM,
-      address: '0x1234567890123456789012345678901234567890' as `0x${string}`,
-      to: '0x1234567890123456789012345678901234567890' as `0x${string}`,
-      data: '0x' as `0x${string}`
+      address: '0x1234567890123456789012345678901234567890' as Address,
+      to: '0x1234567890123456789012345678901234567890' as Address,
+      data: '0x' as Hex
     }
 
     await expect(
       appKit.testConnectionControllerClient?.estimateGas(transactionArgs)
-    ).rejects.toThrow('CaipNetwork is undefined')
+    ).rejects.toThrow('estimateGas: caipNetwork is required but got undefined')
   })
 
   it('should handle missing adapter gracefully', async () => {
     const mockProvider = { provider: 'mock' }
 
-    vi.spyOn(ChainController, 'state', 'get').mockReturnValue({
+    mockChainControllerState({
       activeChain: ConstantsUtil.CHAIN.EVM,
-      activeCaipNetwork: mainnet
-    } as any)
+      chains: new Map([[ConstantsUtil.CHAIN.EVM, {}]])
+    })
 
-    vi.spyOn(ProviderUtil, 'getProvider').mockReturnValue(mockProvider)
+    vi.spyOn(ProviderController, 'getProvider').mockReturnValue(mockProvider)
     vi.spyOn(mockEvmAdapter, 'estimateGas').mockResolvedValue(undefined as any)
 
     const transactionArgs: EstimateGasTransactionArgs = {
       chainNamespace: ConstantsUtil.CHAIN.EVM,
-      address: '0x1234567890123456789012345678901234567890' as `0x${string}`,
-      to: '0x1234567890123456789012345678901234567890' as `0x${string}`,
-      data: '0x' as `0x${string}`
+      address: '0x1234567890123456789012345678901234567890' as Address,
+      to: '0x1234567890123456789012345678901234567890' as Address,
+      data: '0x' as Hex
     }
 
     const result = await appKit.testConnectionControllerClient?.estimateGas(transactionArgs)

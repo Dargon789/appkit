@@ -2,6 +2,7 @@ import type UniversalProvider from '@walletconnect/universal-provider'
 
 import type {
   AdapterType,
+  Address,
   AppKitNetwork,
   AppKitSdkVersion,
   Balance,
@@ -9,7 +10,10 @@ import type {
   CaipNetwork,
   CaipNetworkId,
   ChainNamespace,
+  Hex,
+  OnRampProvider,
   SdkFramework,
+  SwapProvider,
   Transaction
 } from '@reown/appkit-common'
 import type { W3mFrameProvider, W3mFrameTypes } from '@reown/appkit-wallet'
@@ -18,7 +22,7 @@ import type { AccountControllerState } from '../controllers/AccountController.js
 import type { ConnectionControllerClient } from '../controllers/ConnectionController.js'
 import type { ReownName } from '../controllers/EnsController.js'
 import type { OnRampProviderOption } from '../controllers/OnRampController.js'
-import type { ConstantsUtil } from './ConstantsUtil.js'
+import type { RouterControllerState } from '../controllers/RouterController.js'
 
 type InitializeAppKitConfigs = {
   showWallets?: boolean
@@ -61,10 +65,15 @@ export type ConnectedWalletInfo = {
 export type User = {
   email?: string | null | undefined
   username?: string | null | undefined
+  accounts?: {
+    type: 'eoa' | 'smartAccount'
+    address: string
+  }[]
 }
 
 export interface LinkingRecord {
   redirect: string
+  redirectUniversalLink?: string
   href: string
 }
 
@@ -89,6 +98,9 @@ export type SocialProvider =
   | 'x'
   | 'discord'
   | 'farcaster'
+
+export type EmailCaptureOptions = 'required'
+
 export type Connector = {
   id: string
   type: ConnectorType
@@ -145,6 +157,7 @@ export interface WcWallet {
   image_id?: string
   image_url?: string
   order?: number
+  link_mode?: string | null
   mobile_link?: string | null
   desktop_link?: string | null
   webapp_link?: string | null
@@ -158,6 +171,7 @@ export interface WcWallet {
         injected_id?: string
       }[]
     | null
+  display_index?: number
 }
 
 export interface ApiGetWalletsRequest {
@@ -173,6 +187,10 @@ export interface ApiGetWalletsRequest {
 export interface ApiGetWalletsResponse {
   data: WcWallet[]
   count: number
+}
+
+export interface ApiGetAllowedOriginsResponse {
+  allowedOrigins: string[]
 }
 
 export interface ApiGetAnalyticsConfigResponse {
@@ -205,7 +223,6 @@ export interface BlockchainApiIdentityResponse {
 export interface BlockchainApiTransactionsRequest {
   account: string
   cursor?: string
-  onramp?: 'coinbase'
   signal?: AbortSignal
   cache?: RequestCache
   chainId?: string
@@ -262,12 +279,14 @@ export interface BlockchainApiSwapQuoteResponse {
 }
 
 export interface BlockchainApiTokenPriceRequest {
+  caipNetworkId?: CaipNetworkId
   currency?: 'usd' | 'eur' | 'gbp' | 'aud' | 'cad' | 'inr' | 'jpy' | 'btc' | 'eth'
   addresses: string[]
 }
 
 export interface BlockchainApiTokenPriceResponse {
   fungibles: {
+    address: string
     name: string
     symbol: string
     iconUrl: string
@@ -310,7 +329,7 @@ export interface BlockchainApiGenerateSwapCalldataResponse {
   tx: {
     from: CaipAddress
     to: CaipAddress
-    data: `0x${string}`
+    data: Address
     amount: string
     eip155: {
       gas: string
@@ -330,7 +349,7 @@ export interface BlockchainApiGenerateApproveCalldataResponse {
   tx: {
     from: CaipAddress
     to: CaipAddress
-    data: `0x${string}`
+    data: Address
     value: string
     eip155: {
       gas: number
@@ -345,8 +364,8 @@ export interface BlockchainApiBalanceResponse {
 
 export interface BlockchainApiLookupEnsName {
   name: ReownName
-  registered: number
-  updated: number
+  registered_at: string
+  updated_at: string | undefined
   addresses: Record<
     string,
     {
@@ -364,7 +383,7 @@ export interface BlockchainApiRegisterNameParams {
   coinType: number
   message: string
   signature: string
-  address: `0x${string}`
+  address: Address
 }
 
 export interface BlockchainApiSuggestionResponse {
@@ -402,6 +421,17 @@ export type CustomWallet = Pick<
 
 // -- EventsController Types ----------------------------------------------------
 
+export type PendingEvent = {
+  eventId: string
+  url: string
+  domain: string
+  timestamp: number
+  props: {
+    address?: string
+    properties: unknown
+  }
+}
+
 export type Event =
   | {
       type: 'track'
@@ -435,6 +465,9 @@ export type Event =
       properties: {
         name: string
         platform: Platform
+        displayIndex?: number
+        walletRank: number | undefined
+        view: RouterControllerState['view']
       }
     }
   | {
@@ -444,6 +477,9 @@ export type Event =
       properties: {
         method: 'qrcode' | 'mobile' | 'browser' | 'email'
         name: string
+        reconnect?: boolean
+        walletRank: number | undefined
+        view: RouterControllerState['view']
       }
     }
   | {
@@ -457,17 +493,25 @@ export type Event =
   | {
       type: 'track'
       address?: string
+      event: 'USER_REJECTED'
+      properties: {
+        message: string
+      }
+    }
+  | {
+      type: 'track'
+      address?: string
       event: 'DISCONNECT_SUCCESS'
-      properties?: {
-        namespace: ChainNamespace | 'all'
+      properties: {
+        namespace?: ChainNamespace | 'all'
       }
     }
   | {
       type: 'track'
       address?: string
       event: 'DISCONNECT_ERROR'
-      properties?: {
-        message: string
+      properties: {
+        message?: string
       }
     }
   | {
@@ -493,15 +537,13 @@ export type Event =
   | {
       type: 'track'
       address?: string
-      event: 'CLICK_GET_WALLET'
+      event: 'CLICK_GET_WALLET_HELP'
     }
   | {
       type: 'track'
       address?: string
       event: 'CLICK_TRANSACTIONS'
-      properties: {
-        isSmartAccount: boolean
-      }
+      properties: { isSmartAccount: boolean }
     }
   | {
       type: 'track'
@@ -564,6 +606,7 @@ export type Event =
       properties: {
         network: string
         isSmartAccount: boolean
+        message: string | undefined
       }
     }
   | {
@@ -595,9 +638,7 @@ export type Event =
       type: 'track'
       address?: string
       event: 'EMAIL_VERIFICATION_CODE_FAIL'
-      properties: {
-        message: string
-      }
+      properties: { message: string }
     }
   | {
       type: 'track'
@@ -613,9 +654,7 @@ export type Event =
       type: 'track'
       address?: string
       event: 'SWITCH_NETWORK'
-      properties: {
-        network: string
-      }
+      properties: { network: string }
     }
   | {
       type: 'track'
@@ -636,44 +675,31 @@ export type Event =
       type: 'track'
       address?: string
       event: 'SELECT_BUY_CRYPTO'
-      properties: {
-        isSmartAccount: boolean
-      }
+      properties: { isSmartAccount: boolean }
     }
   | {
       type: 'track'
       address?: string
       event: 'SELECT_BUY_PROVIDER'
-      properties: {
-        provider: OnRampProviderOption
-        isSmartAccount: boolean
-      }
+      properties: { provider: OnRampProviderOption; isSmartAccount: boolean }
     }
   | {
       type: 'track'
       address?: string
       event: 'SELECT_WHAT_IS_A_BUY'
-      properties: {
-        isSmartAccount: boolean
-      }
+      properties: { isSmartAccount: boolean }
     }
   | {
       type: 'track'
       address?: string
       event: 'SET_PREFERRED_ACCOUNT_TYPE'
-      properties: {
-        accountType: W3mFrameTypes.AccountType
-        network: string
-      }
+      properties: { accountType: W3mFrameTypes.AccountType; network: string }
     }
   | {
       type: 'track'
       address?: string
       event: 'OPEN_SWAP'
-      properties: {
-        isSmartAccount: boolean
-        network: string
-      }
+      properties: { isSmartAccount: boolean; network: string }
     }
   | {
       type: 'track'
@@ -743,6 +769,7 @@ export type Event =
       event: 'SOCIAL_LOGIN_SUCCESS'
       properties: {
         provider: SocialProvider
+        reconnect?: boolean
       }
     }
   | {
@@ -751,6 +778,7 @@ export type Event =
       event: 'SOCIAL_LOGIN_ERROR'
       properties: {
         provider: SocialProvider
+        message: string
       }
     }
   | {
@@ -833,6 +861,7 @@ export type Event =
         isSmartAccount: boolean
         network: string
         token: string
+        hash: string
         amount: number
       }
     }
@@ -874,6 +903,123 @@ export type Event =
       event: 'INITIALIZE'
       properties: InitializeAppKitConfigs
     }
+  | PayEvent
+  | {
+      type: 'track'
+      address?: string
+      event: 'GET_WALLET'
+      properties: {
+        name: string
+        walletRank: number | undefined
+        explorerId: string
+      }
+    }
+  | {
+      type: 'track'
+      address?: string
+      event: 'WALLET_IMPRESSION'
+      properties:
+        | {
+            name: string
+            walletRank: number | undefined
+            explorerId: string
+            view: string
+            query?: string
+            certified?: boolean
+          }
+        | {
+            name: string
+            walletRank: number | undefined
+            rdnsId: string
+            view: string
+          }
+    }
+
+type PayConfiguration = {
+  network: string
+  asset: string
+  amount: number
+  recipient: string
+}
+
+type PayExchange = {
+  id: string
+}
+
+type PayCurrentPayment = {
+  exchangeId?: string
+  sessionId?: string
+  status?: string
+  result?: string
+  type: 'exchange' | 'wallet'
+}
+
+type PayEvent =
+  | {
+      type: 'track'
+      address?: string
+      event: 'PAY_SUCCESS'
+      properties: {
+        source: 'pay' | 'fund-from-exchange'
+        paymentId: string
+        configuration: PayConfiguration
+        currentPayment: PayCurrentPayment
+        caipNetworkId?: CaipNetworkId
+        message?: string
+      }
+    }
+  | {
+      type: 'track'
+      address?: string
+      event: 'PAY_ERROR'
+      properties: {
+        source: 'pay' | 'fund-from-exchange'
+        paymentId: string
+        configuration: PayConfiguration
+        currentPayment: PayCurrentPayment
+        caipNetworkId?: CaipNetworkId
+        message?: string
+      }
+    }
+  | {
+      type: 'track'
+      address?: string
+      event: 'PAY_INITIATED'
+      properties: {
+        source: 'pay' | 'fund-from-exchange'
+        paymentId: string
+        configuration: PayConfiguration
+        currentPayment: PayCurrentPayment
+        caipNetworkId?: CaipNetworkId
+        message?: string
+      }
+    }
+  | {
+      type: 'track'
+      address?: string
+      event: 'PAY_MODAL_OPEN'
+      properties: {
+        exchanges: PayExchange[]
+        configuration: PayConfiguration
+        caipNetworkId?: CaipNetworkId
+        message?: string
+      }
+    }
+  | {
+      type: 'track'
+      address?: string
+      event: 'PAY_EXCHANGE_SELECTED'
+      properties: {
+        exchange: PayExchange
+        configuration: PayConfiguration
+        currentPayment: PayCurrentPayment
+        headless: boolean
+        caipNetworkId?: CaipNetworkId
+        source: 'pay' | 'fund-from-exchange'
+        message?: string
+      }
+    }
+
 // Onramp Types
 export type DestinationWallet = {
   address: string
@@ -923,7 +1069,6 @@ export type OnrampQuote = {
   paymentTotal: QuoteAmount
   paymentSubtotal: QuoteAmount
   purchaseAmount: QuoteAmount
-  coinbaseFee: QuoteAmount
   networkFee: QuoteAmount
   quoteId: string
 }
@@ -940,6 +1085,9 @@ export type NamespaceTypeMap = {
   solana: 'eoa'
   bip122: 'payment' | 'ordinal' | 'stx'
   polkadot: 'eoa'
+  cosmos: 'eoa'
+  sui: 'eoa'
+  stacks: 'eoa'
 }
 
 export type AccountTypeMap = {
@@ -952,17 +1100,17 @@ export type AccountTypeMap = {
   }
 }
 export type WalletGetAssetsParams = {
-  account: `0x${string}`
-  assetFilter?: Record<`0x${string}`, (`0x${string}` | 'native')[]>
+  account: Address
+  assetFilter?: Record<Address, (Address | 'native')[]>
   assetTypeFilter?: ('NATIVE' | 'ERC20')[]
-  chainFilter?: `0x${string}`[]
+  chainFilter?: Address[]
 }
 
 export type WalletGetAssetsResponse = Record<
-  `0x${string}`,
+  Address,
   {
-    address: `0x${string}` | 'native'
-    balance: `0x${string}`
+    address: Address | 'native'
+    balance: Hex
     type: 'NATIVE' | 'ERC20'
     metadata: Record<string, unknown>
   }[]
@@ -971,29 +1119,29 @@ export type AccountType = AccountTypeMap[ChainNamespace]
 export type SendTransactionArgs =
   | {
       chainNamespace?: undefined | 'eip155'
-      to: `0x${string}`
-      data: `0x${string}`
+      to: Address
+      data: Hex
       value: bigint
       gas?: bigint
       gasPrice?: bigint
-      address: `0x${string}`
+      address: Address
     }
-  | { chainNamespace: 'solana'; to: string; value: number }
+  | { chainNamespace: 'solana'; to: string; value: number; tokenMint?: string }
 
 export type EstimateGasTransactionArgs =
   | {
       chainNamespace?: undefined | 'eip155'
-      address: `0x${string}`
-      to: `0x${string}`
-      data: `0x${string}`
+      address: Address
+      to: Address
+      data: Hex
     }
   | {
       chainNamespace: 'solana'
     }
 
 export interface WriteContractArgs {
-  tokenAddress: `0x${string}`
-  fromAddress: `0x${string}`
+  tokenAddress: Address
+  fromAddress: Address
   method: 'send' | 'transfer' | 'call' | 'approve'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   abi: any
@@ -1056,9 +1204,6 @@ export interface Provider {
 
 export type CombinedProvider = W3mFrameProvider & Provider
 
-export type CoinbasePaySDKChainNameValues =
-  keyof typeof ConstantsUtil.WC_COINBASE_PAY_SDK_CHAIN_NAME_MAP
-
 export type WalletFeature = 'swaps' | 'send' | 'receive' | 'onramp'
 
 export type ConnectMethod = 'email' | 'social' | 'wallet'
@@ -1071,6 +1216,21 @@ export type ConnectorTypeOrder =
   | 'custom'
   | 'external'
   | 'recommended'
+
+export type RemoteFeatures = {
+  swaps?: SwapProvider[] | false
+  email?: boolean
+  socials?: SocialProvider[] | false
+  activity?: boolean
+  reownBranding?: boolean
+  multiWallet?: boolean
+  emailCapture?: EmailCaptureOptions[] | boolean
+  reownAuthentication?: boolean
+  // Fund Wallet
+  payWithExchange?: boolean
+  payments?: boolean
+  onramp?: OnRampProvider[] | false
+}
 
 export type Features = {
   /**
@@ -1101,7 +1261,6 @@ export type Features = {
   email?: boolean
   /**
    * @description Show or hide the regular wallet options when email is enabled. Enabled by default.
-   * @deprecated - This property will be removed in the next major release. Please use `features.collapseWallets` instead.
    * @type {boolean}
    */
   emailShowWallets?: boolean
@@ -1160,9 +1319,24 @@ export type Features = {
    * @default false
    */
   collapseWallets?: boolean
+
+  /**
+   * @description Enable or disable the pay feature. Disabled by default.
+   * @type {boolean}
+   */
+  pay?: boolean
+
+  /**
+   * @description Enable or disable the ReownAuthentication SIWX feature. Disabled by default.
+   * @type {boolean}
+   */
+  reownAuthentication?: boolean
 }
 
-export type FeaturesKeys = keyof Features
+export type FeaturesKeys = Exclude<
+  keyof Features,
+  'swaps' | 'onramp' | 'email' | 'socials' | 'history'
+>
 
 export type WalletGuideType = 'get-started' | 'explore'
 
@@ -1184,7 +1358,7 @@ export type UseAppKitNetworkReturn = {
   caipNetwork: CaipNetwork | undefined
   chainId: number | string | undefined
   caipNetworkId: CaipNetworkId | undefined
-  switchNetwork: (network: AppKitNetwork) => void
+  switchNetwork: (network: AppKitNetwork) => Promise<void>
 }
 
 export type BadgeType = 'none' | 'certified'
@@ -1198,3 +1372,107 @@ export type ConnectionStatus = 'connected' | 'disconnected' | 'connecting' | 're
 export type PreferredAccountTypes = {
   [Key in keyof NamespaceTypeMap]?: NamespaceTypeMap[Key]
 }
+
+// -- Feature Configuration Types -------------------------------------------------
+
+export type FeatureID =
+  | 'multi_wallet'
+  | 'activity'
+  | 'onramp'
+  | 'swap'
+  | 'social_login'
+  | 'reown_branding'
+  | 'email_capture'
+  | 'fund_from_exchange'
+  | 'payments'
+  | 'reown_authentication'
+
+export interface BaseFeature<T extends FeatureID, C extends string[] | null> {
+  id: T
+  isEnabled: boolean
+  config: C
+}
+
+export type TypedFeatureConfig =
+  | BaseFeature<'activity', null | []>
+  | BaseFeature<'onramp', OnRampProvider[]>
+  | BaseFeature<'swap', SwapProvider[]>
+  | BaseFeature<'social_login', (SocialProvider | 'email')[]>
+  | BaseFeature<'reown_branding', null | []>
+  | BaseFeature<'multi_wallet', null | []>
+  | BaseFeature<'email_capture', EmailCaptureOptions[]>
+
+export type ApiGetProjectConfigResponse = {
+  features: TypedFeatureConfig[]
+}
+
+export type FeatureConfigMap = {
+  email: {
+    apiFeatureName: 'social_login'
+    localFeatureName: 'email'
+    returnType: boolean
+    isLegacy: false
+  }
+  socials: {
+    apiFeatureName: 'social_login'
+    localFeatureName: 'socials'
+    returnType: SocialProvider[] | false
+    isLegacy: false
+  }
+  swaps: {
+    apiFeatureName: 'swap'
+    localFeatureName: 'swaps'
+    returnType: SwapProvider[] | false
+    isLegacy: false
+  }
+  onramp: {
+    apiFeatureName: 'onramp'
+    localFeatureName: 'onramp'
+    returnType: OnRampProvider[] | false
+    isLegacy: false
+  }
+  activity: {
+    apiFeatureName: 'activity'
+    localFeatureName: 'history'
+    returnType: boolean
+    isLegacy: true
+  }
+  reownBranding: {
+    apiFeatureName: 'reown_branding'
+    localFeatureName: 'reownBranding'
+    returnType: boolean
+    isLegacy: false
+  }
+  emailCapture: {
+    apiFeatureName: 'email_capture'
+    localFeatureName: 'emailCapture'
+    returnType: EmailCaptureOptions[] | boolean
+    isLegacy: false
+  }
+  multiWallet: {
+    apiFeatureName: 'multi_wallet'
+    localFeatureName: 'multiWallet'
+    returnType: boolean
+    isLegacy: false
+  }
+  payWithExchange: {
+    apiFeatureName: 'fund_from_exchange'
+    localFeatureName: 'payWithExchange'
+    returnType: boolean
+    isLegacy: false
+  }
+  payments: {
+    apiFeatureName: 'payments'
+    localFeatureName: 'payments'
+    returnType: boolean
+    isLegacy: false
+  }
+  reownAuthentication: {
+    apiFeatureName: 'reown_authentication'
+    localFeatureName: 'reownAuthentication'
+    returnType: boolean
+    isLegacy: false
+  }
+}
+
+export type FeatureKey = keyof FeatureConfigMap

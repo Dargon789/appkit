@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { html } from 'lit'
 
-import { ConstantsUtil } from '@reown/appkit-common'
 import {
   ApiController,
   AssetUtil,
@@ -31,12 +30,6 @@ const MOCK_CONNECTORS = [
     name: 'External Wallet 3',
     type: 'EXTERNAL',
     info: { rdns: 'io.external.wallet3' }
-  },
-  {
-    id: ConstantsUtil.CONNECTOR_ID.COINBASE_SDK,
-    name: 'Coinbase Wallet',
-    type: 'EXTERNAL',
-    info: { rdns: 'io.coinbase.wallet' }
   }
 ] as ConnectorWithProviders[]
 
@@ -61,14 +54,13 @@ describe('W3mConnectExternalWidget', () => {
       html`<w3m-connect-external-widget></w3m-connect-external-widget>`
     )
 
-    const walletElements = element.shadowRoot?.querySelectorAll('wui-list-wallet')
+    const walletElements = element.shadowRoot?.querySelectorAll('w3m-list-wallet')
     expect(walletElements?.length).toBe(3)
 
     const walletNames = Array.from(walletElements || []).map(el => el.getAttribute('name'))
     expect(walletNames).toContain('External Wallet 1')
     expect(walletNames).toContain('External Wallet 2')
     expect(walletNames).toContain('External Wallet 3')
-    expect(walletNames).not.toContain('Coinbase Wallet')
   })
 
   it('should filter out wallets excluded by RDNS while showing non-excluded wallets', async () => {
@@ -80,7 +72,7 @@ describe('W3mConnectExternalWidget', () => {
       html`<w3m-connect-external-widget></w3m-connect-external-widget>`
     )
 
-    const walletElements = element.shadowRoot?.querySelectorAll('wui-list-wallet')
+    const walletElements = element.shadowRoot?.querySelectorAll('w3m-list-wallet')
     expect(walletElements?.length).toBe(2)
 
     const walletNames = Array.from(walletElements || []).map(el => el.getAttribute('name'))
@@ -99,7 +91,7 @@ describe('W3mConnectExternalWidget', () => {
       html`<w3m-connect-external-widget></w3m-connect-external-widget>`
     )
 
-    const walletElements = element.shadowRoot?.querySelectorAll('wui-list-wallet')
+    const walletElements = element.shadowRoot?.querySelectorAll('w3m-list-wallet')
     expect(walletElements?.length).toBe(2)
 
     const walletNames = Array.from(walletElements || []).map(el => el.getAttribute('name'))

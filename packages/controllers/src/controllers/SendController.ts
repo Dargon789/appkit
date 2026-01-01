@@ -2,17 +2,25 @@ import { proxy, ref, subscribe as sub } from 'valtio/vanilla'
 import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 
 import {
+  type Address,
   type Balance,
   type CaipAddress,
   type ChainNamespace,
+  ConstantsUtil as CommonConstantsUtil,
   NumberUtil
 } from '@reown/appkit-common'
 import { ContractUtil } from '@reown/appkit-common'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet/utils'
 
+import { BalanceUtil } from '../utils/BalanceUtil.js'
+import {
+  getActiveNetworkTokenAddress,
+  getPreferredAccountType
+} from '../utils/ChainControllerUtil.js'
 import { ConstantsUtil } from '../utils/ConstantsUtil.js'
 import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'
-import { SendApiUtil } from '../utils/SendApiUtil.js'
+import { SwapApiUtil } from '../utils/SwapApiUtil.js'
+import { withErrorBoundary } from '../utils/withErrorBoundary.js'
 import { AccountController } from './AccountController.js'
 import { ChainController } from './ChainController.js'
 import { ConnectionController } from './ConnectionController.js'
@@ -25,8 +33,14 @@ import { SnackController } from './SnackController.js'
 export interface TxParams {
   receiverAddress: string
   sendTokenAmount: number
-  gasPrice: bigint
   decimals: string
+}
+export interface SendInputArguments {
+  amount: string
+  assetAddress: string
+  namespace: ChainNamespace
+  chainId: string | number
+  to: string
 }
 
 export interface ContractWriteParams {
@@ -38,12 +52,11 @@ export interface ContractWriteParams {
 export interface SendControllerState {
   tokenBalances: Balance[]
   token?: Balance
+  hash?: string
   sendTokenAmount?: number
   receiverAddress?: string
   receiverProfileName?: string
   receiverProfileImageUrl?: string
-  gasPrice?: bigint
-  gasPriceInUSD?: number
   networkBalanceInUSD?: string
   loading: boolean
   lastRetry?: number
@@ -58,7 +71,7 @@ const state = proxy<SendControllerState>({
 })
 
 // -- Controller ---------------------------------------- //
-export const SendController = {
+const controller = {
   state,
 
   subscribe(callback: (newState: SendControllerState) => void) {
@@ -93,14 +106,6 @@ export const SendController = {
     state.receiverProfileName = receiverProfileName
   },
 
-  setGasPrice(gasPrice: SendControllerState['gasPrice']) {
-    state.gasPrice = gasPrice
-  },
-
-  setGasPriceInUsd(gasPriceInUSD: SendControllerState['gasPriceInUSD']) {
-    state.gasPriceInUSD = gasPriceInUSD
-  },
-
   setNetworkBalanceInUsd(networkBalanceInUSD: SendControllerState['networkBalanceInUSD']) {
     state.networkBalanceInUSD = networkBalanceInUSD
   },
@@ -109,71 +114,94 @@ export const SendController = {
     state.loading = loading
   },
 
-  sendToken() {
-    switch (ChainController.state.activeCaipNetwork?.chainNamespace) {
-      case 'eip155':
-        this.sendEvmToken()
+  async sendToken() {
+    try {
+      SendController.setLoading(true)
+      switch (ChainController.state.activeCaipNetwork?.chainNamespace) {
+        case 'eip155':
+          await SendController.sendEvmToken()
 
-        return
-      case 'solana':
-        this.sendSolanaToken()
+          return
+        case 'solana':
+          await SendController.sendSolanaToken()
 
-        return
-      default:
-        throw new Error('Unsupported chain')
+          return
+        default:
+          throw new Error('Unsupported chain')
+      }
+    } finally {
+      SendController.setLoading(false)
     }
   },
 
-  sendEvmToken() {
-    const activeChainNamespace = ChainController.state.activeChain as ChainNamespace
-    const activeAccountType = AccountController.state.preferredAccountTypes?.[activeChainNamespace]
-    if (this.state.token?.address && this.state.sendTokenAmount && this.state.receiverAddress) {
+  async sendEvmToken() {
+    const activeChainNamespace = ChainController.state.activeChain
+
+    if (!activeChainNamespace) {
+      throw new Error('SendController:sendEvmToken - activeChainNamespace is required')
+    }
+
+    const activeAccountType = getPreferredAccountType(activeChainNamespace)
+
+    if (!SendController.state.sendTokenAmount || !SendController.state.receiverAddress) {
+      throw new Error('An amount and receiver address are required')
+    }
+
+    if (!SendController.state.token) {
+      throw new Error('A token is required')
+    }
+
+    if (SendController.state.token?.address) {
       EventsController.sendEvent({
         type: 'track',
         event: 'SEND_INITIATED',
         properties: {
           isSmartAccount: activeAccountType === W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT,
-          token: this.state.token.address,
-          amount: this.state.sendTokenAmount,
+          token: SendController.state.token.address,
+          amount: SendController.state.sendTokenAmount,
           network: ChainController.state.activeCaipNetwork?.caipNetworkId || ''
         }
       })
-      this.sendERC20Token({
-        receiverAddress: this.state.receiverAddress,
-        tokenAddress: this.state.token.address,
-        sendTokenAmount: this.state.sendTokenAmount,
-        decimals: this.state.token.quantity.decimals
+      const { hash } = await SendController.sendERC20Token({
+        receiverAddress: SendController.state.receiverAddress,
+        tokenAddress: SendController.state.token.address,
+        sendTokenAmount: SendController.state.sendTokenAmount,
+        decimals: SendController.state.token.quantity.decimals
       })
-    } else if (
-      this.state.receiverAddress &&
-      this.state.sendTokenAmount &&
-      this.state.gasPrice &&
-      this.state.token?.quantity.decimals
-    ) {
+
+      if (hash) {
+        state.hash = hash
+      }
+    } else {
       EventsController.sendEvent({
         type: 'track',
         event: 'SEND_INITIATED',
         properties: {
           isSmartAccount: activeAccountType === W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT,
-          token: this.state.token?.symbol,
-          amount: this.state.sendTokenAmount,
+          token: SendController.state.token.symbol || '',
+          amount: SendController.state.sendTokenAmount,
           network: ChainController.state.activeCaipNetwork?.caipNetworkId || ''
         }
       })
-      this.sendNativeToken({
-        receiverAddress: this.state.receiverAddress,
-        sendTokenAmount: this.state.sendTokenAmount,
-        gasPrice: this.state.gasPrice,
-        decimals: this.state.token.quantity.decimals
+      const { hash } = await SendController.sendNativeToken({
+        receiverAddress: SendController.state.receiverAddress,
+        sendTokenAmount: SendController.state.sendTokenAmount,
+        decimals: SendController.state.token.quantity.decimals
       })
+
+      if (hash) {
+        state.hash = hash
+      }
     }
   },
 
   async fetchTokenBalance(onError?: (error: unknown) => void): Promise<Balance[]> {
     state.loading = true
+    const namespace = ChainController.state.activeChain
     const chainId = ChainController.state.activeCaipNetwork?.caipNetworkId
     const chain = ChainController.state.activeCaipNetwork?.chainNamespace
-    const caipAddress = ChainController.state.activeCaipAddress
+    const caipAddress =
+      AccountController.getCaipAddress(namespace) ?? ChainController.state.activeCaipAddress
     const address = caipAddress ? CoreHelperUtil.getPlainAddress(caipAddress) : undefined
     if (
       state.lastRetry &&
@@ -186,7 +214,7 @@ export const SendController = {
 
     try {
       if (address && chainId && chain) {
-        const balances = await SendApiUtil.getMyTokensWithBalance()
+        const balances = await BalanceUtil.getMyTokensWithBalance()
         state.tokenBalances = balances
         state.lastRetry = undefined
 
@@ -209,13 +237,14 @@ export const SendController = {
       return
     }
 
-    const networkTokenBalances = SendApiUtil.mapBalancesToSwapTokens(state.tokenBalances)
+    const networkTokenBalances = SwapApiUtil.mapBalancesToSwapTokens(state.tokenBalances)
+
     if (!networkTokenBalances) {
       return
     }
 
     const networkToken = networkTokenBalances.find(
-      token => token.address === ChainController.getActiveNetworkTokenAddress()
+      token => token.address === getActiveNetworkTokenAddress()
     )
 
     if (!networkToken) {
@@ -227,99 +256,49 @@ export const SendController = {
       : '0'
   },
 
-  isInsufficientNetworkTokenForGas(networkBalanceInUSD: string, gasPriceInUSD: number | undefined) {
-    const gasPrice = gasPriceInUSD || '0'
-
-    if (NumberUtil.bigNumber(networkBalanceInUSD).eq(0)) {
-      return true
-    }
-
-    return NumberUtil.bigNumber(NumberUtil.bigNumber(gasPrice)).gt(networkBalanceInUSD)
-  },
-
-  hasInsufficientGasFunds() {
-    const activeChainNamespace = ChainController.state.activeChain as ChainNamespace
-    let isInsufficientNetworkTokenForGas = true
-    if (
-      AccountController.state.preferredAccountTypes?.[activeChainNamespace] ===
-      W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT
-    ) {
-      // Smart Accounts may pay gas in any ERC20 token
-      isInsufficientNetworkTokenForGas = false
-    } else if (state.networkBalanceInUSD) {
-      isInsufficientNetworkTokenForGas = this.isInsufficientNetworkTokenForGas(
-        state.networkBalanceInUSD,
-        state.gasPriceInUSD
-      )
-    }
-
-    return isInsufficientNetworkTokenForGas
-  },
-
   async sendNativeToken(params: TxParams) {
-    const activeChainNamespace = ChainController.state.activeChain as ChainNamespace
-    RouterController.pushTransactionStack({
-      view: 'Account',
-      goBack: false
-    })
+    RouterController.pushTransactionStack({})
 
-    const to = params.receiverAddress as `0x${string}`
-    const address = AccountController.state.address as `0x${string}`
+    const to = params.receiverAddress as Address
+    const address = AccountController.state.address as Address
     const value = ConnectionController.parseUnits(
       params.sendTokenAmount.toString(),
       Number(params.decimals)
     )
     const data = '0x'
 
-    try {
-      await ConnectionController.sendTransaction({
-        chainNamespace: 'eip155',
-        to,
-        address,
-        data,
-        value: value ?? BigInt(0),
-        gasPrice: params.gasPrice
-      })
+    const hash = await ConnectionController.sendTransaction({
+      chainNamespace: CommonConstantsUtil.CHAIN.EVM,
+      to,
+      address,
+      data,
+      value: value ?? BigInt(0)
+    })
 
-      SnackController.showSuccess('Transaction started')
-      EventsController.sendEvent({
-        type: 'track',
-        event: 'SEND_SUCCESS',
-        properties: {
-          isSmartAccount:
-            AccountController.state.preferredAccountTypes?.[activeChainNamespace] ===
-            W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT,
-          token: this.state.token?.symbol || '',
-          amount: params.sendTokenAmount,
-          network: ChainController.state.activeCaipNetwork?.caipNetworkId || ''
-        }
-      })
-      this.resetSend()
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('SendController:sendERC20Token - failed to send native token', error)
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      EventsController.sendEvent({
-        type: 'track',
-        event: 'SEND_ERROR',
-        properties: {
-          message: errorMessage,
-          isSmartAccount:
-            AccountController.state.preferredAccountTypes?.[activeChainNamespace] ===
-            W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT,
-          token: this.state.token?.symbol || '',
-          amount: params.sendTokenAmount,
-          network: ChainController.state.activeCaipNetwork?.caipNetworkId || ''
-        }
-      })
-      SnackController.showError('Something went wrong')
-    }
+    EventsController.sendEvent({
+      type: 'track',
+      event: 'SEND_SUCCESS',
+      properties: {
+        isSmartAccount:
+          getPreferredAccountType('eip155') === W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT,
+        token: SendController.state.token?.symbol || '',
+        amount: params.sendTokenAmount,
+        network: ChainController.state.activeCaipNetwork?.caipNetworkId || '',
+        hash: hash || ''
+      }
+    })
+
+    ConnectionController._getClient()?.updateBalance('eip155')
+    SendController.resetSend()
+
+    return { hash }
   },
 
   async sendERC20Token(params: ContractWriteParams) {
     RouterController.pushTransactionStack({
-      view: 'Account',
-      goBack: false
+      onSuccess() {
+        RouterController.replace('Account')
+      }
     })
 
     const amount = ConnectionController.parseUnits(
@@ -327,76 +306,85 @@ export const SendController = {
       Number(params.decimals)
     )
 
-    try {
-      if (
-        AccountController.state.address &&
-        params.sendTokenAmount &&
-        params.receiverAddress &&
-        params.tokenAddress
-      ) {
-        const tokenAddress = CoreHelperUtil.getPlainAddress(
-          params.tokenAddress as CaipAddress
-        ) as `0x${string}`
+    if (
+      AccountController.state.address &&
+      params.sendTokenAmount &&
+      params.receiverAddress &&
+      params.tokenAddress
+    ) {
+      const tokenAddress = CoreHelperUtil.getPlainAddress(params.tokenAddress as CaipAddress)
 
-        await ConnectionController.writeContract({
-          fromAddress: AccountController.state.address as `0x${string}`,
-          tokenAddress,
-          args: [params.receiverAddress as `0x${string}`, amount ?? BigInt(0)],
-          method: 'transfer',
-          abi: ContractUtil.getERC20Abi(tokenAddress),
-          chainNamespace: 'eip155'
-        })
-
-        SnackController.showSuccess('Transaction started')
-        this.resetSend()
+      if (!tokenAddress) {
+        throw new Error('SendController:sendERC20Token - tokenAddress is required')
       }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('SendController:sendERC20Token - failed to send erc20 token', error)
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+
+      const hash = await ConnectionController.writeContract({
+        fromAddress: AccountController.state.address as Address,
+        tokenAddress,
+        args: [params.receiverAddress as Address, amount ?? BigInt(0)],
+        method: 'transfer',
+        abi: ContractUtil.getERC20Abi(tokenAddress),
+        chainNamespace: CommonConstantsUtil.CHAIN.EVM
+      })
+
       EventsController.sendEvent({
         type: 'track',
-        event: 'SEND_ERROR',
+        event: 'SEND_SUCCESS',
         properties: {
-          message: errorMessage,
           isSmartAccount:
-            AccountController.state.preferredAccountTypes?.eip155 ===
-            W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT,
-          token: this.state.token?.symbol || '',
+            getPreferredAccountType('eip155') === W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT,
+          token: SendController.state.token?.symbol || '',
           amount: params.sendTokenAmount,
-          network: ChainController.state.activeCaipNetwork?.caipNetworkId || ''
+          network: ChainController.state.activeCaipNetwork?.caipNetworkId || '',
+          hash: hash || ''
         }
       })
-      SnackController.showError('Something went wrong')
+
+      SendController.resetSend()
+
+      return { hash }
     }
+
+    return { hash: undefined }
   },
 
-  sendSolanaToken() {
-    if (!this.state.sendTokenAmount || !this.state.receiverAddress) {
-      SnackController.showError('Please enter a valid amount and receiver address')
-
-      return
+  async sendSolanaToken() {
+    if (!SendController.state.sendTokenAmount || !SendController.state.receiverAddress) {
+      throw new Error('An amount and receiver address are required')
     }
 
     RouterController.pushTransactionStack({
-      view: 'Account',
-      goBack: false
+      onSuccess() {
+        RouterController.replace('Account')
+      }
     })
 
-    ConnectionController.sendTransaction({
+    let tokenMint: string | undefined = undefined
+
+    if (
+      SendController.state.token &&
+      SendController.state.token.address !== ConstantsUtil.SOLANA_NATIVE_TOKEN_ADDRESS
+    ) {
+      if (CoreHelperUtil.isCaipAddress(SendController.state.token.address)) {
+        tokenMint = CoreHelperUtil.getPlainAddress(SendController.state.token.address)
+      } else {
+        tokenMint = SendController.state.token.address
+      }
+    }
+
+    const hash = await ConnectionController.sendTransaction({
       chainNamespace: 'solana',
-      to: this.state.receiverAddress as `0x${string}`,
-      value: this.state.sendTokenAmount
+      tokenMint,
+      to: SendController.state.receiverAddress,
+      value: SendController.state.sendTokenAmount
     })
-      .then(() => {
-        this.resetSend()
-        AccountController.fetchTokenBalance()
-      })
-      .catch(error => {
-        SnackController.showError('Failed to send transaction. Please try again.')
-        // eslint-disable-next-line no-console
-        console.error('SendController:sendToken - failed to send solana transaction', error)
-      })
+
+    if (hash) {
+      state.hash = hash
+    }
+
+    ConnectionController._getClient()?.updateBalance('solana')
+    SendController.resetSend()
   },
 
   resetSend() {
@@ -409,3 +397,6 @@ export const SendController = {
     state.tokenBalances = []
   }
 }
+
+// Export the controller wrapped with our error boundary
+export const SendController = withErrorBoundary(controller)

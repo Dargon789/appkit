@@ -26,7 +26,7 @@ export const TransactionUtil = {
     const haveTwoTransfers = transfers?.length === 2
 
     if (haveTwoTransfers && !isAllNFT) {
-      return [this.getTransactionImage(transfer), this.getTransactionImage(secondTransfer)]
+      return [this.getTransactionImage(secondTransfer), this.getTransactionImage(transfer)]
     }
 
     if (haveMultipleTransfers) {
@@ -104,7 +104,7 @@ export const TransactionUtil = {
     }
 
     if (haveMultipleTransfers) {
-      return transfers.map(item => this.getTransferDescription(item))
+      return transfers.map(item => this.getTransferDescription(item)).reverse()
     }
 
     let prefix = ''
@@ -144,6 +144,28 @@ export const TransactionUtil = {
     const description = [quantity, transfer?.fungible_info?.symbol].join(' ').trim()
 
     return description
+  },
+  mergeTransfers(transfers: TransactionTransfer[]) {
+    let mergedTransfers = transfers
+    // If we have more than two transfers, we need to merge transfers with same direction and same token
+    if (transfers?.length > 1) {
+      mergedTransfers = transfers.reduce<TransactionTransfer[]>((acc, t) => {
+        const name = t?.fungible_info?.name
+        const existingTransfer = acc.find(
+          ({ fungible_info }) => name && name === fungible_info?.name
+        )
+        if (existingTransfer) {
+          const quantity = Number(existingTransfer.quantity.numeric) + Number(t.quantity.numeric)
+          existingTransfer.quantity.numeric = quantity.toString()
+        } else {
+          acc.push(t)
+        }
+
+        return acc
+      }, [])
+    }
+
+    return mergedTransfers
   },
 
   getQuantityFixedValue(value: string | undefined) {

@@ -1,14 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  ApiController,
+  ChainController,
+  ConnectionController,
   ConnectorController,
   CoreHelperUtil,
   OptionsController,
-  StorageUtil
+  StorageUtil,
+  WalletUtil
 } from '@reown/appkit-controllers'
-import type { WcWallet } from '@reown/appkit-controllers'
-
-import { WalletUtil } from '../src/utils/WalletUtil'
+import type { CustomWallet, WcWallet } from '@reown/appkit-controllers'
 
 // Connectors
 const mockMetamaskConnector = {
@@ -18,6 +20,15 @@ const mockMetamaskConnector = {
   explorerId: '1',
   chain: 'eip155' as const,
   type: 'ANNOUNCED' as const
+}
+
+const mockMetamaskMultiChainConnector = {
+  info: { rdns: 'io.metamask' },
+  name: 'Metamask',
+  id: '1',
+  explorerId: '1',
+  chain: 'eip155' as const,
+  type: 'MULTI_CHAIN' as const
 }
 
 const mockRainbowConnector = {
@@ -45,24 +56,45 @@ const mockCoinbaseconnector = {
   type: 'EXTERNAL' as const
 }
 
+const mockBitGetConnector = {
+  info: { rdns: 'io.bitget' },
+  name: 'BitGet Wallet',
+  id: '6',
+  explorerId: '6',
+  chain: 'eip155' as const,
+  type: 'ANNOUNCED' as const
+}
+
 // Wallets
 const mockMetamaskWallet: WcWallet = { id: '1', name: 'Wallet 1', rdns: 'io.metamask' }
 const mockRainbowWallet: WcWallet = { id: '2', name: 'Wallet 2', rdns: 'io.rainbow' }
 const mockTrustWallet: WcWallet = { id: '3', name: 'Wallet 3', rdns: 'io.trustwallet' }
 const mockCoinbaseWallet: WcWallet = { id: '5', name: 'Wallet 5', rdns: 'io.coinbase' }
+const mockBitGetWallet: WcWallet = { id: '6', name: 'BitGet Wallet', rdns: null }
 
 describe('WalletUtil', () => {
-  const mockWallets: WcWallet[] = [mockMetamaskWallet, mockRainbowWallet, mockTrustWallet]
+  const mockWallets: WcWallet[] = [
+    mockMetamaskWallet,
+    mockRainbowWallet,
+    mockTrustWallet,
+    mockBitGetWallet
+  ]
 
   beforeEach(() => {
     // Reset all mocks before each test
     vi.restoreAllMocks()
     OptionsController.state.enableEIP6963 = true
+    OptionsController.state.featuredWalletIds = []
   })
 
   describe('filterOutDuplicatesByRDNS', () => {
-    it('should filter out wallets with RDNS from connectors and recent wallets', () => {
-      const mockConnectors = [mockMetamaskConnector, mockRainbowConnector, mockCoinbaseconnector]
+    it("should filter out wallets with RDNS or wallets that exactly match a connector name when they don't have RDNS from connectors and recent wallets", () => {
+      const mockConnectors = [
+        mockMetamaskConnector,
+        mockRainbowConnector,
+        mockCoinbaseconnector,
+        mockBitGetConnector
+      ]
       const mockRecentWallets = [mockTrustWallet]
 
       vi.spyOn(ConnectorController.state, 'connectors', 'get').mockReturnValue(mockConnectors)
@@ -99,7 +131,23 @@ describe('WalletUtil', () => {
 
   describe('filterOutDuplicatesByIds', () => {
     it('should filter out wallets with IDs from connectors and recent wallets', () => {
-      const mockConnectors = [mockMetamaskConnector, mockRainbowConnector]
+      const mockConnectors = [mockMetamaskConnector, mockRainbowConnector, mockBitGetConnector]
+      const mockRecentWallets = [mockTrustWallet]
+
+      vi.spyOn(ConnectorController.state, 'connectors', 'get').mockReturnValue(mockConnectors)
+      vi.spyOn(StorageUtil, 'getRecentWallets').mockReturnValue(mockRecentWallets)
+
+      const filteredWallets = WalletUtil.filterOutDuplicatesByIds(mockWallets)
+
+      expect(filteredWallets).toEqual([]) // All IDs are filtered out. MM and Rainbow from connectors, TW from recent
+    })
+
+    it('should filter out wallets with IDs from multi-chain connectors', () => {
+      const mockConnectors = [
+        mockRainbowConnector,
+        mockBitGetConnector,
+        mockMetamaskMultiChainConnector // From previous test, remove MetaMask ANNOUNCED connector and replace with MULTI_CHAIN one.
+      ]
       const mockRecentWallets = [mockTrustWallet]
 
       vi.spyOn(ConnectorController.state, 'connectors', 'get').mockReturnValue(mockConnectors)
@@ -111,7 +159,7 @@ describe('WalletUtil', () => {
     })
 
     it('should not filter if connector is not Injected or Announced', () => {
-      const mockConnectors = [mockMetamaskConnector, mockRainbowConnector]
+      const mockConnectors = [mockMetamaskConnector, mockRainbowConnector, mockBitGetConnector]
       const mockRecentWallets = [mockTrustWallet]
 
       vi.spyOn(ConnectorController.state, 'connectors', 'get').mockReturnValue(mockConnectors)
@@ -137,7 +185,7 @@ describe('WalletUtil', () => {
 
   describe('filterOutDuplicateWallets', () => {
     it('should filter out wallets with duplicate RDNS and IDs', () => {
-      const mockConnectors = [mockMetamaskConnector]
+      const mockConnectors = [mockMetamaskConnector, mockBitGetConnector]
       const mockRecentWallets = [mockTrustWallet]
 
       vi.spyOn(ConnectorController.state, 'connectors', 'get').mockReturnValue(mockConnectors)
@@ -225,6 +273,21 @@ describe('WalletUtil', () => {
       ])
     })
 
+    it('should sort installed wallets according to featuredWalletIds order', () => {
+      OptionsController.state.featuredWalletIds = ['3', '1', '2']
+
+      const mockConnectors = [mockMetamaskConnector, mockRainbowConnector]
+      vi.spyOn(ConnectorController.state, 'connectors', 'get').mockReturnValue(mockConnectors)
+
+      const result = WalletUtil.markWalletsAsInstalled(mockWallets)
+
+      expect(result).toEqual([
+        { ...mockMetamaskWallet, installed: true },
+        { ...mockRainbowWallet, installed: true },
+        { ...mockTrustWallet, installed: false }
+      ])
+    })
+
     it('should handle wallets without RDNS', () => {
       const walletsWithoutRDNS: WcWallet[] = [
         { id: '1', name: 'Wallet 1' },
@@ -241,6 +304,224 @@ describe('WalletUtil', () => {
         { id: '2', name: 'Wallet 2', rdns: 'io.rainbow', installed: true },
         { id: '1', name: 'Wallet 1', installed: false }
       ])
+    })
+
+    it('should sort multiple installed wallets by featuredWalletIds order', () => {
+      const testWallets: WcWallet[] = [
+        { id: 'wallet1', name: 'Wallet 1', rdns: 'io.wallet1' },
+        { id: 'wallet2', name: 'Wallet 2', rdns: 'io.wallet2' },
+        { id: 'wallet3', name: 'Wallet 3', rdns: 'io.wallet3' },
+        { id: 'wallet4', name: 'Wallet 4', rdns: 'io.wallet4' }
+      ]
+
+      OptionsController.state.featuredWalletIds = ['wallet3', 'wallet1', 'wallet4']
+
+      const mockConnectors = [
+        { info: { rdns: 'io.wallet1' }, type: 'ANNOUNCED' as const },
+        { info: { rdns: 'io.wallet2' }, type: 'ANNOUNCED' as const },
+        { info: { rdns: 'io.wallet3' }, type: 'ANNOUNCED' as const },
+        { info: { rdns: 'io.wallet4' }, type: 'ANNOUNCED' as const }
+      ]
+      vi.spyOn(ConnectorController.state, 'connectors', 'get').mockReturnValue(
+        mockConnectors as any
+      )
+
+      const result = WalletUtil.markWalletsAsInstalled(testWallets)
+
+      expect(result).toEqual([
+        { ...testWallets[2], installed: true }, // wallet3
+        { ...testWallets[0], installed: true }, // wallet1
+        { ...testWallets[3], installed: true }, // wallet4
+        { ...testWallets[1], installed: true } // wallet2 (not in featuredWalletIds)
+      ])
+    })
+
+    it('should handle empty featuredWalletIds array', () => {
+      OptionsController.state.featuredWalletIds = []
+
+      const mockConnectors = [mockMetamaskConnector, mockRainbowConnector]
+      vi.spyOn(ConnectorController.state, 'connectors', 'get').mockReturnValue(mockConnectors)
+
+      const result = WalletUtil.markWalletsAsInstalled(mockWallets)
+
+      expect(result).toEqual([
+        { ...mockMetamaskWallet, installed: true },
+        { ...mockRainbowWallet, installed: true },
+        { ...mockTrustWallet, installed: false }
+      ])
+    })
+  })
+
+  describe('filterWalletsByWcSupport', () => {
+    const walletsWithWcSupport: WcWallet[] = [
+      { id: '1', name: 'Wallet 1', supports_wc: true },
+      { id: '2', name: 'Wallet 2', supports_wc: false },
+      { id: '3', name: 'Wallet 3', supports_wc: true },
+      { id: '4', name: 'Wallet 4' } // undefined supports_wc
+    ]
+
+    beforeEach(() => {
+      vi.restoreAllMocks()
+      OptionsController.state.manualWCControl = false
+      ConnectionController.state.wcBasic = false
+    })
+
+    it('should filter out wallets without WC support on mobile', () => {
+      vi.spyOn(CoreHelperUtil, 'isMobile').mockReturnValue(true)
+
+      const result = WalletUtil.filterWalletsByWcSupport(walletsWithWcSupport)
+
+      expect(result).toEqual([
+        { id: '1', name: 'Wallet 1', supports_wc: true },
+        { id: '3', name: 'Wallet 3', supports_wc: true }
+      ])
+    })
+
+    it('should filter out wallets without WC support when using Appkit Core (wcBasic)', () => {
+      vi.spyOn(CoreHelperUtil, 'isMobile').mockReturnValue(false)
+      ConnectionController.state.wcBasic = true
+
+      const result = WalletUtil.filterWalletsByWcSupport(walletsWithWcSupport)
+
+      expect(result).toEqual([
+        { id: '1', name: 'Wallet 1', supports_wc: true },
+        { id: '3', name: 'Wallet 3', supports_wc: true }
+      ])
+    })
+
+    it('should show all wallets on desktop with Appkit (not Appkit Core)', () => {
+      vi.spyOn(CoreHelperUtil, 'isMobile').mockReturnValue(false)
+      OptionsController.state.manualWCControl = false
+      ConnectionController.state.wcBasic = false
+
+      const result = WalletUtil.filterWalletsByWcSupport(walletsWithWcSupport)
+
+      expect(result).toEqual(walletsWithWcSupport)
+    })
+  })
+
+  describe('getWalletConnectWallets', () => {
+    const mockAllWallets: WcWallet[] = [
+      { id: '1', name: 'Wallet 1', rdns: 'io.metamask' },
+      { id: '2', name: 'Wallet 2', rdns: 'io.rainbow' }
+    ]
+
+    const mockCustomWallet1: CustomWallet = {
+      id: 'custom1',
+      name: 'Custom Wallet 1',
+      homepage: 'https://custom1.com',
+      image_url: 'https://custom1.com/icon.png',
+      mobile_link: 'https://custom1.com/mobile',
+      desktop_link: 'https://custom1.com/desktop'
+    }
+
+    const mockCustomWallet2: CustomWallet = {
+      id: 'custom2',
+      name: 'Custom Wallet 2',
+      homepage: 'https://custom2.com',
+      image_url: 'https://custom2.com/icon.png'
+    }
+
+    beforeEach(() => {
+      vi.restoreAllMocks()
+      ApiController.state.featured = []
+      ApiController.state.recommended = []
+      ApiController.state.filteredWallets = []
+      OptionsController.state.customWallets = []
+      ChainController.state.noAdapters = false
+      ConnectorController.state.connectors = []
+      ConnectionController.state.wcBasic = false
+      vi.spyOn(CoreHelperUtil, 'isMobile').mockReturnValue(false)
+      vi.spyOn(CoreHelperUtil, 'uniqueBy').mockImplementation(arr => arr)
+    })
+
+    it('should convert custom wallets to WcWallet when noAdapters is true', () => {
+      OptionsController.state.customWallets = [mockCustomWallet1, mockCustomWallet2]
+      ChainController.state.noAdapters = true
+
+      const result = WalletUtil.getWalletConnectWallets(mockAllWallets)
+
+      const customWallet1InResult = result.find(w => w.id === 'custom1')
+      const customWallet2InResult = result.find(w => w.id === 'custom2')
+
+      expect(customWallet1InResult).toBeDefined()
+      expect(customWallet1InResult?.supports_wc).toBe(true)
+      expect(customWallet1InResult?.name).toBe('Custom Wallet 1')
+      expect(customWallet1InResult?.homepage).toBe('https://custom1.com')
+
+      expect(customWallet2InResult).toBeDefined()
+      expect(customWallet2InResult?.supports_wc).toBe(true)
+      expect(customWallet2InResult?.name).toBe('Custom Wallet 2')
+    })
+
+    it('should not convert custom wallets when noAdapters is false', () => {
+      OptionsController.state.customWallets = [mockCustomWallet1, mockCustomWallet2]
+      ChainController.state.noAdapters = false
+
+      const result = WalletUtil.getWalletConnectWallets(mockAllWallets)
+
+      const customWallet1InResult = result.find(w => w.id === 'custom1')
+      const customWallet2InResult = result.find(w => w.id === 'custom2')
+
+      expect(customWallet1InResult).toBeUndefined()
+      expect(customWallet2InResult).toBeUndefined()
+    })
+
+    it('should not convert custom wallets when customWallets is empty', () => {
+      OptionsController.state.customWallets = []
+      ChainController.state.noAdapters = true
+
+      const result = WalletUtil.getWalletConnectWallets(mockAllWallets)
+
+      const customWallet1InResult = result.find(w => w.id === 'custom1')
+      expect(customWallet1InResult).toBeUndefined()
+    })
+
+    it('should filter out custom wallets that already exist in wallets array', () => {
+      const existingWallet: WcWallet = {
+        id: 'custom1',
+        name: 'Existing Wallet',
+        rdns: 'io.existing'
+      }
+
+      ApiController.state.recommended = [existingWallet]
+      OptionsController.state.customWallets = [mockCustomWallet1, mockCustomWallet2]
+      ChainController.state.noAdapters = true
+
+      const result = WalletUtil.getWalletConnectWallets(mockAllWallets)
+
+      const customWallet1Instances = result.filter(w => w.id === 'custom1')
+      expect(customWallet1Instances.length).toBe(1) // Only the existing one
+
+      const customWallet2InResult = result.find(w => w.id === 'custom2')
+      expect(customWallet2InResult).toBeDefined()
+      expect(customWallet2InResult?.supports_wc).toBe(true)
+    })
+
+    it('should include custom wallets in featured/recommended when noAdapters is true', () => {
+      ApiController.state.featured = [{ id: 'featured1', name: 'Featured Wallet' }]
+      ApiController.state.recommended = [{ id: 'recommended1', name: 'Recommended Wallet' }]
+      OptionsController.state.customWallets = [mockCustomWallet1]
+      ChainController.state.noAdapters = true
+
+      const result = WalletUtil.getWalletConnectWallets(mockAllWallets)
+
+      expect(result.find(w => w.id === 'featured1')).toBeDefined()
+      expect(result.find(w => w.id === 'recommended1')).toBeDefined()
+      expect(result.find(w => w.id === 'custom1')).toBeDefined()
+      expect(result.find(w => w.id === 'custom1')?.supports_wc).toBe(true)
+    })
+
+    it('should use filteredWallets when available instead of allWallets', () => {
+      ApiController.state.filteredWallets = [{ id: 'filtered1', name: 'Filtered Wallet' }]
+      OptionsController.state.customWallets = [mockCustomWallet1]
+      ChainController.state.noAdapters = true
+
+      const result = WalletUtil.getWalletConnectWallets(mockAllWallets)
+
+      expect(result.find(w => w.id === 'filtered1')).toBeDefined()
+      expect(result.find(w => w.id === '1')).toBeUndefined()
+      expect(result.find(w => w.id === 'custom1')).toBeDefined()
     })
   })
 })

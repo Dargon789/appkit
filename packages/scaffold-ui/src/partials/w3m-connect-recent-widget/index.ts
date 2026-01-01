@@ -2,6 +2,7 @@ import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
+import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
 import type { ChainNamespace } from '@reown/appkit-common'
 import type { WcWallet } from '@reown/appkit-controllers'
 import {
@@ -14,7 +15,6 @@ import {
 } from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
 import '@reown/appkit-ui/wui-flex'
-import '@reown/appkit-ui/wui-list-wallet'
 
 import { WalletUtil } from '../../utils/WalletUtil.js'
 
@@ -59,20 +59,27 @@ export class W3mConnectRecentWidget extends LitElement {
       return null
     }
 
+    const hasWcConnection = ConnectionController.hasAnyConnection(
+      CommonConstantsUtil.CONNECTOR_ID.WALLET_CONNECT
+    )
+
     return html`
-      <wui-flex flexDirection="column" gap="xs">
+      <wui-flex flexDirection="column" gap="2">
         ${filteredRecentWallets.map(
           wallet => html`
-            <wui-list-wallet
+            <w3m-list-wallet
               imageSrc=${ifDefined(AssetUtil.getWalletImage(wallet))}
               name=${wallet.name ?? 'Unknown'}
               @click=${() => this.onConnectWallet(wallet)}
               tagLabel="recent"
-              tagVariant="shade"
+              tagVariant="info"
+              size="sm"
               tabIdx=${ifDefined(this.tabIdx)}
               ?loading=${this.loading}
+              ?disabled=${hasWcConnection}
+              rdnsId=${wallet.id}
             >
-            </wui-list-wallet>
+            </w3m-list-wallet>
           `
         )}
       </wui-flex>
