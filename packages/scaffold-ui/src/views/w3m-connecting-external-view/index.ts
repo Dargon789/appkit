@@ -64,14 +64,11 @@ export class W3mConnectingExternalView extends W3mConnectingWidget {
       ConnectorController.subscribeKey('activeConnectorIds', val => {
         const newActiveConnectorId = val[namespace]
         const isMultiWalletEnabled = this.remoteFeatures?.multiWallet
-        const { redirectView } = RouterController.state.data ?? {}
 
         if (newActiveConnectorId !== this.currentActiveConnectorId) {
           if (this.hasMultipleConnections && isMultiWalletEnabled) {
             RouterController.replace('ProfileWallets')
             SnackController.showSuccess('New Wallet Added')
-          } else if (redirectView) {
-            RouterController.replace(redirectView)
           } else {
             ModalController.close()
           }
@@ -102,6 +99,17 @@ export class W3mConnectingExternalView extends W3mConnectingWidget {
          */
         if (this.connector.id !== CommonConstantsUtil.CONNECTOR_ID.COINBASE_SDK || !this.error) {
           await ConnectionController.connectExternal(this.connector, this.connector.chain)
+
+          EventsController.sendEvent({
+            type: 'track',
+            event: 'CONNECT_SUCCESS',
+            properties: {
+              method: 'browser',
+              name: this.connector.name || 'Unknown',
+              view: RouterController.state.view,
+              walletRank: this.wallet?.order
+            }
+          })
         }
       }
     } catch (error) {

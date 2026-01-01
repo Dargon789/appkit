@@ -15,10 +15,9 @@ import {
 } from 'sats-connect'
 
 import type { CaipNetwork } from '@reown/appkit-common'
-import { ConstantsUtil, PresetsUtil } from '@reown/appkit-common'
-import { ChainController, CoreHelperUtil } from '@reown/appkit-controllers'
+import { CoreHelperUtil } from '@reown/appkit-controllers'
 import type { RequestArguments } from '@reown/appkit-controllers'
-import { HelpersUtil } from '@reown/appkit-utils'
+import { HelpersUtil, PresetsUtil } from '@reown/appkit-utils'
 import type { BitcoinConnector } from '@reown/appkit-utils/bitcoin'
 
 import { mapSatsConnectAddressPurpose } from '../utils/BitcoinConnector.js'
@@ -33,14 +32,20 @@ export class SatsConnectConnector extends ProviderEventEmitter implements Bitcoi
   readonly wallet: SatsConnectProvider
   readonly provider: BitcoinConnector
   readonly requestedChains: CaipNetwork[] = []
+  readonly getActiveNetwork: () => CaipNetwork | undefined
 
   private walletUnsubscribes: (() => void)[] = []
 
-  constructor({ provider, requestedChains }: SatsConnectConnector.ConstructorParams) {
+  constructor({
+    provider,
+    requestedChains,
+    getActiveNetwork
+  }: SatsConnectConnector.ConstructorParams) {
     super()
     this.wallet = provider
     this.requestedChains = requestedChains
     this.provider = this
+    this.getActiveNetwork = getActiveNetwork
   }
 
   public get id(): string {
@@ -71,7 +76,7 @@ export class SatsConnectConnector extends ProviderEventEmitter implements Bitcoi
   }
 
   async connect() {
-    const currentNetwork = ChainController.getActiveCaipNetwork(ConstantsUtil.CHAIN.BITCOIN)
+    const currentNetwork = this.getActiveNetwork()
     const networkName = mapCaipNetworkToXverseName(currentNetwork?.caipNetworkId)
 
     const address = await this.getAccountAddresses()
@@ -133,7 +138,10 @@ export class SatsConnectConnector extends ProviderEventEmitter implements Bitcoi
     return providers.length > 0
   }
 
-  public static async getWallets({ requestedChains }: SatsConnectConnector.GetWalletsParams) {
+  public static async getWallets({
+    requestedChains,
+    getActiveNetwork
+  }: SatsConnectConnector.GetWalletsParams) {
     if (!CoreHelperUtil.isClient()) {
       return []
     }
@@ -151,7 +159,9 @@ export class SatsConnectConnector extends ProviderEventEmitter implements Bitcoi
 
     const providers = getProviders()
 
-    return providers.map(provider => new SatsConnectConnector({ provider, requestedChains }))
+    return providers.map(
+      provider => new SatsConnectConnector({ provider, requestedChains, getActiveNetwork })
+    )
   }
 
   public async signMessage(params: BitcoinConnector.SignMessageParams): Promise<string> {
@@ -267,9 +277,11 @@ export namespace SatsConnectConnector {
   export type ConstructorParams = {
     provider: SatsConnectProvider
     requestedChains: CaipNetwork[]
+    getActiveNetwork: () => CaipNetwork | undefined
   }
 
   export type GetWalletsParams = {
     requestedChains: CaipNetwork[]
+    getActiveNetwork: ConstructorParams['getActiveNetwork']
   }
 }

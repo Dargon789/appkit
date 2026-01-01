@@ -2,7 +2,10 @@ import type { vars } from './ThemeHelperUtil.js'
 
 export type ColorType = string
 
-export type BackgroundColorType = 'foregroundSecondary' | 'foregroundAccent010'
+export type BackgroundColorType =
+  | 'foregroundSecondary'
+  | 'foregroundAccent010'
+  | 'foregroundPrimary'
 
 export type AlertType = 'success' | 'error' | 'warning' | 'info'
 
@@ -67,7 +70,7 @@ export type SelectSize = 'lg' | 'md' | 'sm'
 
 export type SpacingType = keyof typeof vars.spacing
 
-export type IconSizeType = 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | 'inherit'
+export type IconSizeType = 'sm' | 'md' | 'lg' | 'xl' | 'inherit'
 
 export type BorderRadiusType = Exclude<SpacingType, '1xs' | 'xl' | 'xxl'> | 'xs'
 
@@ -167,7 +170,6 @@ export type IconType =
   | 'nftPlaceholder'
   | 'playStore'
   | 'plus'
-  | 'power'
   | 'qrCode'
   | 'questionMark'
   | 'recycleHorizontal'
@@ -180,7 +182,6 @@ export type IconType =
   | 'swapVertical'
   | 'telegram'
   | 'threeDots'
-  | 'ton'
   | 'twitch'
   | 'twitter'
   | 'twitterIcon'
@@ -198,6 +199,9 @@ export type IconType =
   | 'ethereum'
   | 'solana'
   | 'bitcoin'
+  | 'infoSeal'
+  | 'coins'
+  | 'paperPlaneTitle'
 
 export type IconWeightType = 'regular' | 'bold' | 'fill'
 
@@ -222,7 +226,6 @@ export type VisualType =
   | 'pencil'
   | 'solana'
   | 'bitcoin'
-  | 'ton'
 
 export type VisualSize = 'sm' | 'md' | 'lg'
 
@@ -375,15 +378,6 @@ export interface ThemeVariables {
   '--w3m-font-size-master'?: string
   '--w3m-border-radius-master'?: string
   '--w3m-z-index'?: number
-  '--w3m-qr-color'?: string
-  '--apkt-font-family'?: string
-  '--apkt-accent'?: string
-  '--apkt-color-mix'?: string
-  '--apkt-color-mix-strength'?: number
-  '--apkt-font-size-master'?: string
-  '--apkt-border-radius-master'?: string
-  '--apkt-z-index'?: number
-  '--apkt-qr-color'?: string
 }
 
 export type IconBoxBorderType = 'wui-color-bg-125' | 'wui-accent-glass-010'
@@ -416,3 +410,5 @@ export type MaskInputOptions = {
   decimals?: number
   integers?: number
 }
+
+export type PulseVariant = 'accent-primary'

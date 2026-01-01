@@ -10,6 +10,7 @@ import {
 } from '@reown/appkit-common'
 import type { Connection } from '@reown/appkit-common'
 import {
+  AccountController,
   AssetUtil,
   ChainController,
   ConnectionController,
@@ -68,22 +69,19 @@ const UI_CONFIG = {
 const NAMESPACE_ICONS = {
   eip155: 'ethereum',
   solana: 'solana',
-  bip122: 'bitcoin',
-  ton: 'ton'
+  bip122: 'bitcoin'
 } as const
 
 const NAMESPACE_TABS = [
   { namespace: 'eip155', icon: NAMESPACE_ICONS.eip155, label: 'EVM' },
   { namespace: 'solana', icon: NAMESPACE_ICONS.solana, label: 'Solana' },
-  { namespace: 'bip122', icon: NAMESPACE_ICONS.bip122, label: 'Bitcoin' },
-  { namespace: 'ton', icon: NAMESPACE_ICONS.ton, label: 'Ton' }
+  { namespace: 'bip122', icon: NAMESPACE_ICONS.bip122, label: 'Bitcoin' }
 ] as const satisfies { namespace: ChainNamespace; icon: string; label: string }[]
 
 const CHAIN_LABELS = {
   eip155: { title: 'Add EVM Wallet', description: 'Add your first EVM wallet' },
   solana: { title: 'Add Solana Wallet', description: 'Add your first Solana wallet' },
-  bip122: { title: 'Add Bitcoin Wallet', description: 'Add your first Bitcoin wallet' },
-  ton: { title: 'Add TON Wallet', description: 'Add your first TON wallet' }
+  bip122: { title: 'Add Bitcoin Wallet', description: 'Add your first Bitcoin wallet' }
 } as const
 
 @customElement('w3m-profile-wallets-view')
@@ -106,7 +104,7 @@ export class W3mProfileWalletsView extends LitElement {
   @state() private lastSelectedConnectorId = ''
   @state() private isSwitching = false
   @state() private caipNetwork = ChainController.state.activeCaipNetwork
-  @state() private user = ChainController.getAccountData()?.user
+  @state() private user = AccountController.state.user
   @state() private remoteFeatures = OptionsController.state.remoteFeatures
 
   constructor() {
@@ -124,9 +122,7 @@ export class W3mProfileWalletsView extends LitElement {
           this.activeConnectorIds = ids
         }),
         ChainController.subscribeKey('activeCaipNetwork', val => (this.caipNetwork = val)),
-        ChainController.subscribeChainProp('accountState', val => {
-          this.user = val?.user
-        }),
+        AccountController.subscribeKey('user', val => (this.user = val)),
         OptionsController.subscribeKey('remoteFeatures', val => (this.remoteFeatures = val))
       ]
     )
@@ -182,9 +178,7 @@ export class W3mProfileWalletsView extends LitElement {
 
   // -- Private Methods ----------------------------------- //
   private renderTabs() {
-    const availableTabs = this.namespaces
-      .map(namespace => NAMESPACE_TABS.find(tab => tab.namespace === namespace))
-      .filter(Boolean) as typeof NAMESPACE_TABS
+    const availableTabs = NAMESPACE_TABS.filter(tab => this.namespaces.includes(tab.namespace))
 
     const tabCount = availableTabs.length
     if (tabCount > 1) {
@@ -319,7 +313,7 @@ export class W3mProfileWalletsView extends LitElement {
           imageSrc=${connectorImage}
           ?enableMoreButton=${authData.isAuth}
           @copy=${() => this.handleCopyAddress(plainAddress)}
-          @disconnect=${() => this.handleDisconnect(namespace, connectorId)}
+          @disconnect=${() => this.handleDisconnect(namespace, { id: connectorId })}
           @switch=${() => {
             if (isBitcoin && connection && account?.[0]) {
               this.handleSwitchWallet(connection, account[0].address, namespace)
@@ -518,13 +512,6 @@ export class W3mProfileWalletsView extends LitElement {
       this.lastSelectedConnectorId = connection.connectorId
       this.lastSelectedAddress = address
 
-      const isDifferentNamespace = this.caipNetwork?.chainNamespace !== namespace
-
-      if (isDifferentNamespace && connection?.caipNetwork) {
-        ConnectorController.setFilterByNamespace(namespace)
-        await ChainController.switchActiveNetwork(connection?.caipNetwork)
-      }
-
       await ConnectionController.switchConnection({
         connection,
         address,
@@ -557,11 +544,11 @@ export class W3mProfileWalletsView extends LitElement {
       ConnectionController.syncStorageConnections()
       SnackController.showSuccess('Wallet deleted')
     } else {
-      this.handleDisconnect(namespace, connection.connectorId)
+      this.handleDisconnect(namespace, { id: connection.connectorId })
     }
   }
 
-  private async handleDisconnect(namespace: ChainNamespace, id: string) {
+  private async handleDisconnect(namespace: ChainNamespace, { id }: { id?: string }) {
     try {
       await ConnectionController.disconnect({ id, namespace })
       SnackController.showSuccess('Wallet disconnected')
