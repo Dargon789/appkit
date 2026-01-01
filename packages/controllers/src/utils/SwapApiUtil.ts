@@ -104,7 +104,11 @@ export const SwapApiUtil = {
   },
 
   async getMyTokensWithBalance(forceUpdate?: string) {
-    const balances = await BalanceUtil.getMyTokensWithBalance(forceUpdate)
+    const balances = await BalanceUtil.getMyTokensWithBalance({
+      forceUpdate,
+      caipNetwork: ChainController.state.activeCaipNetwork,
+      address: ChainController.getAccountData()?.address
+    })
 
     AccountController.setTokenBalance(balances, ChainController.state.activeChain)
 
