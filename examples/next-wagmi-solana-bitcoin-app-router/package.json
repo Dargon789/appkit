@@ -20,7 +20,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "viem": "2.37.2",
-    "wagmi": "2.16.9"
+    "wagmi": "3.0.0"
   },
   "devDependencies": {
     "@types/node": "22.13.4",
