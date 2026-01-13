@@ -15,7 +15,7 @@
     "@tanstack/vue-query": "5.75.5",
     "@vue/devtools-api": "7.7.2",
     "@wagmi/core": "2.21.2",
-    "@wagmi/vue": "0.2.11",
+    "@wagmi/vue": "0.4.0",
     "@walletconnect/logger": "3.0.1",
     "nuxt": "4.1.2",
     "viem": "2.37.9",
