@@ -38,11 +38,7 @@ export default defineConfig<ModalFixture>({
     /* Collect trace regardless so we can debug latency regressions. See https://playwright.dev/docs/trace-viewer */
     trace: 'on',
 
-    video: 'retain-on-failure',
-
-    extraHTTPHeaders: {
-      'x-vercel-protection-bypass': process.env['VERCEL_AUTOMATION_BYPASS_SECRET'] || ''
-    }
+    video: 'retain-on-failure'
   },
 
   /* Configure projects for major browsers */
