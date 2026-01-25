@@ -538,6 +538,7 @@ const controller = {
     const amountDecimal = NumberUtil.bigNumber(state.sourceTokenAmount)
       .times(10 ** sourceToken.decimals)
       .round(0)
+      .toFixed(0)
 
     try {
       const quoteResponse = await BlockchainApiController.fetchSwapQuote({

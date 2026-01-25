@@ -544,5 +544,13 @@ export const CoreHelperUtil = {
     }
 
     return !isNaN(Number(value))
+  },
+
+  appendPayToUri(wcUri: string, wcPayUrl?: string): string {
+    if (!wcPayUrl) {
+      return wcUri
+    }
+
+    return `${wcUri}&pay=${encodeURIComponent(wcPayUrl)}`
   }
 }

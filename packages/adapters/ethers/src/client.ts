@@ -325,6 +325,10 @@ export class EthersAdapter extends AdapterBlueprint {
     return { connections }
   }
 
+  public async writeSolanaTransaction() {
+    return Promise.resolve({ hash: '' })
+  }
+
   public async syncConnections({
     connectToFirstConnector
   }: AdapterBlueprint.SyncConnectionsParams) {

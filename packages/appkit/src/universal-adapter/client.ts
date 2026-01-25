@@ -59,6 +59,12 @@ export class UniversalAdapter extends AdapterBlueprint {
     return Promise.resolve()
   }
 
+  public async writeSolanaTransaction(): Promise<AdapterBlueprint.WriteSolanaTransactionResult> {
+    return Promise.resolve({
+      hash: ''
+    })
+  }
+
   public async getAccounts({
     namespace
   }: AdapterBlueprint.GetAccountsParams & {
