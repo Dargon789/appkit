@@ -852,13 +852,8 @@ importers:
   examples/html-ep:
     dependencies:
       '@walletconnect/ethereum-provider':
-<<<<<<< HEAD
-        specifier: 2.23.0
-        version: 2.23.0(@types/react@19.2.2)(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(react@19.2.1)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.12)
-=======
         specifier: 2.23.1
         version: 2.23.1(@types/react@19.2.2)(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(react@19.2.1)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.12)
->>>>>>> upstream/main
     devDependencies:
       vite:
         specifier: 5.4.20
@@ -1249,13 +1244,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/appkit
       '@walletconnect/ethereum-provider':
-<<<<<<< HEAD
-        specifier: 2.23.0
-        version: 2.23.0(@types/react@19.1.15)(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(react@19.1.2)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.12)
-=======
         specifier: 2.23.1
         version: 2.23.1(@types/react@19.1.15)(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(react@19.1.2)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.12)
->>>>>>> upstream/main
       next:
         specifier: 14.2.35
         version: 14.2.35(@opentelemetry/api@1.9.0)(@playwright/test@1.55.1)(react-dom@19.1.2(react@19.1.2))(react@19.1.2)
@@ -1673,13 +1663,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/appkit
       '@walletconnect/ethereum-provider':
-<<<<<<< HEAD
-        specifier: 2.23.0
-        version: 2.23.0(@types/react@19.1.15)(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(react@19.1.2)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.12)
-=======
         specifier: 2.23.1
         version: 2.23.1(@types/react@19.1.15)(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(react@19.1.2)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.12)
->>>>>>> upstream/main
       ethers:
         specifier: 6.14.0
         version: 6.14.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -2039,13 +2024,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/appkit
       '@walletconnect/sign-client':
-<<<<<<< HEAD
-        specifier: 2.23.0
-        version: 2.23.0(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@3.25.76)
-=======
         specifier: 2.23.1
         version: 2.23.1(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@3.25.76)
->>>>>>> upstream/main
       '@walletconnect/types':
         specifier: 2.23.1
         version: 2.23.1(aws4fetch@1.0.20)(db0@0.3.4)(ioredis@5.8.1)
@@ -2094,13 +2074,8 @@ importers:
   examples/vue-ep:
     dependencies:
       '@walletconnect/ethereum-provider':
-<<<<<<< HEAD
-        specifier: 2.23.0
-        version: 2.23.0(@types/react@19.2.2)(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(react@19.2.1)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.12)
-=======
         specifier: 2.23.1
         version: 2.23.1(@types/react@19.2.2)(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(react@19.2.1)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.12)
->>>>>>> upstream/main
       vue:
         specifier: 3.4.3
         version: 3.4.3(typescript@5.9.2)
@@ -3068,6 +3043,9 @@ importers:
       '@reown/appkit-controllers':
         specifier: workspace:*
         version: link:../controllers
+      '@reown/appkit-pay':
+        specifier: workspace:*
+        version: link:../pay
       '@reown/appkit-ui':
         specifier: workspace:*
         version: link:../ui
@@ -33092,9 +33070,6 @@ snapshots:
       - utf-8-validate
       - zod
 
-<<<<<<< HEAD
-  '@walletconnect/core@2.23.0(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@3.25.76)':
-=======
   '@walletconnect/core@2.23.1(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@3.25.76)':
     dependencies:
       '@walletconnect/heartbeat': 1.2.2
@@ -33140,7 +33115,6 @@ snapshots:
       - zod
 
   '@walletconnect/core@2.23.1(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.12)':
->>>>>>> upstream/main
     dependencies:
       '@walletconnect/heartbeat': 1.2.2
       '@walletconnect/jsonrpc-provider': 1.0.14
@@ -33197,57 +33171,8 @@ snapshots:
       '@walletconnect/relay-auth': 1.1.0
       '@walletconnect/safe-json': 1.0.2
       '@walletconnect/time': 1.0.2
-<<<<<<< HEAD
-      '@walletconnect/types': 2.23.0(aws4fetch@1.0.20)(db0@0.3.4)(ioredis@5.8.1)
-      '@walletconnect/utils': 2.23.0(aws4fetch@1.0.20)(db0@0.3.4)(ioredis@5.8.1)(typescript@5.9.2)(zod@4.1.12)
-      '@walletconnect/window-getters': 1.0.1
-      es-toolkit: 1.39.3
-      events: 3.3.0
-      uint8arrays: 3.1.1
-    transitivePeerDependencies:
-      - '@azure/app-configuration'
-      - '@azure/cosmos'
-      - '@azure/data-tables'
-      - '@azure/identity'
-      - '@azure/keyvault-secrets'
-      - '@azure/storage-blob'
-      - '@capacitor/preferences'
-      - '@deno/kv'
-      - '@netlify/blobs'
-      - '@planetscale/database'
-      - '@react-native-async-storage/async-storage'
-      - '@upstash/redis'
-      - '@vercel/blob'
-      - '@vercel/functions'
-      - '@vercel/kv'
-      - aws4fetch
-      - bufferutil
-      - db0
-      - ioredis
-      - typescript
-      - uploadthing
-      - utf-8-validate
-      - zod
-
-  '@walletconnect/core@2.23.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@walletconnect/heartbeat': 1.2.2
-      '@walletconnect/jsonrpc-provider': 1.0.14
-      '@walletconnect/jsonrpc-types': 1.0.4
-      '@walletconnect/jsonrpc-utils': 1.0.8
-      '@walletconnect/jsonrpc-ws-connection': 1.0.16(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@walletconnect/keyvaluestorage': 1.1.1(aws4fetch@1.0.20)(db0@0.3.4)(ioredis@5.8.1)
-      '@walletconnect/logger': 3.0.0
-      '@walletconnect/relay-api': 1.0.11
-      '@walletconnect/relay-auth': 1.1.0
-      '@walletconnect/safe-json': 1.0.2
-      '@walletconnect/time': 1.0.2
-      '@walletconnect/types': 2.23.0(aws4fetch@1.0.20)(db0@0.3.4)(ioredis@5.8.1)
-      '@walletconnect/utils': 2.23.0(aws4fetch@1.0.20)(db0@0.3.4)(ioredis@5.8.1)(typescript@5.8.3)
-=======
       '@walletconnect/types': 2.23.1(aws4fetch@1.0.20)(db0@0.3.4)(ioredis@5.8.1)
       '@walletconnect/utils': 2.23.1(aws4fetch@1.0.20)(db0@0.3.4)(ioredis@5.8.1)(typescript@5.8.3)
->>>>>>> upstream/main
       '@walletconnect/window-getters': 1.0.1
       es-toolkit: 1.39.3
       events: 3.3.0
@@ -33568,11 +33493,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-<<<<<<< HEAD
-  '@walletconnect/ethereum-provider@2.23.0(@types/react@19.1.15)(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(react@19.1.2)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.12)':
-=======
   '@walletconnect/ethereum-provider@2.23.1(@types/react@19.1.15)(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(react@19.1.2)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.12)':
->>>>>>> upstream/main
     dependencies:
       '@reown/appkit': 1.8.11(@types/react@19.1.15)(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(react@19.1.2)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.12)
       '@walletconnect/jsonrpc-http-connection': 1.0.8
@@ -33614,11 +33535,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-<<<<<<< HEAD
-  '@walletconnect/ethereum-provider@2.23.0(@types/react@19.2.2)(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(react@19.2.1)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.12)':
-=======
   '@walletconnect/ethereum-provider@2.23.1(@types/react@19.2.2)(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(react@19.2.1)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.12)':
->>>>>>> upstream/main
     dependencies:
       '@reown/appkit': 1.8.11(@types/react@19.2.2)(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(react@19.2.1)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.12)
       '@walletconnect/jsonrpc-http-connection': 1.0.8
@@ -34089,11 +34006,7 @@ snapshots:
 
   '@walletconnect/sign-client@2.23.1(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(typescript@5.9.2)(utf-8-validate@5.0.10)':
     dependencies:
-<<<<<<< HEAD
-      '@walletconnect/core': 2.23.0(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@3.25.76)
-=======
       '@walletconnect/core': 2.23.1(aws4fetch@1.0.20)(bufferutil@4.0.9)(db0@0.3.4)(ioredis@5.8.1)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@3.25.76)
->>>>>>> upstream/main
       '@walletconnect/events': 1.0.1
       '@walletconnect/heartbeat': 1.2.2
       '@walletconnect/jsonrpc-utils': 1.0.8
@@ -34207,13 +34120,8 @@ snapshots:
       '@walletconnect/jsonrpc-utils': 1.0.8
       '@walletconnect/logger': 3.0.1
       '@walletconnect/time': 1.0.2
-<<<<<<< HEAD
-      '@walletconnect/types': 2.23.0(aws4fetch@1.0.20)(db0@0.3.4)(ioredis@5.8.1)
-      '@walletconnect/utils': 2.23.0(aws4fetch@1.0.20)(db0@0.3.4)(ioredis@5.8.1)(typescript@5.8.3)
-=======
       '@walletconnect/types': 2.23.1(aws4fetch@1.0.20)(db0@0.3.4)(ioredis@5.8.1)
       '@walletconnect/utils': 2.23.1(aws4fetch@1.0.20)(db0@0.3.4)(ioredis@5.8.1)(typescript@5.8.3)
->>>>>>> upstream/main
       events: 3.3.0
     transitivePeerDependencies:
       - '@azure/app-configuration'

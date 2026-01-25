@@ -1,6 +1,5 @@
 # @reown/appkit-cdn
 
-<<<<<<< HEAD
 ## 1.8.15
 
 ### Patch Changes
@@ -17,8 +16,6 @@
   - @reown/appkit@1.8.15
   - @reown/appkit-polyfills@1.8.15
 
-=======
->>>>>>> upstream/main
 ## 1.8.14
 
 ### Patch Changes

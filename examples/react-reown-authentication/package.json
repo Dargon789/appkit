@@ -10,13 +10,8 @@
     "@esbuild-plugins/node-globals-polyfill": "0.2.3",
     "@reown/appkit": "workspace:*",
     "@reown/appkit-siwx": "workspace:*",
-<<<<<<< HEAD
     "react": "19.1.0",
     "react-dom": "19.1.0"
-=======
-    "react": "19.1.2",
-    "react-dom": "19.1.2"
->>>>>>> upstream/main
   },
   "devDependencies": {
     "@types/react": "19.1.3",

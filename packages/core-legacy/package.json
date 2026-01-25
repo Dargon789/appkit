@@ -1,10 +1,6 @@
 {
   "name": "@reown/appkit-core",
-<<<<<<< HEAD
   "version": "1.8.15",
-=======
-  "version": "1.8.14",
->>>>>>> upstream/main
   "sideEffects": false,
   "type": "module",
   "main": "./dist/esm/exports/index.js",

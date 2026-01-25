@@ -1,6 +1,5 @@
 # @reown/appkit-adapter-wagmi
 
-<<<<<<< HEAD
 ## 1.8.15
 
 ### Patch Changes
@@ -18,8 +17,6 @@
   - @reown/appkit-polyfills@1.8.15
   - @reown/appkit-wallet@1.8.15
 
-=======
->>>>>>> upstream/main
 ## 1.8.14
 
 ### Patch Changes

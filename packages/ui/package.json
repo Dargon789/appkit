@@ -1,10 +1,6 @@
 {
   "name": "@reown/appkit-ui",
-<<<<<<< HEAD
   "version": "1.8.15",
-=======
-  "version": "1.8.14",
->>>>>>> upstream/main
   "type": "module",
   "main": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
@@ -311,6 +307,11 @@
       "types": "./dist/types/exports/wui-promo.d.ts",
       "import": "./dist/esm/exports/wui-promo.js",
       "default": "./dist/esm/exports/wui-promo.js"
+    },
+    "./wui-pulse": {
+      "types": "./dist/types/exports/wui-pulse.d.ts",
+      "import": "./dist/esm/exports/wui-pulse.js",
+      "default": "./dist/esm/exports/wui-pulse.js"
     },
     "./wui-balance": {
       "types": "./dist/types/exports/wui-balance.d.ts",

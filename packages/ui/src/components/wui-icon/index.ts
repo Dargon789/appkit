@@ -7,6 +7,7 @@ import { appStoreSvg } from '../../assets/svg/app-store.js'
 import { appleSvg } from '../../assets/svg/apple.js'
 import { bitcoinSvg } from '../../assets/svg/bitcoin.js'
 import { chromeStoreSvg } from '../../assets/svg/chrome-store.js'
+import { coinsSvg } from '../../assets/svg/coins.js'
 import { cursorSvg } from '../../assets/svg/cursor.js'
 import { discordSvg } from '../../assets/svg/discord.js'
 import { ethereumSvg } from '../../assets/svg/ethereum.js'
@@ -15,13 +16,15 @@ import { facebookSvg } from '../../assets/svg/facebook.js'
 import { farcasterSvg } from '../../assets/svg/farcaster.js'
 import { githubSvg } from '../../assets/svg/github.js'
 import { googleSvg } from '../../assets/svg/google.js'
+import { infoSealSvg } from '../../assets/svg/info.js'
+import { paperPlaneTitleSvg } from '../../assets/svg/paper-plane-titl.js'
 import { playStoreSvg } from '../../assets/svg/play-store.js'
 import { reownSvg } from '../../assets/svg/reown-logo.js'
 import { solanaSvg } from '../../assets/svg/solana.js'
 import { telegramSvg } from '../../assets/svg/telegram.js'
+import { tonSvg } from '../../assets/svg/ton.js'
 import { twitchSvg } from '../../assets/svg/twitch.js'
 import { twitterIconSvg } from '../../assets/svg/twitterIcon.js'
-import { walletSvg } from '../../assets/svg/wallet.js'
 import {
   walletConnectBrownSvg,
   walletConnectInvertSvg,
@@ -95,6 +98,7 @@ const phosphorIconsMap: Record<string, string> = {
   user: 'ph-user',
   verify: 'ph-seal-check',
   verifyFilled: 'ph-seal-check',
+  wallet: 'ph-wallet',
   warning: 'ph-warning',
   warningCircle: 'ph-warning-circle',
 
@@ -104,6 +108,7 @@ const phosphorIconsMap: Record<string, string> = {
   appStore: '',
   apple: '',
   bitcoin: '',
+  coins: '',
   chromeStore: '',
   cursor: '',
   discord: '',
@@ -114,8 +119,10 @@ const phosphorIconsMap: Record<string, string> = {
   github: '',
   google: '',
   playStore: '',
+  paperPlaneTitle: '',
   reown: '',
   solana: '',
+  ton: '',
   telegram: '',
   twitch: '',
   twitterIcon: '',
@@ -124,7 +131,7 @@ const phosphorIconsMap: Record<string, string> = {
   walletConnectBrown: '',
   walletConnectLightBrown: '',
   x: '',
-  wallet: ''
+  infoSeal: ''
 }
 
 // Dynamic imports for Phosphor components
@@ -178,6 +185,7 @@ const phosphorImports: Record<string, () => Promise<any>> = {
   'ph-spinner': () => import('@phosphor-icons/webcomponents/PhSpinner'),
   'ph-trash': () => import('@phosphor-icons/webcomponents/PhTrash'),
   'ph-user': () => import('@phosphor-icons/webcomponents/PhUser'),
+  'ph-wallet': () => import('@phosphor-icons/webcomponents/PhWallet'),
   'ph-warning': () => import('@phosphor-icons/webcomponents/PhWarning'),
   'ph-warning-circle': () => import('@phosphor-icons/webcomponents/PhWarningCircle'),
   'ph-x': () => import('@phosphor-icons/webcomponents/PhX')
@@ -188,6 +196,7 @@ const svgOptions: Partial<Record<IconType, TemplateResult<2>>> = {
   appStore: appStoreSvg,
   apple: appleSvg,
   bitcoin: bitcoinSvg,
+  coins: coinsSvg,
   chromeStore: chromeStoreSvg,
   cursor: cursorSvg,
   discord: discordSvg,
@@ -198,8 +207,10 @@ const svgOptions: Partial<Record<IconType, TemplateResult<2>>> = {
   github: githubSvg,
   google: googleSvg,
   playStore: playStoreSvg,
+  paperPlaneTitle: paperPlaneTitleSvg,
   reown: reownSvg,
   solana: solanaSvg,
+  ton: tonSvg,
   telegram: telegramSvg,
   twitch: twitchSvg,
   twitter: xSvg,
@@ -209,13 +220,14 @@ const svgOptions: Partial<Record<IconType, TemplateResult<2>>> = {
   walletConnectBrown: walletConnectBrownSvg,
   walletConnectLightBrown: walletConnectLightBrownSvg,
   x: xSvg,
-  wallet: walletSvg
+  infoSeal: infoSealSvg
 }
 
 // -- Constants ------------------------------------------ //
 export const ICON_COLOR = {
   'accent-primary': vars.tokens.core.iconAccentPrimary,
   'accent-certified': vars.tokens.core.iconAccentCertified,
+  'foreground-secondary': vars.tokens.theme.foregroundSecondary,
   default: vars.tokens.theme.iconDefault,
   success: vars.tokens.core.iconSuccess,
   error: vars.tokens.core.iconError,

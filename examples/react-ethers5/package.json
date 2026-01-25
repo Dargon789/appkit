@@ -10,13 +10,8 @@
     "@reown/appkit": "workspace:*",
     "@reown/appkit-adapter-ethers5": "workspace:*",
     "ethers": "5.8.0",
-<<<<<<< HEAD
     "react": "19.1.0",
     "react-dom": "19.1.0"
-=======
-    "react": "19.1.2",
-    "react-dom": "19.1.2"
->>>>>>> upstream/main
   },
   "devDependencies": {
     "@types/react": "19.1.3",

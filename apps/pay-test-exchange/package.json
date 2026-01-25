@@ -1,10 +1,6 @@
 {
   "name": "pay-test-exchange",
-<<<<<<< HEAD
   "version": "0.1.19",
-=======
-  "version": "0.1.18",
->>>>>>> upstream/main
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack --port 4001",
