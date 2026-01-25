@@ -9,7 +9,7 @@ export default css`
     width: 40px;
     height: 40px;
     box-shadow: inset 0 0 0 1px ${({ tokens }) => tokens.core.glass010};
-    background-color: ${({ tokens }) => tokens.theme.foregroundPrimary};
+    background-color: ${({ tokens }) => tokens.core.glass010};
   }
 
   :host([data-no-images='true']) > wui-flex {
@@ -32,6 +32,11 @@ export default css`
     border-bottom-right-radius: var(--local-right-border-radius);
   }
 
+  wui-icon {
+    width: 20px;
+    height: 20px;
+  }
+
   .swap-images-container {
     position: relative;
     width: 40px;
@@ -49,24 +54,6 @@ export default css`
   }
 
   .swap-images-container wui-image:last-child {
-    clip-path: inset(0px 0px 0px calc(50% + 2px));
-  }
-
-  .swap-fallback-container {
-    position: absolute;
-    inset: 0;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .swap-fallback-container.first {
-    clip-path: inset(0px calc(50% + 2px) 0px 0%);
-  }
-
-  .swap-fallback-container.last {
     clip-path: inset(0px 0px 0px calc(50% + 2px));
   }
 

@@ -190,10 +190,7 @@ export const ConstantsUtil = {
     CommonConstantsUtil.CHAIN.EVM,
     CommonConstantsUtil.CHAIN.SOLANA
   ] as ChainNamespace[],
-  ACTIVITY_ENABLED_CHAIN_NAMESPACES: [
-    CommonConstantsUtil.CHAIN.EVM,
-    CommonConstantsUtil.CHAIN.TON
-  ] as ChainNamespace[],
+  ACTIVITY_ENABLED_CHAIN_NAMESPACES: [CommonConstantsUtil.CHAIN.EVM] as ChainNamespace[],
   NATIVE_TOKEN_ADDRESS: {
     eip155: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
     solana: 'So11111111111111111111111111111111111111111',
