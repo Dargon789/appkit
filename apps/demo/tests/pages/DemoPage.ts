@@ -31,8 +31,7 @@ export class DemoPage {
 
   async openNetworksWithHook() {
     const hiddenButton = this.page.getByTestId('open-networks')
-    // @ts-expect-error - click is not defined on the element
-    await hiddenButton.evaluate(node => node.click())
+    await hiddenButton.evaluate((node: HTMLElement) => node.click())
     await expect(this.page.getByText('Choose Network')).toBeVisible()
   }
 
