@@ -20,7 +20,7 @@
   "devDependencies": {
     "@types/react": "19.1.15",
     "@types/react-dom": "19.1.9",
-    "parcel": "2.13.3",
+    "parcel": "2.16.4",
     "process": "0.11.10"
   },
   "@parcel/resolver-default": {
