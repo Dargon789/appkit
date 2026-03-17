@@ -13,7 +13,11 @@
     "@reown/appkit-ui": "workspace:*",
     "@reown/appkit-scaffold-ui": "workspace:*",
     "lit": "3.3.0",
+<<<<<<< HEAD
     "react": "19.1.0",
+=======
+    "react": "19.1.2",
+>>>>>>> upstream/main
     "storybook": "9.0.15"
   },
   "devDependencies": {
