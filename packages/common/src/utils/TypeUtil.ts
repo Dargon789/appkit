@@ -76,7 +76,7 @@ export type TransactionImage = {
 export interface Transaction {
   id: string
   metadata: TransactionMetadata
-  transfers: TransactionTransfer[]
+  transfers: TransactionTransfer[] | null
 }
 
 export interface TransactionMetadata {

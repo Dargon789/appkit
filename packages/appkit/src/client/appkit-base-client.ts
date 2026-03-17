@@ -953,13 +953,6 @@ export abstract class AppKitBaseClient {
     chainIdToUse: string | number
     chainNamespace: ChainNamespace
   }): CaipNetwork | undefined {
-    /**
-     * Check if shouldSupportAllNetworks is needed from original logic?
-     * Assuming it's implicitly handled by getCaipNetworks/getApprovedCaipNetworkIds logic below
-     * Let's stick to the refactored logic from the previous attempt first.
-     * Re-evaluate if needed.
-     */
-
     let caipNetwork = this.getCaipNetworks().find(n => n.id.toString() === chainIdToUse.toString())
     let fallbackCaipNetwork = this.getCaipNetworks().find(n => n.chainNamespace === chainNamespace)
 
@@ -1004,7 +997,6 @@ export abstract class AppKitBaseClient {
     chainNamespace: ChainNamespace
   }): void {
     if (!network) {
-      // Or handle error/warning? Original code didn't explicitly handle network being undefined here.
       return
     }
 
@@ -1028,10 +1020,6 @@ export abstract class AppKitBaseClient {
       if (networkOfChain) {
         this.setCaipNetworkOfNamespace(networkOfChain, chainNamespace)
       }
-      /**
-       * If networkOfChain is null/undefined here, we might need to reconsider
-       * if `network` should be used instead, or if it's an edge case.
-       */
     }
   }
 
@@ -1554,9 +1542,9 @@ export abstract class AppKitBaseClient {
     return ModalController.open(options)
   }
 
-  public async close() {
+  public async close(force = false) {
     await this.injectModalUi()
-    ModalController.close()
+    ModalController.close(force)
   }
 
   public setLoading(loading: ModalControllerState['loading'], namespace?: ChainNamespace) {

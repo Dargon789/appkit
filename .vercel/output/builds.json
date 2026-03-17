@@ -10,7 +10,7 @@
       "use": "@vercel/static-build",
       "config": {
         "zeroConfig": true,
-        "framework": "vite"
+        "framework": "Vite"
       },
       "error": {
         "name": "Error",
