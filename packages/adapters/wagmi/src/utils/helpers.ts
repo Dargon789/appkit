@@ -81,6 +81,23 @@ export async function getCoinbaseConnector(
     }
   } catch (error) {
     // eslint-disable-next-line no-console
+    console.error('Failed to import Base Account SDK:', error)
+  }
+
+  return null
+}
+
+export async function getCoinbaseConnector(
+  connectors: readonly Connector[]
+): Promise<CreateConnectorFn | null> {
+  try {
+    const { coinbaseWallet } = await import('@wagmi/connectors')
+
+    if (coinbaseWallet && !connectors.some(c => c.id === 'coinbaseWallet')) {
+      return coinbaseWallet()
+    }
+  } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Failed to import Coinbase Wallet SDK:', error)
   }
 

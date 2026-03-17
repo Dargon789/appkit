@@ -77,7 +77,8 @@ describe('BalanceUtil', () => {
         cosmos: undefined,
         sui: undefined,
         stacks: undefined,
-        ton: undefined
+        ton: undefined,
+        tron: undefined
       }
       vi.mocked(StorageUtil.getBalanceCacheForCaipAddress).mockReturnValue(undefined)
     })
@@ -302,7 +303,8 @@ describe('BalanceUtil', () => {
         cosmos: undefined,
         sui: undefined,
         stacks: undefined,
-        ton: undefined
+        ton: undefined,
+        tron: undefined
       }
       vi.mocked(ERC7811Utils.getChainIdHexFromCAIP2ChainId).mockReturnValue(mockEthChainIdAsHex)
     })
