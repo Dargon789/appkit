@@ -3,14 +3,12 @@ import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import { type CaipAddress, type ChainNamespace } from '@reown/appkit-common'
+import type { CaipNetworkId } from '@reown/appkit-common'
 import {
-  AssetUtil,
   ChainController,
   ConnectionController,
-  ConnectorController,
+  CoreHelperUtil,
   ModalController,
-  RouterController,
   SnackController
 } from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
@@ -22,16 +20,13 @@ import '@reown/appkit-ui/wui-icon-link'
 import '@reown/appkit-ui/wui-image'
 import '@reown/appkit-ui/wui-list-item'
 import '@reown/appkit-ui/wui-loading-spinner'
-import '@reown/appkit-ui/wui-loading-spinner'
 import '@reown/appkit-ui/wui-network-image'
 import '@reown/appkit-ui/wui-separator'
 import '@reown/appkit-ui/wui-text'
 import '@reown/appkit-ui/wui-wallet-image'
 
 import { PayController } from '../../controllers/PayController.js'
-import type { Exchange } from '../../types/exchange.js'
-import { formatAmount, isPayWithWalletSupported, isTestnetAsset } from '../../utils/AssetUtil.js'
-import { REOWN_TEST_EXCHANGE_ID } from '../../utils/ConstantsUtil.js'
+import { isPayWithWalletSupported } from '../../utils/AssetUtil.js'
 import styles from './styles.js'
 
 @customElement('w3m-pay-view')
@@ -42,271 +37,211 @@ export class W3mPayView extends LitElement {
   private unsubscribe: (() => void)[] = []
 
   // -- State & Properties -------------------------------- //
-  @state() private amount = PayController.state.amount
-  @state() private namespace: ChainNamespace | undefined = undefined
-  @state() private paymentAsset = PayController.state.paymentAsset
-  @state() private activeConnectorIds = ConnectorController.state.activeConnectorIds
-  @state() private caipAddress: CaipAddress | undefined = undefined
+  @state() private amount = ''
+  @state() private tokenSymbol = ''
+  @state() private networkName = ''
   @state() private exchanges = PayController.state.exchanges
   @state() private isLoading = PayController.state.isLoading
+  @state() private loadingExchangeId: string | null = null
+  @state() private connectedWalletInfo = ChainController.getAccountData()?.connectedWalletInfo
 
   public constructor() {
     super()
-    this.initializeNamespace()
-    this.unsubscribe.push(PayController.subscribeKey('amount', val => (this.amount = val)))
-    this.unsubscribe.push(
-      ConnectorController.subscribeKey('activeConnectorIds', ids => (this.activeConnectorIds = ids))
-    )
+    this.initializePaymentDetails()
     this.unsubscribe.push(PayController.subscribeKey('exchanges', val => (this.exchanges = val)))
     this.unsubscribe.push(PayController.subscribeKey('isLoading', val => (this.isLoading = val)))
+    this.unsubscribe.push(
+      ChainController.subscribeChainProp('accountState', val => {
+        this.connectedWalletInfo = val?.connectedWalletInfo
+      })
+    )
 
     PayController.fetchExchanges()
-    PayController.setSelectedExchange(undefined)
   }
 
-  public override disconnectedCallback() {
-    this.unsubscribe.forEach(unsubscribe => unsubscribe())
+  // -- Computed Properties ------------------------------ //
+  /**
+   * Check if wallet is connected based on active address
+   */
+  private get isWalletConnected(): boolean {
+    const accountData = ChainController.getAccountData()
+
+    return accountData?.status === 'connected'
   }
 
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
       <wui-flex flexDirection="column">
-        ${this.paymentDetailsTemplate()} ${this.paymentMethodsTemplate()}
+        <wui-flex flexDirection="column" .padding=${['0', '4', '4', '4'] as const} gap="3">
+          ${this.renderPaymentHeader()}
+
+          <wui-flex flexDirection="column" gap="3">
+            ${this.renderPayWithWallet()} ${this.renderExchangeOptions()}
+          </wui-flex>
+        </wui-flex>
       </wui-flex>
     `
   }
 
   // -- Private Methods ----------------------------------- //
-  private paymentMethodsTemplate() {
-    return html`
-      <wui-flex flexDirection="column" padding="3" gap="2" class="payment-methods-container">
-        ${this.payWithWalletTemplate()} ${this.templateSeparator()}
-        ${this.templateExchangeOptions()}
-      </wui-flex>
-    `
+  private initializePaymentDetails() {
+    const paymentAsset = PayController.getPaymentAsset()
+    this.networkName = paymentAsset.network
+    this.tokenSymbol = paymentAsset.metadata.symbol
+    this.amount = PayController.state.amount.toString()
   }
 
-  private initializeNamespace() {
-    const namespace = ChainController.state.activeChain as ChainNamespace
-
-    this.namespace = namespace
-    this.caipAddress = ChainController.getAccountData(namespace)?.caipAddress
-    this.unsubscribe.push(
-      ChainController.subscribeChainProp(
-        'accountState',
-        accountState => {
-          this.caipAddress = accountState?.caipAddress
-        },
-        namespace
-      )
-    )
-  }
-
-  private paymentDetailsTemplate() {
-    const allNetworks = ChainController.getAllRequestedCaipNetworks()
-    const targetNetwork = allNetworks.find(net => net.caipNetworkId === this.paymentAsset.network)
-
-    return html`
-      <wui-flex
-        alignItems="center"
-        justifyContent="space-between"
-        .padding=${['6', '8', '6', '8'] as const}
-        gap="2"
-      >
-        <wui-flex alignItems="center" gap="1">
-          <wui-text variant="h1-regular" color="primary">
-            ${formatAmount(this.amount || '0')}
-          </wui-text>
-
-          <wui-flex flexDirection="column">
-            <wui-text variant="h6-regular" color="secondary">
-              ${this.paymentAsset.metadata.symbol || 'Unknown'}
-            </wui-text>
-            <wui-text variant="md-medium" color="secondary"
-              >on ${targetNetwork?.name || 'Unknown'}</wui-text
-            >
-          </wui-flex>
-        </wui-flex>
-
-        <wui-flex class="left-image-container">
-          <wui-image
-            src=${ifDefined(this.paymentAsset.metadata.logoURI)}
-            class="token-image"
-          ></wui-image>
-          <wui-image
-            src=${ifDefined(AssetUtil.getNetworkImage(targetNetwork))}
-            class="chain-image"
-          ></wui-image>
-        </wui-flex>
-      </wui-flex>
-    `
-  }
-
-  private payWithWalletTemplate() {
-    if (!isPayWithWalletSupported(this.paymentAsset.network)) {
+  private renderPayWithWallet() {
+    if (!isPayWithWalletSupported(this.networkName as CaipNetworkId)) {
       return html``
     }
 
-    return this.caipAddress ? this.connectedWalletTemplate() : this.disconnectedWalletTemplate()
+    return html`<wui-flex flexDirection="column" gap="3">
+        ${this.isWalletConnected ? this.renderConnectedView() : this.renderDisconnectedView()}
+      </wui-flex>
+      <wui-separator text="or"></wui-separator>`
   }
 
-  private connectedWalletTemplate() {
-    const { name, image } = this.getWalletProperties({
-      namespace: this.namespace
-    })
+  private renderPaymentHeader() {
+    let displayNetworkName = this.networkName
+    if (this.networkName) {
+      const allNetworks = ChainController.getAllRequestedCaipNetworks()
+      const targetNetwork = allNetworks.find(net => net.caipNetworkId === this.networkName)
+      if (targetNetwork) {
+        displayNetworkName = targetNetwork['name']
+      }
+    }
 
     return html`
-      <wui-flex flexDirection="column" gap="3">
-        <wui-list-item
-          type="secondary"
-          boxColor="foregroundSecondary"
-          @click=${this.onWalletPayment}
-          .boxed=${false}
-          ?chevron=${true}
-          ?fullSize=${false}
-          ?rounded=${true}
-          data-testid="wallet-payment-option"
-          imageSrc=${ifDefined(image)}
-          imageSize="3xl"
-        >
-          <wui-text variant="lg-regular" color="primary">Pay with ${name}</wui-text>
-        </wui-list-item>
-
-        <wui-list-item
-          type="secondary"
-          icon="power"
-          iconColor="error"
-          @click=${this.onDisconnect}
-          data-testid="disconnect-button"
-          ?chevron=${false}
-          boxColor="foregroundSecondary"
-        >
-          <wui-text variant="lg-regular" color="secondary">Disconnect</wui-text>
-        </wui-list-item>
+      <wui-flex flexDirection="column" alignItems="center">
+        <wui-flex alignItems="center" gap="2">
+          <wui-text variant="h1-regular" color="primary">${this.amount || '0.0000'}</wui-text>
+          <wui-flex class="token-display" alignItems="center" gap="1">
+            <wui-text variant="md-medium" color="primary">
+              ${this.tokenSymbol || 'Unknown Asset'}
+            </wui-text>
+            ${displayNetworkName
+              ? html`
+                  <wui-text variant="sm-medium" color="secondary">
+                    on ${displayNetworkName}
+                  </wui-text>
+                `
+              : ''}
+          </wui-flex>
+        </wui-flex>
       </wui-flex>
     `
   }
 
-  private disconnectedWalletTemplate() {
+  private renderConnectedView() {
+    const walletName = this.connectedWalletInfo?.name || 'connected wallet'
+
+    return html`
+      <wui-list-item
+        @click=${this.onWalletPayment}
+        ?chevron=${true}
+        ?fullSize=${true}
+        ?rounded=${true}
+        data-testid="wallet-payment-option"
+        imageSrc=${ifDefined(this.connectedWalletInfo?.icon)}
+      >
+        <wui-text variant="lg-regular" color="primary">Pay with ${walletName}</wui-text>
+      </wui-list-item>
+
+      <wui-list-item
+        icon="power"
+        ?rounded=${true}
+        iconColor="error"
+        @click=${this.onDisconnect}
+        data-testid="disconnect-button"
+        ?chevron=${false}
+      >
+        <wui-text variant="lg-regular" color="secondary">Disconnect</wui-text>
+      </wui-list-item>
+    `
+  }
+
+  private renderDisconnectedView() {
     return html`<wui-list-item
-      type="secondary"
-      boxColor="foregroundSecondary"
       variant="icon"
-      iconColor="default"
       iconVariant="overlay"
       icon="wallet"
+      ?rounded=${true}
       @click=${this.onWalletPayment}
       ?chevron=${true}
       data-testid="wallet-payment-option"
     >
-      <wui-text variant="lg-regular" color="primary">Pay with wallet</wui-text>
+      <wui-text variant="lg-regular" color="primary">Pay from wallet</wui-text>
     </wui-list-item>`
   }
 
-  private templateExchangeOptions() {
+  private renderExchangeOptions() {
     if (this.isLoading) {
       return html`<wui-flex justifyContent="center" alignItems="center">
-        <wui-loading-spinner size="md"></wui-loading-spinner>
+        <wui-spinner size="md"></wui-spinner>
       </wui-flex>`
     }
-
-    const exchangesToShow = this.exchanges.filter(exchange => {
-      if (isTestnetAsset(this.paymentAsset)) {
-        return exchange.id === REOWN_TEST_EXCHANGE_ID
-      }
-
-      return exchange.id !== REOWN_TEST_EXCHANGE_ID
-    })
-
-    if (exchangesToShow.length === 0) {
+    if (this.exchanges.length === 0) {
       return html`<wui-flex justifyContent="center" alignItems="center">
         <wui-text variant="md-medium" color="primary">No exchanges available</wui-text>
       </wui-flex>`
     }
 
-    return exchangesToShow.map(
+    return this.exchanges.map(
       exchange => html`
         <wui-list-item
-          type="secondary"
-          boxColor="foregroundSecondary"
-          @click=${() => this.onExchangePayment(exchange)}
+          @click=${() => this.onExchangePayment(exchange.id)}
           data-testid="exchange-option-${exchange.id}"
           ?chevron=${true}
+          ?disabled=${this.loadingExchangeId !== null}
+          ?loading=${this.loadingExchangeId === exchange.id}
           imageSrc=${ifDefined(exchange.imageUrl)}
         >
-          <wui-text flexGrow="1" variant="lg-regular" color="primary">
-            Pay with ${exchange.name}
-          </wui-text>
+          <wui-flex alignItems="center" gap="3">
+            <wui-text flexGrow="1" variant="md-medium" color="primary"
+              >Pay with ${exchange.name} <wui-spinner size="sm" color="secondary"></wui-spinner
+            ></wui-text>
+          </wui-flex>
         </wui-list-item>
       `
     )
   }
 
-  private templateSeparator() {
-    return html`<wui-separator text="or" bgColor="secondary"></wui-separator>`
+  private onWalletPayment() {
+    PayController.handlePayWithWallet()
   }
 
-  private async onWalletPayment() {
-    if (!this.namespace) {
-      throw new Error('Namespace not found')
+  private async onExchangePayment(exchangeId: string) {
+    try {
+      this.loadingExchangeId = exchangeId
+      const result = await PayController.handlePayWithExchange(exchangeId)
+      if (result) {
+        await ModalController.open({
+          view: 'PayLoading'
+        })
+        CoreHelperUtil.openHref(result.url, result.openInNewTab ? '_blank' : '_self')
+      }
+    } catch (error) {
+      console.error('Failed to pay with exchange', error)
+      SnackController.showError('Failed to pay with exchange')
+    } finally {
+      this.loadingExchangeId = null
     }
-
-    if (this.caipAddress) {
-      RouterController.push('PayQuote')
-    } else {
-      await ConnectorController.connect()
-      await ModalController.open({ view: 'PayQuote' })
-    }
   }
 
-  private onExchangePayment(exchange: Exchange) {
-    PayController.setSelectedExchange(exchange)
-    RouterController.push('PayQuote')
-  }
-
-  private async onDisconnect() {
+  private async onDisconnect(e: Event) {
+    e.stopPropagation()
     try {
       await ConnectionController.disconnect()
-      await ModalController.open({ view: 'Pay' })
     } catch {
       console.error('Failed to disconnect')
       SnackController.showError('Failed to disconnect')
     }
   }
 
-  private getWalletProperties({ namespace }: { namespace?: ChainNamespace }) {
-    if (!namespace) {
-      return {
-        name: undefined,
-        image: undefined
-      }
-    }
-
-    const connectorId = this.activeConnectorIds[namespace]
-
-    if (!connectorId) {
-      return {
-        name: undefined,
-        image: undefined
-      }
-    }
-
-    const connector = ConnectorController.getConnector({ id: connectorId, namespace })
-
-    if (!connector) {
-      return {
-        name: undefined,
-        image: undefined
-      }
-    }
-
-    const connectorImage = AssetUtil.getConnectorImage(connector)
-
-    return {
-      name: connector.name,
-      image: connectorImage
-    }
+  public override disconnectedCallback() {
+    this.unsubscribe.forEach(unsubscribe => unsubscribe())
   }
 }
 
