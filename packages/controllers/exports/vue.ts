@@ -97,22 +97,6 @@ export function useAppKitAccount(options?: {
       ? _chains.get(activeChainNamespace)?.accountState
       : undefined
 
-    const connections = activeChainNamespace
-      ? ConnectionController.getConnections(activeChainNamespace)
-      : []
-    state.value.allAccounts = connections.flatMap(connection => {
-      const { caipNetwork } = connection
-
-      return caipNetwork
-        ? connection.accounts.map(({ address, type, publicKey }) =>
-            CoreHelperUtil.createAccount({
-              caipAddress: `${caipNetwork.caipNetworkId}:${address}`,
-              type: type || 'eoa',
-              publicKey
-            })
-          )
-        : []
-    })
     state.value.address = CoreHelperUtil.getPlainAddress(accountState?.caipAddress)
     state.value.caipAddress = accountState?.caipAddress
     state.value.status = accountState?.status
@@ -138,10 +122,6 @@ export function useAppKitAccount(options?: {
     updateState(chains.value, chainNamespace.value)
   })
 
-  const unsubscribeConnections = ConnectionController.subscribeKey('connections', () => {
-    updateState(chains.value, chainNamespace.value)
-  })
-
   onMounted(() => {
     updateState(chains.value, chainNamespace.value)
   })
@@ -149,7 +129,6 @@ export function useAppKitAccount(options?: {
   onUnmounted(() => {
     unsubscribeChains()
     unsubscribeActiveChain()
-    unsubscribeConnections()
   })
 
   return state

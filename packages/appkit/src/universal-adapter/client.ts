@@ -2,14 +2,16 @@ import type UniversalProvider from '@walletconnect/universal-provider'
 import bs58 from 'bs58'
 import { toHex } from 'viem'
 
-import { type CaipAddress, type ChainNamespace, ConstantsUtil } from '@reown/appkit-common'
+import { type ChainNamespace, ConstantsUtil } from '@reown/appkit-common'
 import {
+  AccountController,
   ChainController,
   ConstantsUtil as CoreConstantsUtil,
   CoreHelperUtil
 } from '@reown/appkit-controllers'
-import { AdapterBlueprint, WalletConnectConnector } from '@reown/appkit-controllers'
 
+import { AdapterBlueprint } from '../adapters/ChainAdapterBlueprint.js'
+import { WalletConnectConnector } from '../connectors/WalletConnectConnector.js'
 import { WcConstantsUtil } from '../utils/ConstantsUtil.js'
 
 export class UniversalAdapter extends AdapterBlueprint {
@@ -69,16 +71,17 @@ export class UniversalAdapter extends AdapterBlueprint {
     namespace: ChainNamespace
   }): Promise<AdapterBlueprint.GetAccountsResult> {
     const provider = this.provider as UniversalProvider
-    const caipAccounts = (provider?.session?.namespaces?.[namespace]?.accounts || []).filter(
-      (account, index, self) => self.indexOf(account) === index
-    ) as CaipAddress[]
+    const addresses = (provider?.session?.namespaces?.[namespace]?.accounts
+      ?.map(account => {
+        const [, , address] = account.split(':')
+
+        return address
+      })
+      .filter((address, index, self) => self.indexOf(address) === index) || []) as string[]
 
     return Promise.resolve({
-      accounts: caipAccounts.map(caipAddress =>
-        CoreHelperUtil.createAccount({
-          caipAddress,
-          type: namespace === 'bip122' ? 'payment' : 'eoa'
-        })
+      accounts: addresses.map(address =>
+        CoreHelperUtil.createAccount(namespace, address, namespace === 'bip122' ? 'payment' : 'eoa')
       )
     })
   }
@@ -101,19 +104,17 @@ export class UniversalAdapter extends AdapterBlueprint {
       }
     }
 
-    const accountData = ChainController.getAccountData()
-
     if (
-      accountData?.balanceLoading &&
+      AccountController.state.balanceLoading &&
       params.chainId === ChainController.state.activeCaipNetwork?.id
     ) {
       return {
-        balance: accountData?.balance || '0.00',
-        symbol: accountData?.balanceSymbol || ''
+        balance: AccountController.state.balance || '0.00',
+        symbol: AccountController.state.balanceSymbol || ''
       }
     }
 
-    const balances = await ChainController.fetchTokenBalance()
+    const balances = await AccountController.fetchTokenBalance()
     const balance = balances.find(
       b =>
         b.chainId === `${params.caipNetwork?.chainNamespace}:${params.chainId}` &&

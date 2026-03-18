@@ -32,6 +32,23 @@ export const SIWXMessage = z.object({
   expirationTime: z.string().optional()
 })
 
+// -- SIWX Message Schema ----------------------------------------------------
+export const SIWXMessage = z.object({
+  serializedMessage: z.string().optional(),
+  accountAddress: z.string(),
+  chainId: z.string(),
+  notBefore: z.string().optional(),
+  domain: z.string(),
+  uri: z.string(),
+  version: z.string(),
+  nonce: z.string(),
+  statement: z.string().optional(),
+  resources: z.array(z.string()).optional(),
+  requestId: z.string().optional(),
+  issuedAt: z.string().optional(),
+  expirationTime: z.string().optional()
+})
+
 // -- Responses --------------------------------------------------------------
 export const GetTransactionByHashResponse = z.object({
   accessList: z.array(z.string()),

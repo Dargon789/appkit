@@ -1,211 +1,172 @@
 # AGENTS.md
 
-Reown AppKit — a multi-chain onchain SDK providing wallet connection, authentication, swaps, on-ramp, and transaction UX for 700+ wallets across EVM, Solana, Bitcoin, Polkadot, and TON. Available for React, Next.js, Vue, Nuxt, Svelte, vanilla JS, React Native, Flutter, and native mobile.
+This file provides guidance for AI agents working with the Reown AppKit repository.
 
-## Quick Reference
+## Project Overview
 
-- **Package manager**: pnpm workspaces (`pnpm-workspace.yaml`)
-- **Build orchestration**: Turborepo (`turbo.json`)
-- **State management**: valtio (always import from `valtio/vanilla`)
-- **UI framework**: LitElement Web Components
-- **Testing**: Vitest (unit), Playwright (E2E in `apps/laboratory`)
-- **TypeScript**: Strict mode, ESM only, `experimentalDecorators` enabled
+Reown AppKit is a full-stack toolkit for building blockchain application user experiences. It provides developers with a comprehensive SDK that abstracts the complexity of Web3 wallet integration, multi-chain support, and user authentication across Ethereum (EVM), Solana, Bitcoin, Polkadot, and TON networks.
 
-## Commands
+AppKit enables connection to 300+ wallets including MetaMask, WalletConnect, Phantom, Leather, and embedded email/social wallets. It provides a single API for multiple blockchain ecosystems with automatic network switching, built-in support for token swaps, on-ramp (fiat-to-crypto), transaction sending, and pre-built customizable modal UI with dark/light themes.
+
+The SDK is available for React, Next.js, Vue, Nuxt, Svelte, vanilla JavaScript, React Native, Flutter, Android, iOS, and Unity.
+
+## Repository Structure
+
+This is a pnpm workspace monorepo managed by Turborepo, organized into four main categories:
+
+```
+@reown/appkit-monorepo/
+├── packages/           # Core SDK packages (publishable to npm)
+│   ├── appkit/         # Main SDK entry point (@reown/appkit)
+│   ├── adapters/       # Blockchain-specific adapters
+│   │   ├── wagmi/      # EVM via Wagmi/viem
+│   │   ├── ethers/     # EVM via ethers v6
+│   │   ├── ethers5/    # EVM via ethers v5
+│   │   ├── solana/     # Solana support
+│   │   ├── bitcoin/    # Bitcoin support
+│   │   ├── polkadot/   # Polkadot support
+│   │   └── ton/        # TON support
+│   ├── controllers/    # State management (valtio-based)
+│   ├── ui/             # Atomic Web Components (LitElement, wui-* prefix)
+│   ├── scaffold-ui/    # High-level UI flows (w3m-* prefix)
+│   ├── common/         # Shared utilities
+│   ├── appkit-utils/   # Multi-chain utilities
+│   ├── siwe/           # Sign-In With Ethereum
+│   ├── siwx/           # Cross-chain authentication
+│   ├── wallet/         # Embedded wallet provider
+│   └── ...             # Other utility packages
+├── apps/               # Internal applications
+│   ├── laboratory/     # Primary E2E testing app (Next.js + Playwright)
+│   ├── demo/           # Marketing/demo application
+│   ├── gallery/        # Storybook component gallery
+│   └── browser-extension/
+├── examples/           # Integration examples ({framework}-{adapter} pattern)
+└── .github/            # CI/CD workflows
+```
+
+## Key Commands
+
+All commands should be run from the repository root using pnpm:
 
 ```bash
-pnpm install              # Install dependencies
-pnpm build                # Build all packages (run before apps or tests)
-pnpm test                 # Unit tests (Vitest)
-pnpm typecheck            # Type checking (depends on build)
-pnpm lint                 # ESLint
-pnpm run prettier:format  # Format code (run before committing)
-pnpm changeset            # Create a changeset for versioning
-pnpm laboratory           # Run E2E testing app
-pnpm demo:dev             # Run demo app
-pnpm gallery              # Run Storybook component gallery
+# Install dependencies
+pnpm install
+
+# Build all packages (required before running apps)
+pnpm build
+
+# Format code with Prettier (run before committing)
+pnpm run prettier:format
+
+# Run unit tests (Vitest)
+pnpm test
+
+# Run type checking
+pnpm typecheck
+
+# Run linting
+pnpm lint
+
+# Run the Laboratory app for testing
+pnpm laboratory
+
+# Run the demo app
+pnpm demo:dev
+
+# Run the component gallery (Storybook)
+pnpm gallery
+
+# Create a changeset for versioning
+pnpm changeset
+
+# Check bundle size
+pnpm size
 ```
 
-## Repository Layout
+## Architecture Overview
 
-```
-packages/
-  appkit/              → @reown/appkit             Main SDK facade
-  controllers/         → @reown/appkit-controllers  Valtio state management
-  ui/                  → @reown/appkit-ui           Atomic wui-* Web Components
-  scaffold-ui/         → @reown/appkit-scaffold-ui  High-level w3m-* UI flows
-  common/              → @reown/appkit-common       Shared types and utilities
-  appkit-utils/        → @reown/appkit-utils        Chain-specific helpers
-  wallet/              → @reown/appkit-wallet       Wallet models
-  pay/                 → @reown/appkit-pay          Payment flows
-  siwe/                → @reown/appkit-siwe         Sign-In With Ethereum
-  siwx/                → @reown/appkit-siwx         Cross-chain authentication
-  adapters/
-    wagmi/             → EVM via Wagmi/Viem
-    ethers/            → EVM via ethers v6
-    ethers5/           → EVM via ethers v5
-    solana/            → Solana
-    bitcoin/           → Bitcoin
-    polkadot/          → Polkadot
-    ton/               → TON
-apps/
-  laboratory/          → E2E testing (Next.js + Playwright)
-  demo/                → Marketing demo
-  gallery/             → Storybook component gallery
-examples/              → Integration examples (next-*, react-*, vue-*, svelte-*, html-*)
-```
+### Core Packages
 
-## Architecture Rules
-
-### Layer Order (dependencies flow downward only)
-
-```
-apps & examples
-  ↓
-adapters (wagmi, solana, bitcoin, ethers, ...)
-  ↓
-@reown/appkit (SDK facade)
-  ↓
-scaffold-ui (w3m-*) · pay
-  ↓
-ui (wui-*) · controllers · appkit-utils
-  ↓
-common · wallet · polyfills
-```
-
-### Import Boundaries
-
-- **ui** (`wui-*`): Cannot import from controllers, scaffold-ui, appkit, or adapters
-- **controllers**: Cannot import from ui, scaffold-ui, appkit, or adapters
-- **scaffold-ui** (`w3m-*`): Uses relative imports within the package, not `@reown/` paths
-- **adapters**: Import from `@reown/appkit` and foundations, never from controllers or ui directly
-- **Cross-package**: Always use package entrypoints or declared subpath exports, never deep internal paths
-
-### Chain Namespaces
-
-| Namespace  | Chain    | Adapter                |
-| ---------- | -------- | ---------------------- |
-| `eip155`   | EVM      | wagmi, ethers, ethers5 |
-| `solana`   | Solana   | solana                 |
-| `bip122`   | Bitcoin  | bitcoin                |
-| `polkadot` | Polkadot | polkadot               |
-| `ton`      | TON      | ton                    |
-
-## Where to Put Things
-
-| What you're building     | Where it goes                                                                                           |
-| ------------------------ | ------------------------------------------------------------------------------------------------------- |
-| New state/business logic | `packages/controllers/src/controllers/` — follow [controller pattern](.agents/context/controllers.md)   |
-| New atomic UI element    | `packages/ui/src/composites/wui-<name>/` — follow [UI guide](.agents/context/ui-components.md)          |
-| New modal view/screen    | `packages/scaffold-ui/src/views/w3m-<name>-view/` — register in RouterController + w3m-router           |
-| Reusable UI section      | `packages/scaffold-ui/src/partials/w3m-<name>/`                                                         |
-| New blockchain adapter   | `packages/adapters/<name>/` — extend AdapterBlueprint, see [adapter guide](.agents/context/adapters.md) |
-| Shared types or utils    | `packages/common/src/`                                                                                  |
-| Chain-specific helpers   | `packages/appkit-utils/src/`                                                                            |
-| Public SDK API           | `packages/appkit/exports/` — treat changes as potentially breaking                                      |
-| Unit tests               | Co-located `tests/` directory in the relevant package                                                   |
-| E2E tests                | `apps/laboratory/tests/` using Page Object Model                                                        |
-| Integration example      | `examples/<framework>-<adapter>/`                                                                       |
-
-## Code Patterns
-
-### Controllers (valtio state)
-
-```typescript
-// packages/controllers/src/controllers/MyController.ts
-import { proxy, subscribe as sub } from 'valtio/vanilla'
-import { subscribeKey as subKey } from 'valtio/vanilla/utils'
-
-// -- Types ----
-export interface MyControllerState {
-  value: string
-}
-
-// -- State ----
-const state = proxy<MyControllerState>({ value: '' })
-
-// -- Controller ----
-const controller = {
-  state,
-  subscribe(callback: (s: MyControllerState) => void) {
-    return sub(state, () => callback(state))
-  },
-  subscribeKey<K extends keyof MyControllerState>(key: K, cb: (v: MyControllerState[K]) => void) {
-    return subKey(state, key, cb)
-  },
-  setValue(v: string) {
-    state.value = v
-  }
-}
-export const MyController = withErrorBoundary(controller)
-```
-
-Section comments (`// -- Types ----`, `// -- State ----`, `// -- Controller ----`) are enforced by DangerJS.
-
-### UI Atoms (wui-\*)
-
-```typescript
-// packages/ui/src/composites/wui-my-thing/index.ts
-@customElement('wui-my-thing')
-export class WuiMyThing extends LitElement {
-  public static override styles = [resetStyles, styles] // resetStyles required
-  // -- State & Properties ----
-  @property() public variant = 'default' // @state() NOT allowed
-  // -- Render ----
-  public override render() {
-    return html`<slot></slot>`
-  }
-}
-```
-
-### Scaffold Views (w3m-\*)
-
-```typescript
-// packages/scaffold-ui/src/views/w3m-my-view/index.ts
-@customElement('w3m-my-view')
-export class W3mMyView extends LitElement {
-  private unsubscribe: (() => void)[] = [] // Cleanup required
-  @state() private value = SomeController.state.value
-
-  constructor() {
-    super()
-    this.unsubscribe.push(
-      SomeController.subscribeKey('value', v => {
-        this.value = v
-      })
-    )
-  }
-
-  public override disconnectedCallback() {
-    this.unsubscribe.forEach(u => u())
-  }
-}
-```
+The `@reown/appkit` package is the main entry point. It initializes via `createAppKit()` with configuration for networks, adapters, and features. The `AppKitBaseClient` class manages adapters, controllers, and connection lifecycle.
 
 ### Adapters
 
-Extend `AdapterBlueprint` from `packages/controllers/src/controllers/AdapterController/ChainAdapterBlueprint.ts`. Implement: `connect()`, `disconnect()`, `switchNetwork()`, `signMessage()`, `sendTransaction()`, `getBalance()`. Host SDKs go in `peerDependencies`.
+Each blockchain adapter implements the `AdapterBlueprint` interface with standard methods: `connect()`, `disconnect()`, `signMessage()`, `sendTransaction()`, `switchNetwork()`. Adapters emit events for `accountChanged`, `disconnect`, and `switchNetwork`.
 
-## PR Requirements
+### Controllers
 
-1. Run `pnpm build && pnpm run prettier:format` before submitting
-2. Use conventional commit format for PR titles (`feat:`, `fix:`, `chore:`, `refactor:`, `test:`, `docs:`)
-3. Bug fixes and new features require tests
-4. Create a changeset: `pnpm changeset`
-5. DangerJS validates import boundaries, naming conventions, section comments, and dependency rules
+State management uses valtio proxies. Key controllers include `ChainController` (multi-namespace blockchain state), `ConnectionController` (wallet connection lifecycle), `ModalController` (UI modal visibility), and `OptionsController` (feature flags and configuration).
 
-## Versioning
+### UI Components
 
-All `@reown/appkit-*` packages are versioned together as a fixed group via Changesets. Release channels: `latest`, `alpha`, `beta`, `canary`. `@examples/*` and `@apps/*` are excluded from publishing.
+The UI layer consists of atomic Web Components (`wui-*` prefix) from `@reown/appkit-ui` built with LitElement, and high-level scaffold components (`w3m-*` prefix) from `@reown/appkit-scaffold-ui` that compose the atoms and subscribe to controllers.
 
-## Detailed Context
+### Chain Namespaces
 
-For in-depth guidance on specific topics:
+Blockchain ecosystems are identified by namespace: `eip155` (EVM), `solana`, `bip122` (Bitcoin), `polkadot`, and `ton`. These are used as keys in the `ChainController.chains` Map.
 
-- [Architecture & Initialization Flow](.agents/context/architecture.md) — layer diagram, import boundaries, init sequence, network request policy
-- [Controllers Reference](.agents/context/controllers.md) — valtio patterns, all controllers, state shapes
-- [UI Components Guide](.agents/context/ui-components.md) — wui-_ and w3m-_ patterns, DangerJS rules, adding views
-- [Blockchain Adapters Guide](.agents/context/adapters.md) — AdapterBlueprint, creating new adapters
-- [Testing Guide](.agents/context/testing.md) — Vitest, Playwright, test locations, writing new tests
-- [Package Reference](.agents/context/packages.md) — all packages, build outputs, adding packages
-- [Contributing & PR Guide](.agents/context/contributing.md) — PR checks, changesets, release process
+## Development Notes
+
+### Code Quality Standards
+
+When creating new UI components in `packages/ui/`, components must apply `resetStyles`, use the `wui-` prefix, and include required section comments (`// -- Render ----`, `// -- State & Properties ----`, `// -- Private ----`). New components require corresponding Storybook stories in `apps/gallery/`.
+
+When creating new scaffold components in `packages/scaffold-ui/`, components must use the `w3m-` prefix, include proper unsubscribe logic for controller subscriptions, and use relative imports instead of direct package access.
+
+Controllers in `packages/controllers/` must include section comments (`// -- Types ----`, `// -- State ----`, `// -- Controller ----`), use `valtio/vanilla` instead of `valtio`, and have corresponding tests.
+
+### Import Rules
+
+Use relative imports within packages instead of direct package access. Client packages (wagmi, solana, ethers, ethers5) cannot import from `@reown/appkit-controllers` or `@reown/appkit-ui`. The UI package cannot import from `@reown/appkit-controllers`.
+
+### Testing
+
+Unit tests use Vitest and are located alongside source files or in `test/` directories. E2E tests use Playwright in the Laboratory app (`apps/laboratory/tests/`). The Laboratory app uses Page Object Model pattern with `ModalPage`, `WalletPage`, and corresponding validators.
+
+Tests for scaffold-ui partials should be placed in `packages/scaffold-ui/test/partials/` with naming convention `[component-name].test.ts`.
+
+### PR Requirements
+
+Before submitting a PR, run `pnpm build` and `pnpm run prettier:format`. Use conventional commit format for PR titles (e.g., `feat: add new feature`, `fix: resolve bug`, `chore: update dependencies`). Bug fixes and new features require tests. Large changes should be discussed in an issue first.
+
+The repository uses DangerJS for automated PR checks including package dependency validation, architectural boundary enforcement, security scanning, and breaking change detection.
+
+## Versioning and Publishing
+
+### Changesets
+
+The repository uses [Changesets](https://github.com/changesets/changesets) for versioning and changelog generation. All `@reown/appkit-*` packages are versioned together as a fixed group.
+
+To create a changeset for your changes:
+
+```bash
+pnpm changeset
+```
+
+This will prompt you to select affected packages and describe the changes. Changesets are stored in `.changeset/` as markdown files.
+
+### Release Channels
+
+The repository supports multiple release channels:
+
+- `latest` - Stable production releases
+- `alpha` - Alpha pre-releases
+- `beta` - Beta pre-releases
+- `canary` - Canary releases for testing
+
+### Publishing Workflow
+
+Publishing is handled through GitHub Actions workflows:
+
+- `release-start.yml` - Initiates the release process
+- `release-publish.yml` - Publishes packages to npm
+- `release-canary.yml` - Publishes canary releases
+- `publish-prerelease.yml` - Publishes alpha/beta pre-releases
+
+The `@examples/*` and `@apps/*` packages are excluded from publishing.
+
+### CI/CD
+
+PR checks include setup and build, code style validation, unit tests, bundle size checks, and UI tests. The UI tests run in the Laboratory app using Playwright with sharded execution across multiple runners.
+
+Canary tests run in Docker containers and upload timing metrics to CloudWatch for performance monitoring.

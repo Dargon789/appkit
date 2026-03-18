@@ -10,13 +10,13 @@ import {
   vi
 } from 'vitest'
 
+import { WcHelpersUtil } from '@reown/appkit'
 import { ConstantsUtil } from '@reown/appkit-common'
 import {
   ChainController,
   type ConnectionControllerClient,
-  ProviderController,
-  StorageUtil,
-  WcHelpersUtil
+  type NetworkControllerClient,
+  StorageUtil
 } from '@reown/appkit-controllers'
 import { HelpersUtil } from '@reown/appkit-utils'
 import { bitcoin, bitcoinTestnet, mainnet } from '@reown/appkit/networks'
@@ -39,6 +39,14 @@ function mockBitcoinApi(): { [K in keyof BitcoinApi.Interface]: Mock<BitcoinApi.
   }
 }
 
+const mockGetActiveNetworks = vi.fn(() => {
+  const requestedCaipNetworks = ChainController.getRequestedCaipNetworks(
+    ConstantsUtil.CHAIN.BITCOIN
+  )
+
+  return requestedCaipNetworks?.[0]
+})
+
 describe('BitcoinAdapter', () => {
   let adapter: BitcoinAdapter
   let api: ReturnType<typeof mockBitcoinApi>
@@ -47,7 +55,8 @@ describe('BitcoinAdapter', () => {
     api = mockBitcoinApi()
     adapter = new BitcoinAdapter({ api, networks: [bitcoin] })
     ChainController.initialize([adapter], [bitcoin], {
-      connectionControllerClient: vi.fn() as unknown as ConnectionControllerClient
+      connectionControllerClient: vi.fn() as unknown as ConnectionControllerClient,
+      networkControllerClient: vi.fn() as unknown as NetworkControllerClient
     })
     ChainController.setRequestedCaipNetworks([bitcoin], 'bip122')
   })
@@ -98,7 +107,8 @@ describe('BitcoinAdapter', () => {
     it('should return the chainId of the available chain from connector', async () => {
       const connector = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: mockGetActiveNetworks
       })
       vi.spyOn(connector, 'connect').mockResolvedValueOnce('mock_address')
 
@@ -127,7 +137,8 @@ describe('BitcoinAdapter', () => {
     it('should throw if chain is not found', async () => {
       const connector = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: mockGetActiveNetworks
       })
       vi.spyOn(connector, 'connect').mockResolvedValueOnce('mock_address')
       vi.spyOn(connector, 'chains', 'get').mockReturnValue([])
@@ -144,11 +155,10 @@ describe('BitcoinAdapter', () => {
     let connector: BitcoinConnector
 
     beforeEach(() => {
-      ChainController.setActiveCaipNetwork(bitcoin)
-
       connector = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: mockGetActiveNetworks
       })
 
       adapter.connectors.push(connector)
@@ -188,7 +198,8 @@ describe('BitcoinAdapter', () => {
     it('should return empty accounts if no addresses', async () => {
       const connector = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: mockGetActiveNetworks
       })
       vi.spyOn(connector, 'getAccountAddresses').mockResolvedValueOnce([])
 
@@ -221,17 +232,7 @@ describe('BitcoinAdapter', () => {
       const accounts = await adapter.getAccounts({ id: connector.id })
 
       expect(accounts).toEqual({
-        accounts: [
-          {
-            address: 'mock_address',
-            type: 'payment',
-            namespace: 'bip122',
-            chainId: bitcoin.id,
-            caipAddress: `${bitcoin.caipNetworkId}:mock_address`,
-            publicKey: undefined,
-            path: undefined
-          }
-        ]
+        accounts: [{ address: 'mock_address', type: 'payment', namespace: 'bip122' }]
       })
     })
   })
@@ -242,7 +243,7 @@ describe('BitcoinAdapter', () => {
       const satsConnectConnectorSpy = vi.spyOn(SatsConnectConnector, 'getWallets')
       const okxConnectorSpy = vi.spyOn(OKXConnector, 'getWallet')
 
-      await adapter.syncConnectors(undefined)
+      await adapter.syncConnectors(undefined, undefined)
 
       expect(walletStandardConnectorSpy).toHaveBeenCalled()
       expect(satsConnectConnectorSpy).toHaveBeenCalled()
@@ -251,7 +252,7 @@ describe('BitcoinAdapter', () => {
 
     it('should add connectors from SatsConnectConnector', async () => {
       mockSatsConnectProvider()
-      await adapter.syncConnectors(undefined)
+      await adapter.syncConnectors(undefined, undefined)
 
       expect(adapter.connectors).toHaveLength(1)
       expect(adapter.connectors[0]).toBeInstanceOf(SatsConnectConnector)
@@ -259,7 +260,7 @@ describe('BitcoinAdapter', () => {
 
     it('should map LeatherConnector', async () => {
       mockSatsConnectProvider({ id: LeatherConnector.ProviderId, name: 'Leather' })
-      await adapter.syncConnectors(undefined)
+      await adapter.syncConnectors(undefined, undefined)
 
       expect(adapter.connectors[1]).toBeInstanceOf(LeatherConnector)
     })
@@ -267,9 +268,28 @@ describe('BitcoinAdapter', () => {
     it('should add OKXConnector', async () => {
       ;(window as any).okxwallet = { bitcoin: { connect: vi.fn() } }
 
-      await adapter.syncConnectors(undefined)
+      await adapter.syncConnectors(undefined, undefined)
 
       expect(adapter.connectors[0]).toBeInstanceOf(OKXConnector)
+    })
+
+    it('should pass correct getActiveNetwork to SatsConnectConnector', async () => {
+      const mocks = mockSatsConnectProvider({ id: LeatherConnector.ProviderId, name: 'Leather' })
+      const getRequestedCaipNetworksSpy = vi.spyOn(ChainController, 'getRequestedCaipNetworks')
+      await adapter.syncConnectors(undefined, { getCaipNetwork: mockGetActiveNetworks } as any)
+
+      vi.spyOn(mocks.wallet, 'request').mockResolvedValueOnce(
+        mockSatsConnectProvider.mockRequestResolve({ hex: 'mock_hex', txid: 'mock_txid' })
+      )
+
+      const connector = adapter.connectors.find(
+        c => c instanceof LeatherConnector
+      ) as LeatherConnector
+
+      connector.signPSBT({ psbt: 'mock_psbt', signInputs: [] })
+
+      expect(mockGetActiveNetworks).toHaveBeenCalled()
+      expect(getRequestedCaipNetworksSpy).toHaveBeenCalledWith(ConstantsUtil.CHAIN.BITCOIN)
     })
   })
 
@@ -407,7 +427,8 @@ describe('BitcoinAdapter', () => {
     beforeEach(() => {
       connector = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: mockGetActiveNetworks
       })
     })
 
@@ -450,7 +471,8 @@ describe('BitcoinAdapter', () => {
     it('should disconnect using param provider', async () => {
       const connector = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: mockGetActiveNetworks
       })
       vi.spyOn(connector, 'disconnect')
 
@@ -465,7 +487,8 @@ describe('BitcoinAdapter', () => {
       const mocks = mockSatsConnectProvider()
       const connector = new SatsConnectConnector({
         provider: mocks.provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: mockGetActiveNetworks
       })
       vi.spyOn(connector, 'disconnect')
       vi.spyOn(connector, 'getAccountAddresses').mockResolvedValueOnce([
@@ -483,11 +506,13 @@ describe('BitcoinAdapter', () => {
     it('should disconnect all connectors if no connector id provided and return them as connections', async () => {
       const connector1 = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: () => bitcoin
       })
       const connector2 = new SatsConnectConnector({
         provider: mockSatsConnectProvider({ id: 'provider2', name: 'Provider2' }).provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: () => bitcoin
       })
 
       const disconnect1Spy = vi.spyOn(connector1, 'disconnect').mockResolvedValue(undefined)
@@ -535,7 +560,8 @@ describe('BitcoinAdapter', () => {
     it('should throw error if one of the connector fails to disconnect', async () => {
       const connector = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: () => bitcoin
       })
 
       const disconnectSpy = vi
@@ -564,11 +590,10 @@ describe('BitcoinAdapter', () => {
     }
 
     beforeEach(async () => {
-      vi.spyOn(ChainController, 'getActiveCaipNetwork').mockReturnValue(bitcoin)
-      ChainController.setActiveCaipNetwork(bitcoin)
+      const getCaipNetwork = vi.fn(() => bitcoin)
 
       mocks = mockSatsConnectProvider()
-      await adapter.syncConnectors()
+      await adapter.syncConnectors(undefined, { getCaipNetwork } as any)
 
       vi.spyOn(mocks.wallet, 'request').mockResolvedValue(
         mockSatsConnectProvider.mockRequestResolve({
@@ -638,8 +663,7 @@ describe('BitcoinAdapter', () => {
             {
               address: 'mock_address',
               type: 'payment',
-              publicKey: 'mock_public_key',
-              path: undefined
+              publicKey: 'mock_public_key'
             }
           ],
           caipNetwork: bitcoin
@@ -652,17 +676,16 @@ describe('BitcoinAdapter', () => {
     it('should execute switch network for SatsConnectConnector', async () => {
       const provider = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: mockGetActiveNetworks
       })
-
-      // Set up provider in ProviderController
-      ProviderController.setProvider(bitcoinTestnet.chainNamespace, provider)
-      ProviderController.setProviderId(bitcoinTestnet.chainNamespace, provider.type)
 
       const switchNetworkSpy = vi.spyOn(provider, 'switchNetwork').mockResolvedValue(undefined)
 
       await adapter.switchNetwork({
-        caipNetwork: bitcoinTestnet
+        caipNetwork: bitcoinTestnet,
+        provider,
+        providerType: provider.type
       })
 
       expect(switchNetworkSpy).toHaveBeenCalledWith(bitcoinTestnet.caipNetworkId)
@@ -677,19 +700,18 @@ describe('BitcoinAdapter', () => {
 
       const xverseConnector = new SatsConnectConnector({
         provider: xverseMocks.provider,
-        requestedChains: [bitcoin, bitcoinTestnet]
+        requestedChains: [bitcoin, bitcoinTestnet],
+        getActiveNetwork: mockGetActiveNetworks
       })
-
-      // Set up provider in ProviderController
-      ProviderController.setProvider(bitcoinTestnet.chainNamespace, xverseConnector)
-      ProviderController.setProviderId(bitcoinTestnet.chainNamespace, xverseConnector.type)
 
       const switchNetworkSpy = vi
         .spyOn(xverseConnector, 'switchNetwork')
         .mockResolvedValue(undefined)
 
       await adapter.switchNetwork({
-        caipNetwork: bitcoinTestnet
+        caipNetwork: bitcoinTestnet,
+        provider: xverseConnector,
+        providerType: xverseConnector.type
       })
 
       expect(switchNetworkSpy).toHaveBeenCalledWith(bitcoinTestnet.caipNetworkId)
@@ -701,12 +723,10 @@ describe('BitcoinAdapter', () => {
         typeof provider.setDefaultChain
       >
 
-      // Set up provider in ProviderController
-      ProviderController.setProvider(bitcoinTestnet.chainNamespace, provider)
-      ProviderController.setProviderId(bitcoinTestnet.chainNamespace, 'WALLET_CONNECT')
-
       await adapter.switchNetwork({
-        caipNetwork: bitcoinTestnet
+        caipNetwork: bitcoinTestnet,
+        provider,
+        providerType: 'WALLET_CONNECT'
       })
 
       expect(setDefaultChainSpy).toHaveBeenCalledWith(bitcoinTestnet.caipNetworkId)
@@ -715,19 +735,18 @@ describe('BitcoinAdapter', () => {
     it('should propagate errors from connector switchNetwork', async () => {
       const provider = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: mockGetActiveNetworks
       })
-
-      // Set up provider in ProviderController
-      ProviderController.setProvider(bitcoinTestnet.chainNamespace, provider)
-      ProviderController.setProviderId(bitcoinTestnet.chainNamespace, provider.type)
 
       const error = new Error('Network switching failed')
       vi.spyOn(provider, 'switchNetwork').mockRejectedValue(error)
 
       await expect(
         adapter.switchNetwork({
-          caipNetwork: bitcoinTestnet
+          caipNetwork: bitcoinTestnet,
+          provider,
+          providerType: provider.type
         })
       ).rejects.toThrow('Network switching failed')
     })
@@ -745,7 +764,8 @@ describe('BitcoinAdapter', () => {
     it('should sync connections for connectors that have connected and are not disconnected', async () => {
       const connector = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: () => bitcoin
       })
 
       const getAccountAddressesSpy = vi
@@ -779,7 +799,8 @@ describe('BitcoinAdapter', () => {
     it('should skip connectors that are disconnected', async () => {
       const connector = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: () => bitcoin
       })
 
       const connectSpy = vi.spyOn(connector, 'connect')
@@ -802,7 +823,8 @@ describe('BitcoinAdapter', () => {
     it('should skip connectors that have never connected', async () => {
       const connector = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: () => bitcoin
       })
 
       const connectSpy = vi.spyOn(connector, 'connect')
@@ -857,7 +879,8 @@ describe('BitcoinAdapter', () => {
     it('should call emitFirstAvailableConnection when connectToFirstConnector is true', async () => {
       const connector = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: () => bitcoin
       })
 
       vi.spyOn(connector, 'connect').mockResolvedValue('mock_address')
@@ -883,7 +906,8 @@ describe('BitcoinAdapter', () => {
     it('should not call emitFirstAvailableConnection when connectToFirstConnector is false', async () => {
       const connector = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: () => bitcoin
       })
 
       vi.spyOn(connector, 'connect').mockResolvedValue('mock_address')
@@ -909,11 +933,13 @@ describe('BitcoinAdapter', () => {
     it('should handle connector connection failures', async () => {
       const connector1 = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: () => bitcoin
       })
       const connector2 = new SatsConnectConnector({
         provider: mockSatsConnectProvider({ id: 'provider2', name: 'Provider2' }).provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: () => bitcoin
       })
 
       vi.spyOn(connector1, 'connect').mockRejectedValue(new Error('Connection failed'))
@@ -943,7 +969,8 @@ describe('BitcoinAdapter', () => {
     it('should throw error if connector does not support requested chain', async () => {
       const connector = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: () => bitcoin
       })
 
       vi.spyOn(connector, 'connect').mockResolvedValue('mock_address')
@@ -972,7 +999,8 @@ describe('BitcoinAdapter', () => {
     it('should not add connection if connector.connect returns falsy address', async () => {
       const connector = new SatsConnectConnector({
         provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
+        requestedChains: [bitcoin],
+        getActiveNetwork: () => bitcoin
       })
 
       vi.spyOn(connector, 'connect').mockResolvedValue('')
@@ -992,213 +1020,6 @@ describe('BitcoinAdapter', () => {
       })
 
       expect(adapter.connections).toHaveLength(0)
-    })
-  })
-
-  describe('onAccountsChanged', () => {
-    let connector: BitcoinConnector
-    let getAccountsSpy: any
-
-    beforeEach(() => {
-      connector = new SatsConnectConnector({
-        provider: mockSatsConnectProvider().provider,
-        requestedChains: [bitcoin]
-      })
-
-      adapter.connectors.push(connector)
-      getAccountsSpy = vi.spyOn(adapter, 'getAccounts')
-    })
-
-    it('should call getAccounts when accounts are provided', async () => {
-      const mockAccounts = [
-        {
-          address: 'mock_address_1',
-          purpose: AddressPurpose.Payment,
-          publicKey: 'mock_public_key_1',
-          path: 'mock_path_1'
-        }
-      ]
-
-      getAccountsSpy.mockResolvedValueOnce({
-        accounts: mockAccounts.map(account => ({
-          address: account.address,
-          type: 'payment',
-          publicKey: account.publicKey,
-          path: account.path,
-          namespace: ConstantsUtil.CHAIN.BITCOIN
-        }))
-      })
-
-      vi.spyOn(adapter, 'getConnectorId').mockReturnValue(connector.id)
-
-      const emitSpy = vi.spyOn(adapter as any, 'emit')
-      const addConnectionSpy = vi.spyOn(adapter as any, 'addConnection')
-
-      await adapter.onAccountsChanged(['mock_address_1'], connector.id)
-
-      expect(getAccountsSpy).toHaveBeenCalledWith({ id: connector.id })
-
-      expect(emitSpy).toHaveBeenCalledWith('accountChanged', {
-        address: 'mock_address_1',
-        chainId: undefined,
-        connector: undefined
-      })
-      expect(emitSpy).toHaveBeenCalledWith('connections', expect.any(Array))
-      expect(addConnectionSpy).toHaveBeenCalledWith({
-        connectorId: connector.id,
-        accounts: mockAccounts.map(account => ({
-          address: account.address,
-          type: 'payment',
-          publicKey: account.publicKey,
-          path: account.path
-        })),
-        caipNetwork: undefined
-      })
-    })
-
-    it('should call getAccounts and handle multiple accounts', async () => {
-      const mockAccounts = [
-        {
-          address: 'mock_address_1',
-          purpose: AddressPurpose.Payment,
-          publicKey: 'mock_public_key_1',
-          path: 'mock_path_1'
-        },
-        {
-          address: 'mock_address_2',
-          purpose: AddressPurpose.Ordinal,
-          publicKey: 'mock_public_key_2',
-          path: 'mock_path_2'
-        }
-      ]
-
-      getAccountsSpy.mockResolvedValueOnce({
-        accounts: mockAccounts.map(account => ({
-          address: account.address,
-          type: account.purpose === AddressPurpose.Payment ? 'payment' : 'ordinal',
-          publicKey: account.publicKey,
-          path: account.path,
-          namespace: ConstantsUtil.CHAIN.BITCOIN
-        }))
-      })
-
-      vi.spyOn(adapter, 'getConnectorId').mockReturnValue(connector.id)
-
-      const addConnectionSpy = vi.spyOn(adapter as any, 'addConnection')
-
-      await adapter.onAccountsChanged(['mock_address_1'], connector.id)
-
-      expect(getAccountsSpy).toHaveBeenCalledWith({ id: connector.id })
-      expect(addConnectionSpy).toHaveBeenCalledWith({
-        connectorId: connector.id,
-        accounts: [
-          {
-            address: 'mock_address_1',
-            type: 'payment',
-            publicKey: 'mock_public_key_1',
-            path: 'mock_path_1'
-          },
-          {
-            address: 'mock_address_2',
-            type: 'ordinal',
-            publicKey: 'mock_public_key_2',
-            path: 'mock_path_2'
-          }
-        ],
-        caipNetwork: undefined
-      })
-    })
-
-    it('should call onDisconnect when no accounts are provided and disconnectIfNoAccounts is true', async () => {
-      const onDisconnectSpy = vi.spyOn(adapter as any, 'onDisconnect')
-
-      await adapter.onAccountsChanged([], connector.id, true)
-
-      expect(getAccountsSpy).not.toHaveBeenCalled()
-      expect(onDisconnectSpy).toHaveBeenCalledWith(connector.id)
-    })
-
-    it('should not call onDisconnect when no accounts are provided and disconnectIfNoAccounts is false', async () => {
-      const onDisconnectSpy = vi.spyOn(adapter as any, 'onDisconnect')
-
-      await adapter.onAccountsChanged([], connector.id, false)
-
-      expect(getAccountsSpy).not.toHaveBeenCalled()
-      expect(onDisconnectSpy).not.toHaveBeenCalled()
-    })
-
-    it('should call getAccounts even if getConnection returns undefined', async () => {
-      const mockAccounts = [
-        {
-          address: 'mock_address_1',
-          purpose: AddressPurpose.Payment,
-          publicKey: 'mock_public_key_1',
-          path: 'mock_path_1'
-        }
-      ]
-
-      getAccountsSpy.mockResolvedValueOnce({
-        accounts: mockAccounts.map(account => ({
-          address: account.address,
-          type: 'payment',
-          publicKey: account.publicKey,
-          path: account.path,
-          namespace: ConstantsUtil.CHAIN.BITCOIN
-        }))
-      })
-
-      vi.spyOn(adapter, 'getConnection').mockReturnValue({
-        accounts: [],
-        connectorId: connector.id,
-        connector: connector,
-        account: undefined,
-        caipNetwork: bitcoin
-      })
-
-      await adapter.onAccountsChanged(['mock_address_1'], connector.id)
-
-      expect(getAccountsSpy).toHaveBeenCalledWith({ id: connector.id })
-    })
-
-    it('should handle getAccounts errors gracefully', async () => {
-      getAccountsSpy.mockRejectedValueOnce(new Error('Failed to get accounts'))
-
-      await expect(adapter.onAccountsChanged(['mock_address_1'], connector.id)).rejects.toThrow(
-        'Failed to get accounts'
-      )
-
-      expect(getAccountsSpy).toHaveBeenCalledWith({ id: connector.id })
-    })
-
-    it('should always call getAccounts when accounts are provided, regardless of connector matching', async () => {
-      const mockAccounts = [
-        {
-          address: 'mock_address_1',
-          purpose: AddressPurpose.Payment,
-          publicKey: 'mock_public_key_1',
-          path: 'mock_path_1'
-        }
-      ]
-
-      getAccountsSpy.mockResolvedValueOnce({
-        accounts: mockAccounts.map(account => ({
-          address: account.address,
-          type: 'payment',
-          publicKey: account.publicKey,
-          path: account.path,
-          namespace: ConstantsUtil.CHAIN.BITCOIN
-        }))
-      })
-
-      vi.spyOn(adapter, 'getConnectorId').mockReturnValue('different_connector_id')
-
-      const emitSpy = vi.spyOn(adapter as any, 'emit')
-
-      await adapter.onAccountsChanged(['mock_address_1'], connector.id)
-
-      expect(getAccountsSpy).toHaveBeenCalledWith({ id: connector.id })
-      expect(emitSpy).not.toHaveBeenCalledWith('accountChanged', expect.anything())
-      expect(emitSpy).toHaveBeenCalledWith('connections', expect.any(Array))
     })
   })
 

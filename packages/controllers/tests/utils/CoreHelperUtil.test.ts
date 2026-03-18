@@ -189,32 +189,16 @@ describe('CoreHelperUtil', () => {
         href: `${appUrl}/`
       })
     })
-  })
 
-  describe('appendPayToUri', () => {
-    const wcUri = 'wc:abc123@2?relay-protocol=irn&symKey=xyz'
+    it('should handle empty appUrl', () => {
+      const appUrl = ''
 
-    it('should return original URI when wcPayUrl is undefined', () => {
-      expect(CoreHelperUtil.appendPayToUri(wcUri, undefined)).toBe(wcUri)
-    })
+      const result = CoreHelperUtil.formatNativeUrl(appUrl, wcUri, null)
 
-    it('should return original URI when wcPayUrl is empty string', () => {
-      expect(CoreHelperUtil.appendPayToUri(wcUri, '')).toBe(wcUri)
-    })
-
-    it('should append encoded pay param when wcPayUrl is provided', () => {
-      const wcPayUrl = 'https://pay.walletconnect.com/?pid=pay_123'
-      const result = CoreHelperUtil.appendPayToUri(wcUri, wcPayUrl)
-
-      expect(result).toBe(`${wcUri}&pay=${encodeURIComponent(wcPayUrl)}`)
-    })
-
-    it('should properly encode special characters in wcPayUrl', () => {
-      const wcPayUrl = 'https://pay.example.com/?id=123&amount=100&currency=USD'
-      const result = CoreHelperUtil.appendPayToUri(wcUri, wcPayUrl)
-
-      expect(result).toBe(`${wcUri}&pay=${encodeURIComponent(wcPayUrl)}`)
-      expect(result).toContain('&pay=https%3A%2F%2Fpay.example.com')
+      expect(result).toEqual({
+        redirect: `wc?uri=${encodeURIComponent(wcUri)}`,
+        href: appUrl
+      })
     })
   })
 })

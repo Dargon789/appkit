@@ -6,25 +6,17 @@ import type {
   ParsedCaipAddress,
   SdkVersion
 } from '@reown/appkit-common'
-import { ConstantsUtil as CommonConstants, ParseUtil } from '@reown/appkit-common'
+import { ConstantsUtil as CommonConstants } from '@reown/appkit-common'
 import type { CaipAddress, CaipNetwork } from '@reown/appkit-common'
 
 import { ConstantsUtil } from './ConstantsUtil.js'
 import { StorageUtil } from './StorageUtil.js'
-import type { AccountTypeMap, ChainAdapter, LinkingRecord } from './TypeUtil.js'
+import type { AccountTypeMap, ChainAdapter, LinkingRecord, NamespaceTypeMap } from './TypeUtil.js'
 
 type SDKFramework = 'html' | 'react' | 'vue' | 'cdn' | 'unity'
 export type OpenTarget = '_blank' | '_self' | 'popupWindow' | '_top'
 
 export const CoreHelperUtil = {
-  getWindow(): Window | undefined {
-    if (typeof window === 'undefined') {
-      return undefined
-    }
-
-    return window
-  },
-
   isMobile() {
     if (this.isClient()) {
       return Boolean(
@@ -95,7 +87,6 @@ export const CoreHelperUtil = {
       return false
     }
   },
-
   isSafeApp() {
     if (CoreHelperUtil.isClient() && window.self !== window.top) {
       try {
@@ -166,15 +157,16 @@ export const CoreHelperUtil = {
     let safeAppUrl = appUrl
     let safeUniversalLink = universalLink
 
-    if (!safeAppUrl.includes('://')) {
-      safeAppUrl = appUrl.replaceAll('/', '').replaceAll(':', '')
-      safeAppUrl = `${safeAppUrl}://`
-    }
+    if (safeAppUrl) {
+      if (!safeAppUrl.includes('://')) {
+        safeAppUrl = appUrl.replaceAll('/', '').replaceAll(':', '')
+        safeAppUrl = `${safeAppUrl}://`
+      }
 
-    if (!safeAppUrl.endsWith('/')) {
-      safeAppUrl = `${safeAppUrl}/`
+      if (!safeAppUrl.endsWith('/')) {
+        safeAppUrl = `${safeAppUrl}/`
+      }
     }
-
     if (safeUniversalLink && !safeUniversalLink?.endsWith('/')) {
       safeUniversalLink = `${safeUniversalLink}/`
     }
@@ -445,22 +437,20 @@ export const CoreHelperUtil = {
     return `${platform}-${adapterNames}-${version}`
   },
 
-  createAccount<N extends ChainNamespace>(params: {
-    caipAddress: CaipAddress
-    type: string
-    publicKey?: string
+  // eslint-disable-next-line max-params
+  createAccount<N extends ChainNamespace>(
+    namespace: N,
+    address: string,
+    type: NamespaceTypeMap[N],
+    publicKey?: string,
     path?: string
-  }): AccountTypeMap[N] {
-    const { chainNamespace, chainId, address } = ParseUtil.parseCaipAddress(params.caipAddress)
-
+  ): AccountTypeMap[N] {
     return {
-      namespace: chainNamespace,
+      namespace,
       address,
-      chainId,
-      caipAddress: params.caipAddress,
-      type: params.type,
-      publicKey: params.publicKey,
-      path: params.path
+      type,
+      publicKey,
+      path
     } as AccountTypeMap[N]
   },
 

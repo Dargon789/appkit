@@ -26,4 +26,9 @@ export default css`
     cursor: not-allowed;
     opacity: 0.5;
   }
+
+  button > wui-icon {
+    width: 24px;
+    height: 24px;
+  }
 `

@@ -25,12 +25,9 @@ import '../../partials/w3m-connecting-wc-mobile/index.js'
 import '../../partials/w3m-connecting-wc-qrcode/index.js'
 import '../../partials/w3m-connecting-wc-unsupported/index.js'
 import '../../partials/w3m-connecting-wc-web/index.js'
-import styles from './styles.js'
 
 @customElement('w3m-connecting-wc-view')
 export class W3mConnectingWcView extends LitElement {
-  public static override styles = styles
-
   // -- Members ------------------------------------------- //
   private wallet = RouterController.state.data?.wallet
 
@@ -65,13 +62,9 @@ export class W3mConnectingWcView extends LitElement {
 
   // -- Render -------------------------------------------- //
   public override render() {
-    if (OptionsController.state.enableMobileFullScreen) {
-      this.setAttribute('data-mobile-fullscreen', 'true')
-    }
-
     return html`
       ${this.headerTemplate()}
-      <div class="platform-container">${this.platformTemplate()}</div>
+      <div>${this.platformTemplate()}</div>
       ${this.reownBrandingTemplate()}
     `
   }
@@ -99,7 +92,7 @@ export class W3mConnectingWcView extends LitElement {
 
     try {
       const { wcPairingExpiry, status } = ConnectionController.state
-      const { redirectView } = RouterController.state.data ?? {}
+
       if (
         retry ||
         OptionsController.state.enableEmbedded ||
@@ -117,8 +110,6 @@ export class W3mConnectingWcView extends LitElement {
           if (hasConnections && isMultiWalletEnabled) {
             RouterController.replace('ProfileWallets')
             SnackController.showSuccess('New Wallet Added')
-          } else if (redirectView) {
-            RouterController.replace(redirectView)
           } else {
             ModalController.close()
           }

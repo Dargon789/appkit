@@ -64,14 +64,11 @@ export class W3mConnectingExternalView extends W3mConnectingWidget {
       ConnectorController.subscribeKey('activeConnectorIds', val => {
         const newActiveConnectorId = val[namespace]
         const isMultiWalletEnabled = this.remoteFeatures?.multiWallet
-        const { redirectView } = RouterController.state.data ?? {}
 
         if (newActiveConnectorId !== this.currentActiveConnectorId) {
           if (this.hasMultipleConnections && isMultiWalletEnabled) {
             RouterController.replace('ProfileWallets')
             SnackController.showSuccess('New Wallet Added')
-          } else if (redirectView) {
-            RouterController.replace(redirectView)
           } else {
             ModalController.close()
           }
@@ -96,15 +93,23 @@ export class W3mConnectingExternalView extends W3mConnectingWidget {
         }
 
         /**
-         * Coinbase SDK and Base Account work with popups and popups requires user interaction to be opened since modern browsers block popups which triggered programmatically.
-         * Instead of opening a popup in first render for `W3mConnectingWidget`, we need to trigger connection for Coinbase/Base Account connectors specifically when users select it.
+         * Coinbase SDK works with popups and popups requires user interaction to be opened since modern browsers block popups which triggered programmatically.
+         * Instead of opening a popup in first render for `W3mConnectingWidget`, we need to trigger connection for Coinbase connector specifically when users select it.
          * And if there is an error, this condition will be skipped and the connection will be triggered as usual because we have `Try again` button in this view which is a user interaction as well.
          */
-        const isPopupBasedConnector =
-          this.connector.id === CommonConstantsUtil.CONNECTOR_ID.COINBASE_SDK ||
-          this.connector.id === CommonConstantsUtil.CONNECTOR_ID.BASE_ACCOUNT
-        if (!isPopupBasedConnector || !this.error) {
+        if (this.connector.id !== CommonConstantsUtil.CONNECTOR_ID.COINBASE_SDK || !this.error) {
           await ConnectionController.connectExternal(this.connector, this.connector.chain)
+
+          EventsController.sendEvent({
+            type: 'track',
+            event: 'CONNECT_SUCCESS',
+            properties: {
+              method: 'browser',
+              name: this.connector.name || 'Unknown',
+              view: RouterController.state.view,
+              walletRank: this.wallet?.order
+            }
+          })
         }
       }
     } catch (error) {
