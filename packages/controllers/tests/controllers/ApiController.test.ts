@@ -275,8 +275,9 @@ describe('ApiController', () => {
     const fetchSpy = vi.spyOn(ApiController, '_fetchNetworkImage').mockResolvedValue()
     await ApiController.fetchNetworkImages()
 
-    // Does not call if imageId is not present
-    expect(fetchSpy).toHaveBeenCalledTimes(2)
+    // Fetches configured network images and namespace chain images
+    expect(fetchSpy).toHaveBeenCalledWith('12341')
+    expect(fetchSpy).toHaveBeenCalledWith('12342')
   })
 
   it('should only fetch network images for networks with imageIds', async () => {
@@ -284,8 +285,11 @@ describe('ApiController', () => {
     const fetchSpy = vi.spyOn(ApiController, '_fetchNetworkImage').mockResolvedValue()
     await ApiController.fetchNetworkImages()
 
-    // Does not call if imageId is not present
-    expect(fetchSpy).toHaveBeenCalledTimes(2)
+    // Fetches configured network images and namespace chain images
+    expect(fetchSpy).toHaveBeenCalledWith('12341')
+    expect(fetchSpy).toHaveBeenCalledWith('12342')
+    // Does not call for networks without imageId
+    expect(fetchSpy.mock.calls.every(([id]) => id !== undefined && id !== '')).toBe(true)
   })
 
   it('should fetch connector images', async () => {
