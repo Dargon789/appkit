@@ -44,7 +44,7 @@
     "@reown/appkit-scaffold-ui": "1.8.0",
     "@reown/appkit-ui": "1.8.0",
     "@sentry/core": "8.55.0",
-    "@sentry/nextjs": "8.55.0",
+    "@sentry/nextjs": "10.40.0",
     "@solana/web3.js": "1.98.4",
     "@tanstack/react-query": "5.75.5",
     "@wagmi/core": "2.22.1",
