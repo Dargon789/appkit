@@ -117,7 +117,7 @@ export class TronConnectConnector implements TronConnector {
       body: JSON.stringify({
         owner_address: params.from,
         to_address: params.to,
-        amount: parseInt(params.value, 10),
+        amount: params.value,
         visible: true
       })
     })
