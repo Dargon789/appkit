@@ -107,6 +107,11 @@ export interface OptionsControllerStatePublic {
    */
   enableCoinbase?: boolean
   /**
+   * Enable or disable the Base Account connector (for gasless transactions via CDP Paymaster).
+   * @default true
+   */
+  enableBaseAccount?: boolean
+  /**
    * Enable or disable the Injected wallet.
    * @default true
    */
@@ -165,7 +170,7 @@ export interface OptionsControllerStatePublic {
   allowUnsupportedChain?: boolean
   /**
    * Default account types for each namespace.
-   * @default "{ bip122: 'payment', eip155: 'smartAccount', polkadot: 'eoa', solana: 'eoa', ton: 'eoa' }"
+   * @default "{ bip122: 'payment', eip155: 'smartAccount', polkadot: 'eoa', solana: 'eoa', ton: 'eoa', tron: 'eoa' }"
    */
   defaultAccountTypes: PreferredAccountTypes
   /**
@@ -341,6 +346,14 @@ export const OptionsController = {
 
   setEIP6963Enabled(enableEIP6963: OptionsControllerState['enableEIP6963']) {
     state.enableEIP6963 = enableEIP6963
+  },
+
+  setEnableCoinbase(enableCoinbase: OptionsControllerState['enableCoinbase']) {
+    state.enableCoinbase = enableCoinbase
+  },
+
+  setEnableBaseAccount(enableBaseAccount: OptionsControllerState['enableBaseAccount']) {
+    state.enableBaseAccount = enableBaseAccount
   },
 
   setDebug(debug: OptionsControllerState['debug']) {

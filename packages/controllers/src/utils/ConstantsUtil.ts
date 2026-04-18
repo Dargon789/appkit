@@ -193,7 +193,10 @@ export const ConstantsUtil = {
     CommonConstantsUtil.CHAIN.EVM,
     CommonConstantsUtil.CHAIN.SOLANA
   ] as ChainNamespace[],
-  ACTIVITY_ENABLED_CHAIN_NAMESPACES: [CommonConstantsUtil.CHAIN.EVM] as ChainNamespace[],
+  ACTIVITY_ENABLED_CHAIN_NAMESPACES: [
+    CommonConstantsUtil.CHAIN.EVM,
+    CommonConstantsUtil.CHAIN.TON
+  ] as ChainNamespace[],
   NATIVE_TOKEN_ADDRESS: {
     eip155: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
     solana: 'So11111111111111111111111111111111111111111',
@@ -202,7 +205,8 @@ export const ConstantsUtil = {
     cosmos: '0x',
     sui: '0x',
     stacks: '0x',
-    ton: '0x'
+    ton: '0x',
+    tron: '0x'
   } as const satisfies Record<ChainNamespace, string>,
 
   CONVERT_SLIPPAGE_TOLERANCE: 1,
@@ -289,7 +293,8 @@ export const ConstantsUtil = {
     eip155: 'smartAccount',
     polkadot: 'eoa',
     solana: 'eoa',
-    ton: 'eoa'
+    ton: 'eoa',
+    tron: 'eoa'
   } as const satisfies PreferredAccountTypes,
   ADAPTER_TYPES: {
     UNIVERSAL: 'universal',
