@@ -30,8 +30,7 @@ const CHAIN_NAME_MAP = {
   cosmos: 'Cosmos',
   sui: 'Sui',
   stacks: 'Stacks',
-  ton: 'TON',
-  tron: 'TRON'
+  ton: 'TON'
 }
 
 export function NamespaceSelectionDialog({

@@ -532,11 +532,6 @@ export class AppKit extends AppKitBaseClient {
   }: Pick<AdapterBlueprint.ConnectResult, 'address' | 'chainId'> & {
     chainNamespace: ChainNamespace
   }) {
-    // Identity/ENS lookup is only supported for EVM chains
-    if (chainNamespace !== ConstantsUtil.CHAIN.EVM) {
-      return
-    }
-
     const caipNetworkId: CaipNetworkId = `${chainNamespace}:${chainId}`
     const activeCaipNetwork = this.caipNetworks?.find(n => n.caipNetworkId === caipNetworkId)
 
@@ -590,14 +585,9 @@ export class AppKit extends AppKitBaseClient {
       return
     }
 
-    // Skip UI loading entirely in headless mode - no modal, no fonts, no UI components
-    const features = { ...CoreConstantsUtil.DEFAULT_FEATURES, ...this.options.features }
-    if (features.headless) {
-      return
-    }
-
     if (!isInitialized) {
       try {
+        const features = { ...CoreConstantsUtil.DEFAULT_FEATURES, ...this.options.features }
         const remoteFeatures = this.remoteFeatures
 
         // Use a factory function that will be properly tree-shaken in SSR builds

@@ -102,7 +102,6 @@ const connectionControllerClient: ConnectionControllerClient = {
   formatUnits: value => value.toString(),
   sendTransaction: () => Promise.resolve('0x'),
   writeContract: () => Promise.resolve('0x'),
-  writeSolanaTransaction: () => Promise.resolve('0x'),
   getEnsAddress: async (value: string) => Promise.resolve(value),
   getEnsAvatar: async (value: string) => Promise.resolve(value),
   getCapabilities: async () => Promise.resolve(''),

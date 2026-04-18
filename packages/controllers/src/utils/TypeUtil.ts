@@ -9,7 +9,6 @@ import type {
   CaipAddress,
   CaipNetwork,
   CaipNetworkId,
-  ChainId,
   ChainNamespace,
   Hex,
   OnRampProvider,
@@ -179,7 +178,6 @@ export interface WcWallet {
     | null
   display_index?: number
   supports_wc?: boolean
-  supports_wcpay?: boolean
 }
 
 export interface ApiGetWalletsRequest {
@@ -276,13 +274,11 @@ export interface BlockchainApiSwapTokensRequest {
 export interface BlockchainApiGetAddressBalanceRequest {
   caipNetworkId: string
   address: string
-  method?: string
-  params?: unknown
 }
 
-export interface BlockchainApiGetAddressBalanceResponse<T = string> {
+export interface BlockchainApiGetAddressBalanceResponse {
   ok: boolean
-  result: T
+  result: string
   jsonrpc: string
   id: string
 }
@@ -311,7 +307,6 @@ export interface BlockchainApiSwapQuoteResponse {
 }
 
 export interface BlockchainApiTokenPriceRequest {
-  caipNetworkId?: CaipNetworkId
   currency?: 'usd' | 'eur' | 'gbp' | 'aud' | 'cad' | 'inr' | 'jpy' | 'btc' | 'eth'
   addresses: string[]
 }
@@ -1141,15 +1136,12 @@ export type NamespaceTypeMap = {
   sui: 'eoa'
   stacks: 'eoa'
   ton: 'eoa'
-  tron: 'eoa'
 }
 
 export type AccountTypeMap = {
   [K in ChainNamespace]: {
     namespace: K
     address: string
-    chainId?: ChainId
-    caipAddress?: CaipAddress
     type: NamespaceTypeMap[K]
     publicKey?: K extends 'bip122' ? string : never
     path?: K extends 'bip122' ? string : never
@@ -1195,18 +1187,6 @@ export type EstimateGasTransactionArgs =
       chainNamespace: 'solana'
     }
 
-export type SolanaTransactionRequest = {
-  instructions: Array<{
-    keys: Array<{
-      pubkey: string
-      isSigner: boolean
-      isWritable: boolean
-    }>
-    programId: string
-    data: string
-  }>
-}
-
 export interface WriteContractArgs {
   tokenAddress: Address
   fromAddress: Address
@@ -1216,8 +1196,6 @@ export interface WriteContractArgs {
   args: unknown[]
   chainNamespace: ChainNamespace
 }
-
-export type WriteSolanaTransactionArgs = SolanaTransactionRequest
 
 export type AdapterNetworkState = {
   supportsAllNetworks: boolean
@@ -1425,8 +1403,6 @@ export type UseAppKitNetworkReturn = {
   caipNetwork: CaipNetwork | undefined
   chainId: number | string | undefined
   caipNetworkId: CaipNetworkId | undefined
-  approvedCaipNetworkIds: CaipNetworkId[] | undefined
-  supportsAllNetworks: boolean
   switchNetwork: (network: AppKitNetwork) => Promise<void>
 }
 

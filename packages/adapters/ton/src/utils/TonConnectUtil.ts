@@ -388,18 +388,14 @@ export const TonConnectUtil = {
       return tonWalletsCache.wallets.filter(this.isCorrectWalletInfoDTO)
     }
 
-    try {
-      const response = await api.get<TonWalletInfoDTO[]>({
-        path: '/ton/v1/wallets',
-        params: ApiController._getSdkProperties()
-      })
+    const response = await api.get<TonWalletInfoDTO[]>({
+      path: '/ton/v1/wallets',
+      params: ApiController._getSdkProperties()
+    })
 
-      StorageUtil.updateTonWalletsCache(response)
+    StorageUtil.updateTonWalletsCache(response)
 
-      return response.filter(this.isCorrectWalletInfoDTO)
-    } catch {
-      return []
-    }
+    return response.filter(this.isCorrectWalletInfoDTO)
   },
 
   isCorrectWalletInfoDTO(value: unknown): value is TonWalletInfoDTO {

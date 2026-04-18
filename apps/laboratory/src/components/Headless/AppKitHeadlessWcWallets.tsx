@@ -25,10 +25,9 @@ interface Props {
     namespace?: ChainNamespace
   ) => void
   onBack: () => void
-  selectedWalletId?: string
 }
 
-export function AppKitHeadlessWcWallets({ onConnect, onBack, selectedWalletId }: Props) {
+export function AppKitHeadlessWcWallets({ onConnect, onBack }: Props) {
   const {
     wcWallets,
     isFetchingWcUri,
@@ -38,7 +37,6 @@ export function AppKitHeadlessWcWallets({ onConnect, onBack, selectedWalletId }:
     connectingWallet,
     fetchWallets
   } = useAppKitWallets()
-
   const [inputValue, setInputValue] = useState('')
   const searchQuery = useDebounceValue(inputValue, 500)
 
@@ -100,7 +98,6 @@ export function AppKitHeadlessWcWallets({ onConnect, onBack, selectedWalletId }:
                 item={item}
                 onConnect={onConnect}
                 isConnecting={isFetchingWcUri && connectingWallet?.id === item.id}
-                isSelected={selectedWalletId === item.id}
               />
             ))}
           </Flex>

@@ -86,7 +86,6 @@ export interface RouterControllerState {
     | 'SIWXSignMessage'
     | 'Pay'
     | 'PayLoading'
-    | 'PayQuote'
     | 'FundWallet'
     | 'PayWithExchange'
     | 'PayWithExchangeSelectAsset'

@@ -15,7 +15,6 @@ import {
   solanaSdkOptions,
   testingSdkOptions,
   tonSdkOptions,
-  tronSdkOptions,
   wagmiSdkOptions
 } from '@/src/utils/DataUtil'
 
@@ -28,7 +27,6 @@ export default function HomePage() {
       <ConfigurationList title="Solana" sdkOptions={solanaSdkOptions} />
       <ConfigurationList title="Bitcoin" sdkOptions={bitcoinSdkOptions} />
       <ConfigurationList title="Ton" sdkOptions={tonSdkOptions} />
-      <ConfigurationList title="Tron" sdkOptions={tronSdkOptions} />
       <ConfigurationList title="Ethers" sdkOptions={ethersSdkOptions} />
       <ConfigurationList title="Ethers 5" sdkOptions={ethers5SdkOptions} />
       <ConfigurationList

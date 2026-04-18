@@ -5,12 +5,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 import '../../components/wui-loading-spinner/index.js'
 import '../../components/wui-text/index.js'
 import { elementStyles, resetStyles } from '../../utils/ThemeUtil.js'
-import type {
-  BackgroundColorType,
-  IconColorType,
-  IconType,
-  SizeType
-} from '../../utils/TypeUtil.js'
+import type { IconColorType, IconType } from '../../utils/TypeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
@@ -19,11 +14,7 @@ export class WuiListItem extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
   // -- State & Properties -------------------------------- //
-  @property() public type?: 'primary' | 'secondary' = 'primary'
-
   @property() public imageSrc = 'google'
-
-  @property() public imageSize?: SizeType = undefined
 
   @property() public icon?: IconType
 
@@ -33,13 +24,9 @@ export class WuiListItem extends LitElement {
 
   @property() public tabIdx?: boolean
 
-  @property() public boxColor?: BackgroundColorType = 'foregroundPrimary'
-
   @property({ type: Boolean }) public disabled = false
 
   @property({ type: Boolean }) public rightIcon = true
-
-  @property({ type: Boolean }) public boxed = true
 
   @property({ type: Boolean }) public rounded = false
 
@@ -48,7 +35,6 @@ export class WuiListItem extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     this.dataset['rounded'] = this.rounded ? 'true' : 'false'
-    this.dataset['type'] = this.type
 
     return html`
       <button
@@ -73,19 +59,16 @@ export class WuiListItem extends LitElement {
       return html`<wui-image
         icon=${this.icon}
         iconColor=${ifDefined(this.iconColor)}
-        ?boxed=${this.boxed}
+        ?boxed=${true}
         ?rounded=${this.rounded}
-        boxColor=${this.boxColor}
       ></wui-image>`
     }
 
     return html`<wui-image
-      ?boxed=${this.boxed}
+      ?boxed=${true}
       ?rounded=${this.rounded}
       ?fullSize=${this.fullSize}
-      size=${ifDefined(this.imageSize)}
       src=${this.imageSrc}
-      boxColor=${this.boxColor}
     ></wui-image>`
   }
 

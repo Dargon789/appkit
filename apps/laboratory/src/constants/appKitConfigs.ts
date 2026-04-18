@@ -9,7 +9,7 @@ import { siweConfig } from '@/src/utils/SiweUtils'
 
 import { externalTestConnector } from '../utils/ConnectorUtil'
 
-export type Adapter = 'wagmi' | 'ethers' | 'ethers5' | 'solana' | 'bitcoin' | 'ton' | 'tron'
+export type Adapter = 'wagmi' | 'ethers' | 'ethers5' | 'solana' | 'bitcoin' | 'ton'
 export type WagmiConfig = Partial<CreateConfigParameters> & {
   networks: AppKitNetwork[]
   projectId: string
@@ -58,7 +58,7 @@ export const appKitConfigs = {
   headless: {
     ...commonAppKitConfig,
     wagmiConfig: commonWagmiConfig,
-    adapters: ['wagmi', 'solana', 'bitcoin', 'ton', 'tron'],
+    adapters: ['wagmi', 'solana', 'bitcoin', 'ton'],
     networks: ConstantsUtil.AllNetworks,
     features: {
       headless: true
@@ -270,13 +270,6 @@ export const appKitConfigs = {
     networks: ConstantsUtil.TonNetworks
   },
 
-  // ----- TRON Variants ------------------------------
-  tron: {
-    ...commonAppKitConfig,
-    adapters: ['tron'],
-    networks: ConstantsUtil.TronNetworks
-  },
-
   // ----- Solana Variants ------------------------------
   solana: {
     ...commonAppKitConfig,
@@ -324,7 +317,7 @@ export const appKitConfigs = {
   'multichain-all': {
     ...commonAppKitConfig,
     wagmiConfig: commonWagmiConfig,
-    adapters: ['wagmi', 'solana', 'bitcoin', 'ton', 'tron'],
+    adapters: ['wagmi', 'solana', 'bitcoin', 'ton'],
     networks: ConstantsUtil.AllNetworks
   },
   'multichain-no-adapters': {
@@ -377,7 +370,7 @@ export const appKitConfigs = {
   'multichain-no-custom-wallets': {
     ...commonAppKitConfig,
     wagmiConfig: commonWagmiConfig,
-    adapters: ['wagmi', 'solana', 'bitcoin', 'ton', 'tron'],
+    adapters: ['wagmi', 'solana', 'bitcoin', 'ton'],
     networks: ConstantsUtil.AllNetworks,
     customWallets: []
   },
@@ -398,8 +391,7 @@ export const appKitConfigs = {
   },
   'pay-default': {
     ...commonAppKitConfig,
-    wagmiConfig: commonWagmiConfig,
-    adapters: ['wagmi', 'solana', 'bitcoin'],
+    adapters: ['ethers', 'solana', 'bitcoin'],
     networks: ConstantsUtil.AllNetworks,
     features: { pay: true }
   },
@@ -415,7 +407,7 @@ export const appKitConfigs = {
     wagmiConfig: { ...commonWagmiConfig, connectors },
     adapters: ['wagmi'],
     networks: ConstantsUtil.EvmNetworks,
-    featuredWalletIds: ['d0ca99ff52b99abc48743dad0f7fc891e041be73574f7fac4afe5d4bb83845c8']
+    featuredWalletIds: ['fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa']
   },
 
   // ----- Flags -------------------------
@@ -469,13 +461,6 @@ export const appKitConfigs = {
     wagmiConfig: commonWagmiConfig,
     networks: ConstantsUtil.EvmNetworks,
     excludeWalletIds: ['2bd8c14e035c2d48f184aaa168559e86b0e3433228d3c4075900a221785019b0']
-  },
-  'flag-no-coinbase': {
-    ...commonAppKitConfig,
-    wagmiConfig: commonWagmiConfig,
-    adapters: ['wagmi', 'solana'],
-    networks: [...ConstantsUtil.EvmNetworks, ...ConstantsUtil.SolanaNetworks],
-    enableCoinbase: false
   }
 
   // ----- Core -------------------------

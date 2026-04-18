@@ -34,15 +34,11 @@ export declare namespace TonConnector {
   }
   type SignDataParams = SignDataParamsText | SignDataParamsBinary | SignDataParamsCell
   type SendMessageParams = {
-    validUntil?: number
-    from?: string
-    network?: string
+    validUntil: number
+    from: string
     messages: {
       address: string
-      amount: string | number
-      payload?: string
-      stateInit?: string
-      extraCurrency?: Record<number, string>
+      amount: string
     }[]
   }
 }

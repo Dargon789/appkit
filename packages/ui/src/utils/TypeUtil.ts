@@ -2,10 +2,7 @@ import type { vars } from './ThemeHelperUtil.js'
 
 export type ColorType = string
 
-export type BackgroundColorType =
-  | 'foregroundSecondary'
-  | 'foregroundAccent010'
-  | 'foregroundPrimary'
+export type BackgroundColorType = 'foregroundSecondary' | 'foregroundAccent010'
 
 export type AlertType = 'success' | 'error' | 'warning' | 'info'
 
@@ -184,7 +181,6 @@ export type IconType =
   | 'telegram'
   | 'threeDots'
   | 'ton'
-  | 'tron'
   | 'twitch'
   | 'twitter'
   | 'twitterIcon'
@@ -202,9 +198,6 @@ export type IconType =
   | 'ethereum'
   | 'solana'
   | 'bitcoin'
-  | 'infoSeal'
-  | 'coins'
-  | 'paperPlaneTitle'
 
 export type IconWeightType = 'regular' | 'bold' | 'fill'
 
@@ -423,5 +416,3 @@ export type MaskInputOptions = {
   decimals?: number
   integers?: number
 }
-
-export type PulseVariant = 'accent-primary'

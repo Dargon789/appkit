@@ -64,8 +64,7 @@ export const DEFAULT_METHODS = {
     //EIP-7811
     'wallet_getAssets'
   ],
-  bip122: ['sendTransfer', 'signMessage', 'signPsbt', 'getAccountAddresses'],
-  tron: ['tron_signMessage', 'tron_signTransaction']
+  bip122: ['sendTransfer', 'signMessage', 'signPsbt', 'getAccountAddresses']
 }
 
 export const WcHelpersUtil = {

@@ -61,7 +61,6 @@ export type InternalChainNamespace =
   | 'sui'
   | 'stacks'
   | 'ton'
-  | 'tron'
 
 export type ChainNamespace<T extends string = InternalChainNamespace> = T | InternalChainNamespace
 
@@ -74,7 +73,6 @@ export type AdapterType =
   | 'bip122'
   | 'polkadot'
   | 'ton'
-  | 'tron'
 
 export type TransactionStatus = 'confirmed' | 'failed' | 'pending'
 
@@ -88,7 +86,7 @@ export type TransactionImage = {
 export interface Transaction {
   id: string
   metadata: TransactionMetadata
-  transfers: TransactionTransfer[] | null
+  transfers: TransactionTransfer[]
 }
 
 export interface TransactionMetadata {
@@ -233,7 +231,7 @@ export type Connection = {
   name?: string
   icon?: string
   networkIcon?: string
-  accounts: { type?: string; address: string; publicKey?: string; caipAddress?: CaipAddress }[]
+  accounts: { type?: string; address: string; publicKey?: string }[]
   caipNetwork?: CaipNetwork
   connectorId: string
   auth?: {

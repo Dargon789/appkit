@@ -12,12 +12,9 @@ export class WuiSeparator extends LitElement {
 
   // -- State & Properties -------------------------------- //
   @property() public text? = ''
-  @property() public bgColor: 'primary' | 'secondary' = 'primary'
 
   // -- Render -------------------------------------------- //
   public override render() {
-    this.dataset['bgColor'] = this.bgColor
-
     return html`${this.template()}`
   }
 

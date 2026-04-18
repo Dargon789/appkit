@@ -473,11 +473,7 @@ const controller = {
   },
 
   async getMyTokensWithBalance(forceUpdate?: string) {
-    const balances = await BalanceUtil.getMyTokensWithBalance({
-      forceUpdate,
-      caipNetwork: ChainController.state.activeCaipNetwork,
-      address: ChainController.getAccountData()?.address
-    })
+    const balances = await BalanceUtil.getMyTokensWithBalance(forceUpdate)
     const swapBalances = SwapApiUtil.mapBalancesToSwapTokens(balances)
 
     if (!swapBalances) {
@@ -566,7 +562,6 @@ const controller = {
     const amountDecimal = NumberUtil.bigNumber(state.sourceTokenAmount)
       .times(10 ** sourceToken.decimals)
       .round(0)
-      .toFixed(0)
 
     try {
       const quoteResponse = await BlockchainApiController.fetchSwapQuote({

@@ -73,7 +73,6 @@ const mockConnectionControllerClient: ConnectionControllerClient = {
   parseUnits: vi.fn(),
   formatUnits: vi.fn(),
   writeContract: vi.fn(),
-  writeSolanaTransaction: vi.fn(),
   getEnsAddress: vi.fn(),
   getEnsAvatar: vi.fn(),
   grantPermissions: vi.fn(),

@@ -2,7 +2,7 @@ import type UniversalProvider from '@walletconnect/universal-provider'
 import bs58 from 'bs58'
 import { toHex } from 'viem'
 
-import { type CaipAddress, type ChainNamespace, ConstantsUtil } from '@reown/appkit-common'
+import { type ChainNamespace, ConstantsUtil } from '@reown/appkit-common'
 import {
   ChainController,
   ConstantsUtil as CoreConstantsUtil,
@@ -57,28 +57,23 @@ export class UniversalAdapter extends AdapterBlueprint {
     return Promise.resolve()
   }
 
-  public async writeSolanaTransaction(): Promise<AdapterBlueprint.WriteSolanaTransactionResult> {
-    return Promise.resolve({
-      hash: ''
-    })
-  }
-
   public async getAccounts({
     namespace
   }: AdapterBlueprint.GetAccountsParams & {
     namespace: ChainNamespace
   }): Promise<AdapterBlueprint.GetAccountsResult> {
     const provider = this.provider as UniversalProvider
-    const caipAccounts = (provider?.session?.namespaces?.[namespace]?.accounts || []).filter(
-      (account, index, self) => self.indexOf(account) === index
-    ) as CaipAddress[]
+    const addresses = (provider?.session?.namespaces?.[namespace]?.accounts
+      ?.map(account => {
+        const [, , address] = account.split(':')
+
+        return address
+      })
+      .filter((address, index, self) => self.indexOf(address) === index) || []) as string[]
 
     return Promise.resolve({
-      accounts: caipAccounts.map(caipAddress =>
-        CoreHelperUtil.createAccount({
-          caipAddress,
-          type: namespace === 'bip122' ? 'payment' : 'eoa'
-        })
+      accounts: addresses.map(address =>
+        CoreHelperUtil.createAccount(namespace, address, namespace === 'bip122' ? 'payment' : 'eoa')
       )
     })
   }
