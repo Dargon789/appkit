@@ -1,4 +1,6 @@
-import{F as a}from"./index-DVkBgnkX.js";const v=a`
+import { F as a } from './index-DVkBgnkX.js'
+
+const v = a`
   <svg fill="none" viewBox="0 0 48 44">
     <path
       style="fill: var(--wui-color-bg-300);"
@@ -11,4 +13,5 @@ import{F as a}from"./index-DVkBgnkX.js";const v=a`
       clip-rule="evenodd"
     />
   </svg>
-`;export{v as walletPlaceholderSvg};
+`
+export { v as walletPlaceholderSvg }

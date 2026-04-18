@@ -1,4 +1,6 @@
-import{F as t}from"./index-DVkBgnkX.js";const o=t`<svg width="36" height="36" fill="none">
+import { F as t } from './index-DVkBgnkX.js'
+
+const o = t`<svg width="36" height="36" fill="none">
   <path
     fill="#fff"
     fill-opacity=".05"
@@ -58,4 +60,5 @@ import{F as t}from"./index-DVkBgnkX.js";const o=t`<svg width="36" height="36" fi
       <stop offset="1" stop-color="#34A853" />
     </linearGradient>
   </defs>
-</svg>`;export{o as chromeStoreSvg};
+</svg>`
+export { o as chromeStoreSvg }

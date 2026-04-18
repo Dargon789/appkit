@@ -11,24 +11,24 @@ jobs:
             - v1-cargo-{{ checksum "Cargo.lock" }}
             - v1-cargo-
       - run:
-          name: "Check formatting"
+          name: 'Check formatting'
           command: cargo fmt -- --check
       - run:
-          name: "Run tests"
+          name: 'Run tests'
           command: cargo test
       - save_cache:
           key: v1-cargo-{{ checksum "Cargo.lock" }}
           paths:
-            - "~/.cargo/bin"
-            - "~/.cargo/registry/index"
-            - "~/.cargo/registry/cache"
-            - "~/.cargo/git/db"
-            - "target"
+            - '~/.cargo/bin'
+            - '~/.cargo/registry/index'
+            - '~/.cargo/registry/cache'
+            - '~/.cargo/git/db'
+            - 'target'
       - run:
-          name: "Check formatting"
+          name: 'Check formatting'
           command: cargo fmt -- --check
       - run:
-          name: "Run tests"
+          name: 'Run tests'
           command: cargo test
 
 workflows:
