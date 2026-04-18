@@ -20,8 +20,6 @@ import MixColorInput from '@/src/components/Theming/MixColorInput'
 import QrColorInput from '@/src/components/Theming/QrColorInput'
 import { ThemeStore } from '@/src/utils/StoreUtil'
 
-import SmartAccountVersionInput from '../components/SmartAccount/SmartAccountVersionInput'
-
 interface Props {
   controls: ReturnType<typeof useDisclosure>
 }
@@ -85,9 +83,6 @@ export function OptionsDrawer({ controls }: Props) {
             </Flex>
             <Flex gridGap="4" flexDirection="column">
               <BorderRadiusInput />
-            </Flex>
-            <Flex gridGap="4" flexDirection="column">
-              <SmartAccountVersionInput />
             </Flex>
           </Flex>
         </DrawerBody>

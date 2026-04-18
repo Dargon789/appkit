@@ -12,8 +12,6 @@ function getNetworks(library: string) {
     return ['Solana Testnet', 'Solana Devnet', 'Solana']
   } else if (library === 'bitcoin') {
     return ['Bitcoin Testnet', 'Bitcoin']
-  } else if (library === 'ton') {
-    return ['TON Testnet', 'TON']
   }
 
   return ['Polygon', 'Base', 'Ethereum']
@@ -51,7 +49,7 @@ extensionTest('it should sign message', async () => {
 })
 
 extensionTest('it should sign typed data', async ({ library }) => {
-  if (library === 'solana' || library === 'bitcoin' || library === 'ton') {
+  if (library === 'solana' || library === 'bitcoin') {
     return
   }
 

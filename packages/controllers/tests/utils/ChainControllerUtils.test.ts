@@ -23,9 +23,7 @@ describe('getChainsToDisconnect', () => {
       bip122: 'bip122-connector',
       cosmos: 'cosmos-connector',
       sui: undefined,
-      stacks: undefined,
-      ton: undefined,
-      tron: undefined
+      stacks: undefined
     }
 
     const result = getChainsToDisconnect()
@@ -47,9 +45,7 @@ describe('getChainsToDisconnect', () => {
       bip122: ConstantsUtil.CONNECTOR_ID.WALLET_CONNECT,
       cosmos: 'cosmos-connector',
       sui: undefined,
-      stacks: undefined,
-      ton: undefined,
-      tron: undefined
+      stacks: undefined
     }
 
     const result = getChainsToDisconnect('eip155')
@@ -75,9 +71,7 @@ describe('getChainsToDisconnect', () => {
       bip122: 'bip122-connector',
       cosmos: 'cosmos-connector',
       sui: undefined,
-      stacks: undefined,
-      ton: undefined,
-      tron: undefined
+      stacks: undefined
     }
 
     const result = getChainsToDisconnect('solana')

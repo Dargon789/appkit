@@ -5,6 +5,7 @@ export default css`
     display: block;
     border-radius: clamp(0px, ${({ borderRadius }) => borderRadius['8']}, 44px);
     box-shadow: 0 0 0 1px ${({ tokens }) => tokens.theme.foregroundPrimary};
+    background-color: ${({ tokens }) => tokens.theme.backgroundPrimary};
     overflow: hidden;
   }
 `
