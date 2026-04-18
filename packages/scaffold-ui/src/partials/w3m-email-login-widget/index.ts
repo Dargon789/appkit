@@ -7,7 +7,6 @@ import type { Ref } from 'lit/directives/ref.js'
 import { ConstantsUtil } from '@reown/appkit-common'
 import {
   AlertController,
-  ApiController,
   ChainController,
   ConnectionController,
   ConnectorController,
@@ -45,18 +44,12 @@ export class W3mEmailLoginWidget extends LitElement {
 
   @state() private remoteFeatures = OptionsController.state.remoteFeatures
 
-  @state() private hasExceededUsageLimit = ApiController.state.plan.hasExceededUsageLimit
-
   public constructor() {
     super()
     this.unsubscribe.push(
       OptionsController.subscribeKey('remoteFeatures', val => {
         this.remoteFeatures = val
-      }),
-      ApiController.subscribeKey(
-        'plan',
-        val => (this.hasExceededUsageLimit = val.hasExceededUsageLimit)
-      )
+      })
     )
   }
 
@@ -83,7 +76,7 @@ export class W3mEmailLoginWidget extends LitElement {
           .disabled=${this.loading}
           @inputChange=${this.onEmailInputChange.bind(this)}
           tabIdx=${ifDefined(this.tabIdx)}
-          ?disabled=${hasConnection || this.hasExceededUsageLimit}
+          ?disabled=${hasConnection}
         >
         </wui-email-input>
 

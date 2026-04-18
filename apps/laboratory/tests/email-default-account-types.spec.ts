@@ -51,7 +51,6 @@ emailTest.afterAll(async () => {
 emailTest('it should make the default account type as smart account', async () => {
   await page.goToProfileWalletsView()
   await page.clickProfileWalletsMoreButton()
-  await page.clickSmartAccountSettingsButton()
   await validator.expectChangePreferredAccountToShow(EOA)
   await page.closeModal()
 
@@ -60,9 +59,7 @@ emailTest('it should make the default account type as smart account', async () =
 
   await page.goToProfileWalletsView()
   await page.clickProfileWalletsMoreButton()
-  await page.clickSmartAccountSettingsButton()
   await validator.expectChangePreferredAccountToShow(EOA)
-  await page.goBack()
   await page.disconnect()
   await validator.expectDisconnected()
 })
@@ -75,9 +72,8 @@ emailTest('it should connect again and should be sa', async () => {
   // Verify the active account type is smart account
   await page.goToProfileWalletsView()
   await page.clickProfileWalletsMoreButton()
-  await page.clickSmartAccountSettingsButton()
   await validator.expectChangePreferredAccountToShow(EOA)
-  await page.goBack()
+
   await page.disconnect()
   await validator.expectDisconnected()
 })
@@ -97,7 +93,6 @@ emailTest('it should show make the default account type as EOA', async () => {
 
   await page.goToProfileWalletsView()
   await page.clickProfileWalletsMoreButton()
-  await page.clickSmartAccountSettingsButton()
   await validator.expectChangePreferredAccountToShow(SMART_ACCOUNT)
   await page.closeModal()
 
@@ -106,9 +101,7 @@ emailTest('it should show make the default account type as EOA', async () => {
 
   await page.goToProfileWalletsView()
   await page.clickProfileWalletsMoreButton()
-  await page.clickSmartAccountSettingsButton()
   await validator.expectChangePreferredAccountToShow(SMART_ACCOUNT)
-  await page.goBack()
   await page.disconnect()
   await validator.expectDisconnected()
 })
@@ -121,9 +114,7 @@ emailTest('it should connect again and should be eoa', async () => {
   // Verify the active account type is smart account
   await page.goToProfileWalletsView()
   await page.clickProfileWalletsMoreButton()
-  await page.clickSmartAccountSettingsButton()
   await validator.expectChangePreferredAccountToShow(SMART_ACCOUNT)
-  await page.goBack()
 
   await page.disconnect()
   await validator.expectDisconnected()

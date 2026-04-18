@@ -4,6 +4,7 @@ import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
 import type { W3mFrameTypes } from '@reown/appkit-wallet'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet/utils'
 
+import { AccountController } from '../controllers/AccountController.js'
 import { ChainController } from '../controllers/ChainController.js'
 import { ConnectionController } from '../controllers/ConnectionController.js'
 import { ConnectorController } from '../controllers/ConnectorController.js'
@@ -108,14 +109,15 @@ export const ConnectorControllerUtil = {
     })
   },
   connectSocial({
-    social: socialProvider,
+    social,
     namespace,
     closeModalOnConnect = true,
     onOpenFarcaster,
     onConnect
   }: ConnectSocialParameters): Promise<ParsedCaipAddress> {
-    let socialWindow: Window | null | undefined = undefined
-    let isConnectingSocial = false
+    let socialWindow: Window | null | undefined = AccountController.state.socialWindow
+    let socialProvider = AccountController.state.socialProvider
+    let connectingSocial = false
     let popupWindow: Window | null = null
 
     const namespaceToUse = namespace || ChainController.state.activeChain
@@ -137,55 +139,62 @@ export const ConnectorControllerUtil = {
             try {
               const authConnector = ConnectorController.getAuthConnector(namespaceToUse)
 
-              if (authConnector && !isConnectingSocial) {
+              if (authConnector && !connectingSocial) {
                 if (socialWindow) {
                   socialWindow.close()
+                  AccountController.setSocialWindow(undefined, namespaceToUse)
+                  socialWindow = AccountController.state.socialWindow
                 }
-                isConnectingSocial = true
+                connectingSocial = true
                 const uri = event.data.resultUri as string
 
-                EventsController.sendEvent({
-                  type: 'track',
-                  event: 'SOCIAL_LOGIN_REQUEST_USER_DATA',
-                  properties: { provider: socialProvider }
-                })
-
-                StorageUtil.setConnectedSocialProvider(socialProvider)
-                await ConnectionController.connectExternal(
-                  {
-                    id: authConnector.id,
-                    type: authConnector.type,
-                    socialUri: uri
-                  },
-                  authConnector.chain
-                )
-
-                const caipAddress = ChainController.state.activeCaipAddress
-
-                if (!caipAddress) {
-                  reject(new Error('Failed to connect'))
-
-                  return
+                if (socialProvider) {
+                  EventsController.sendEvent({
+                    type: 'track',
+                    event: 'SOCIAL_LOGIN_REQUEST_USER_DATA',
+                    properties: { provider: socialProvider }
+                  })
                 }
 
-                resolve(ParseUtil.parseCaipAddress(caipAddress))
+                if (socialProvider) {
+                  StorageUtil.setConnectedSocialProvider(socialProvider)
+                  await ConnectionController.connectExternal(
+                    {
+                      id: authConnector.id,
+                      type: authConnector.type,
+                      socialUri: uri
+                    },
+                    authConnector.chain
+                  )
 
-                EventsController.sendEvent({
-                  type: 'track',
-                  event: 'SOCIAL_LOGIN_SUCCESS',
-                  properties: { provider: socialProvider }
-                })
+                  const caipAddress = ChainController.state.activeCaipAddress
+
+                  if (!caipAddress) {
+                    reject(new Error('Failed to connect'))
+
+                    return
+                  }
+
+                  resolve(ParseUtil.parseCaipAddress(caipAddress))
+
+                  EventsController.sendEvent({
+                    type: 'track',
+                    event: 'SOCIAL_LOGIN_SUCCESS',
+                    properties: { provider: socialProvider }
+                  })
+                }
               }
             } catch (err) {
-              EventsController.sendEvent({
-                type: 'track',
-                event: 'SOCIAL_LOGIN_ERROR',
-                properties: { provider: socialProvider, message: CoreHelperUtil.parseError(err) }
-              })
-
+              if (socialProvider) {
+                EventsController.sendEvent({
+                  type: 'track',
+                  event: 'SOCIAL_LOGIN_ERROR',
+                  properties: { provider: socialProvider, message: CoreHelperUtil.parseError(err) }
+                })
+              }
               reject(new Error('Failed to connect'))
             }
-          } else {
+          } else if (socialProvider) {
             EventsController.sendEvent({
               type: 'track',
               event: 'SOCIAL_LOGIN_ERROR',
@@ -196,16 +205,20 @@ export const ConnectorControllerUtil = {
       }
 
       async function connectSocial() {
-        EventsController.sendEvent({
-          type: 'track',
-          event: 'SOCIAL_LOGIN_STARTED',
-          properties: { provider: socialProvider as SocialProvider }
-        })
+        if (social) {
+          AccountController.setSocialProvider(social, namespaceToUse)
+          socialProvider = AccountController.state.socialProvider
+          EventsController.sendEvent({
+            type: 'track',
+            event: 'SOCIAL_LOGIN_STARTED',
+            properties: { provider: socialProvider as SocialProvider }
+          })
+        }
 
         if (socialProvider === 'farcaster') {
           onOpenFarcaster?.()
           const unsubscribeModalController = ModalController.subscribeKey('open', val => {
-            if (!val && socialProvider === 'farcaster') {
+            if (!val && social === 'farcaster') {
               reject(new Error('Popup closed'))
               onConnect?.()
               unsubscribeModalController()
@@ -215,12 +228,11 @@ export const ConnectorControllerUtil = {
           const authConnector = ConnectorController.getAuthConnector()
 
           if (authConnector) {
-            const _accountData = ChainController.getAccountData(namespaceToUse)
-            if (!_accountData?.farcasterUrl) {
+            if (!AccountController.state.farcasterUrl) {
               try {
                 const { url } = await authConnector.provider.getFarcasterUri()
 
-                ChainController.setAccountProp('farcasterUrl', url, namespaceToUse)
+                AccountController.setFarcasterUrl(url, namespaceToUse)
               } catch {
                 reject(new Error('Failed to connect to farcaster'))
               }
@@ -235,18 +247,19 @@ export const ConnectorControllerUtil = {
           )
 
           try {
-            if (authConnector) {
+            if (authConnector && socialProvider) {
               const { uri } = await authConnector.provider.getSocialRedirectUri({
                 provider:
                   socialProvider as W3mFrameTypes.Requests['AppGetSocialRedirectUriRequest']['provider']
               })
 
               if (popupWindow && uri) {
+                AccountController.setSocialWindow(popupWindow, namespaceToUse)
+                socialWindow = AccountController.state.socialWindow
                 popupWindow.location.href = uri
-                socialWindow = popupWindow
 
                 const interval = setInterval(() => {
-                  if (socialWindow?.closed && !isConnectingSocial) {
+                  if (socialWindow?.closed && !connectingSocial) {
                     reject(new Error('Popup closed'))
                     clearInterval(interval)
                   }

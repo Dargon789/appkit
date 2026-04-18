@@ -5,6 +5,7 @@ import { html } from 'lit'
 
 import { ConstantsUtil } from '@reown/appkit-common'
 import {
+  AccountController,
   ChainController,
   ConnectionController,
   ConnectorController,
@@ -16,7 +17,11 @@ import {
   SnackController,
   StorageUtil
 } from '@reown/appkit-controllers'
-import type { AccountState, AuthConnector, ChainControllerState } from '@reown/appkit-controllers'
+import type {
+  AccountControllerState,
+  AuthConnector,
+  ChainControllerState
+} from '@reown/appkit-controllers'
 
 import type { W3mAccountDefaultWidget } from '../../src/partials/w3m-account-default-widget/index.js'
 import { HelpersUtil } from '../utils/HelpersUtil'
@@ -28,7 +33,8 @@ describe('W3mAccountDefaultWidget', () => {
   const mockProfileImage = 'profile.jpg'
 
   beforeEach(() => {
-    vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
+    // Mock AccountController state
+    vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
       caipAddress: mockCaipAddress,
       address: mockAddress,
       profileName: mockProfileName,
@@ -38,8 +44,9 @@ describe('W3mAccountDefaultWidget', () => {
       addressExplorerUrl: 'https://etherscan.io',
       addressLabels: new Map(),
       preferredAccountType: 'eoa'
-    } as unknown as AccountState)
+    } as unknown as AccountControllerState)
 
+    // Mock ChainController state
     vi.spyOn(ChainController, 'state', 'get').mockReturnValue({
       activeChain: ConstantsUtil.CHAIN.EVM,
       activeCaipNetwork: {
@@ -78,9 +85,9 @@ describe('W3mAccountDefaultWidget', () => {
 
   describe('Rendering', () => {
     it('renders nothing when no caipAddress', async () => {
-      vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
+      vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
         caipAddress: null
-      } as unknown as AccountState)
+      } as unknown as AccountControllerState)
 
       const element: W3mAccountDefaultWidget = await fixture(
         html`<w3m-account-default-widget></w3m-account-default-widget>`

@@ -1,7 +1,7 @@
 import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { CaipNetwork } from '@reown/appkit-common'
-import { ChainController, CoreHelperUtil } from '@reown/appkit-controllers'
+import { CoreHelperUtil } from '@reown/appkit-controllers'
 import { bitcoin, bitcoinSignet, bitcoinTestnet } from '@reown/appkit/networks'
 
 import { UnisatConnector } from '../../src/connectors/UnisatConnector'
@@ -35,18 +35,20 @@ describe('UnisatConnector', () => {
   let wallet: ReturnType<typeof mockUnisatWallet>
   let requestedChains: CaipNetwork[]
   let connector: UnisatConnector
+  let getActiveNetwork: Mock<() => CaipNetwork | undefined>
   let imageUrl: string
 
   beforeEach(() => {
     imageUrl = 'mock_image_url'
     requestedChains = [bitcoin, bitcoinTestnet]
-    vi.spyOn(ChainController, 'getActiveCaipNetwork').mockReturnValue(bitcoin)
+    getActiveNetwork = vi.fn(() => bitcoin)
     wallet = mockUnisatWallet()
     connector = new UnisatConnector({
       id: 'unisat',
       name: 'Unisat Wallet',
       wallet,
       requestedChains,
+      getActiveNetwork,
       imageUrl
     })
   })
@@ -143,7 +145,7 @@ describe('UnisatConnector', () => {
     })
 
     it('should throw an error if the network is unavailable', async () => {
-      vi.spyOn(ChainController, 'getActiveCaipNetwork').mockReturnValue(undefined)
+      getActiveNetwork.mockReturnValueOnce(undefined)
 
       await expect(
         connector.sendTransfer({ amount: '1500', recipient: 'mock_to_address' })
@@ -172,7 +174,7 @@ describe('UnisatConnector', () => {
     })
 
     it('should sign a PSBT with broadcast', async () => {
-      vi.spyOn(ChainController, 'getActiveCaipNetwork').mockReturnValue(bitcoinTestnet)
+      getActiveNetwork.mockReturnValueOnce(bitcoinTestnet)
       const result = await connector.signPSBT({
         psbt: Buffer.from('mock_psbt').toString('base64'),
         signInputs: [],
@@ -271,6 +273,7 @@ describe('UnisatConnector', () => {
       id => {
         expect(
           UnisatConnector.getWallet({
+            getActiveNetwork,
             requestedChains: [],
             id,
             name: `${id} wallet`,
@@ -283,6 +286,7 @@ describe('UnisatConnector', () => {
     it('should return the Connector if there is a unisat wallet', () => {
       ;(window as any).unisat = wallet
       const connector = UnisatConnector.getWallet({
+        getActiveNetwork,
         id: 'unisat',
         name: 'Unisat Wallet',
         requestedChains,
@@ -295,6 +299,7 @@ describe('UnisatConnector', () => {
     it('should return the Connector if there is a bitget wallet', () => {
       ;(window as any).bitkeep = { unisat: wallet }
       const connector = UnisatConnector.getWallet({
+        getActiveNetwork,
         id: 'bitget',
         name: 'Bitget Wallet',
         requestedChains,
@@ -307,6 +312,7 @@ describe('UnisatConnector', () => {
     it('should return the Connector if there is a binance web3 wallet', () => {
       ;(window as any).binancew3w = { bitcoin: wallet }
       const connector = UnisatConnector.getWallet({
+        getActiveNetwork,
         id: 'binancew3w',
         name: 'Binance Web3 Wallet',
         requestedChains,
@@ -321,6 +327,7 @@ describe('UnisatConnector', () => {
 
       expect(
         UnisatConnector.getWallet({
+          getActiveNetwork,
           requestedChains: [],
           id: 'unisat',
           name: 'Unisat Wallet',
