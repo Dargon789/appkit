@@ -25,8 +25,6 @@ export class W3mInputToken extends LitElement {
 
   @property({ type: Number }) public sendTokenAmount?: number
 
-  @property({ type: Boolean }) public isInsufficientBalance = false
-
   // -- Render -------------------------------------------- //
   public override render() {
     const isDisabled = this.readOnly || !this.token
@@ -41,7 +39,6 @@ export class W3mInputToken extends LitElement {
           @inputChange=${this.onInputChange.bind(this)}
           ?disabled=${isDisabled}
           .value=${this.sendTokenAmount ? String(this.sendTokenAmount) : ''}
-          ?error=${Boolean(this.isInsufficientBalance)}
         ></wui-input-amount>
         ${this.buttonTemplate()}
       </wui-flex>
@@ -91,6 +88,12 @@ export class W3mInputToken extends LitElement {
 
   private maxAmountTemplate() {
     if (this.token) {
+      if (this.sendTokenAmount && this.sendTokenAmount > Number(this.token.quantity.numeric)) {
+        return html` <wui-text variant="sm-regular" color="error">
+          ${UiHelperUtil.roundNumber(Number(this.token.quantity.numeric), 6, 5)}
+        </wui-text>`
+      }
+
       return html` <wui-text variant="sm-regular" color="secondary">
         ${UiHelperUtil.roundNumber(Number(this.token.quantity.numeric), 6, 5)}
       </wui-text>`
@@ -101,6 +104,10 @@ export class W3mInputToken extends LitElement {
 
   private actionTemplate() {
     if (this.token) {
+      if (this.sendTokenAmount && this.sendTokenAmount > Number(this.token.quantity.numeric)) {
+        return html`<wui-link @click=${this.onBuyClick.bind(this)}>Buy</wui-link>`
+      }
+
       return html`<wui-link @click=${this.onMaxClick.bind(this)}>Max</wui-link>`
     }
 
@@ -130,6 +137,10 @@ export class W3mInputToken extends LitElement {
 
       SendController.setTokenAmount(Number(maxValue.toFixed(20)))
     }
+  }
+
+  private onBuyClick() {
+    RouterController.push('OnRampProviders')
   }
 }
 
