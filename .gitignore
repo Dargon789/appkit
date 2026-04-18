@@ -20,3 +20,5 @@ tsconfig.tsbuildinfo
 .coverage
 .envrc*
 **/test-results.json
+.vercel
+.env*.local
