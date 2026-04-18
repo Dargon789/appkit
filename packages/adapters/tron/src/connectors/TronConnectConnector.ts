@@ -117,7 +117,7 @@ export class TronConnectConnector implements TronConnector {
       body: JSON.stringify({
         owner_address: params.from,
         to_address: params.to,
-        amount: parseInt(params.value, 10),
+        amount: params.value,
         visible: true
       })
     })
@@ -147,7 +147,7 @@ export class TronConnectConnector implements TronConnector {
     return unsignedTx.txID
   }
 
-  async switchNetwork(): Promise<void> {
+  async switchNetwork(_chainId: string): Promise<void> {
     /*
      * Network switching is handled entirely by the adapter.
      * The adapter manually updates the connection and emits the switchNetwork event.
