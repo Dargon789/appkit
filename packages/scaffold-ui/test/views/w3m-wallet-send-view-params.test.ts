@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { CaipNetwork, ChainNamespace } from '@reown/appkit-common'
 import {
-  type AccountState,
+  AccountController,
   AssetUtil,
   ChainController,
   ConstantsUtil,
@@ -45,11 +45,11 @@ describe('W3mWalletSendView - parameters handling', () => {
       return {}
     })
 
-    vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
+    vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
+      ...AccountController.state,
       address: mockAddress,
       caipAddress: `eip155:1:${mockAddress}`
-    } as unknown as AccountState)
-
+    })
     vi.spyOn(RouterController, 'state', 'get').mockReturnValue({
       ...RouterController.state,
       data: {

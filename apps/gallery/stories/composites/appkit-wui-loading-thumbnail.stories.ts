@@ -9,9 +9,6 @@ type Component = Meta<WuiLoadingThumbnail>
 
 export default {
   title: 'Composites/appkit-wui-loading-thumbnail',
-  parameters: {
-    chromatic: { disableSnapshot: true }
-  },
   args: {
     radius: 36
   }

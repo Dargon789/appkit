@@ -5,6 +5,8 @@ import { BASE_URL } from '@reown/appkit-testing'
 
 config({ path: './.env.local' })
 
+config({ path: './.env.local' })
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,

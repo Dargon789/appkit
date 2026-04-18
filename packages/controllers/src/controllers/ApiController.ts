@@ -4,7 +4,7 @@ import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 import { ConstantsUtil } from '@reown/appkit-common'
 import type { ChainNamespace } from '@reown/appkit-common'
 
-import { AssetUtil } from '../utils/AssetUtil.js'
+import { AssetUtil, namespaceImageIds } from '../utils/AssetUtil.js'
 import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'
 import { FetchUtil } from '../utils/FetchUtil.js'
 import { CUSTOM_DEEPLINK_WALLETS } from '../utils/MobileWallet.js'
@@ -13,12 +13,8 @@ import type {
   ApiGetAllowedOriginsResponse,
   ApiGetAnalyticsConfigResponse,
   ApiGetProjectConfigResponse,
-  ApiGetUsageResponse,
   ApiGetWalletsRequest,
   ApiGetWalletsResponse,
-  BadgeType,
-  ProjectLimits,
-  Tier,
   WcWallet
 } from '../utils/TypeUtil.js'
 import { AssetController } from './AssetController.js'
@@ -47,19 +43,12 @@ export interface ApiControllerState {
   recommended: WcWallet[]
   allRecommended: WcWallet[]
   wallets: WcWallet[]
-  explorerWallets: WcWallet[]
-  explorerFilteredWallets: WcWallet[]
   filteredWallets: WcWallet[]
   search: WcWallet[]
   isAnalyticsEnabled: boolean
   excludedWallets: { rdns?: string | null; name: string }[]
   isFetchingRecommendedWallets: boolean
   mobileFilteredOutWalletsLength?: number
-  plan: {
-    tier: Tier
-    hasExceededUsageLimit: boolean
-    limits: ProjectLimits
-  }
 }
 
 interface PrefetchParameters {
@@ -67,7 +56,6 @@ interface PrefetchParameters {
   fetchFeaturedWallets?: boolean
   fetchRecommendedWallets?: boolean
   fetchNetworkImages?: boolean
-  fetchWalletRanks?: boolean
 }
 
 type StateKey = keyof ApiControllerState
@@ -86,17 +74,7 @@ const state = proxy<ApiControllerState>({
   search: [],
   isAnalyticsEnabled: false,
   excludedWallets: [],
-  isFetchingRecommendedWallets: false,
-  explorerWallets: [],
-  explorerFilteredWallets: [],
-  plan: {
-    tier: 'none',
-    hasExceededUsageLimit: false,
-    limits: {
-      isAboveRpcLimit: false,
-      isAboveMauLimit: false
-    }
-  }
+  isFetchingRecommendedWallets: false
 })
 
 // -- Controller ---------------------------------------- //
@@ -185,31 +163,6 @@ export const ApiController = {
     return response.features
   },
 
-  async fetchUsage() {
-    try {
-      const response = await api.get<ApiGetUsageResponse>({
-        path: '/appkit/v1/project-limits',
-        params: ApiController._getSdkProperties()
-      })
-
-      const { tier, isAboveMauLimit, isAboveRpcLimit } = response.planLimits
-
-      const isStarterPlan = tier === 'starter'
-      const isAboveUsageLimit = isAboveMauLimit || isAboveRpcLimit
-
-      ApiController.state.plan = {
-        tier,
-        hasExceededUsageLimit: isStarterPlan && isAboveUsageLimit,
-        limits: {
-          isAboveRpcLimit,
-          isAboveMauLimit
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to fetch usage', e)
-    }
-  },
-
   async fetchAllowedOrigins() {
     try {
       const { allowedOrigins } = await api.get<ApiGetAllowedOriginsResponse>({
@@ -240,13 +193,20 @@ export const ApiController = {
   async fetchNetworkImages() {
     const requestedCaipNetworks = ChainController.getAllRequestedCaipNetworks()
 
-    const ids = requestedCaipNetworks
-      ?.map(({ assets }) => assets?.imageId)
-      .filter(Boolean)
-      .filter(imageId => !AssetUtil.getNetworkImageById(imageId))
+    const networkIds =
+      requestedCaipNetworks
+        ?.map(({ assets }) => assets?.imageId)
+        .filter(Boolean)
+        .filter(imageId => !AssetUtil.getNetworkImageById(imageId)) ?? []
 
-    if (ids) {
-      await Promise.allSettled((ids as string[]).map(id => ApiController._fetchNetworkImage(id)))
+    const nsImageIds = Object.values(namespaceImageIds).filter(
+      id => id && !AssetUtil.getNetworkImageById(id)
+    )
+
+    const ids = [...new Set([...(networkIds as string[]), ...nsImageIds])]
+
+    if (ids.length) {
+      await Promise.allSettled(ids.map(id => ApiController._fetchNetworkImage(id)))
     }
   },
 
@@ -294,42 +254,6 @@ export const ApiController = {
       count: wallets?.count,
       mobileFilteredOutWalletsLength
     }
-  },
-
-  async prefetchWalletRanks() {
-    const connectors = ConnectorController.state.connectors
-    if (!connectors?.length) {
-      return
-    }
-
-    const params: Omit<ApiGetWalletsRequest, 'chains'> & { chains?: string } = {
-      page: 1,
-      entries: 20,
-      badge: 'certified'
-    }
-
-    params.names = connectors.map(c => c.name).join(',')
-
-    if (ChainController.state.activeChain === ConstantsUtil.CHAIN.EVM) {
-      const rdnsCandidates = [
-        ...connectors.flatMap(c => c.connectors?.map(sc => sc.info?.rdns) || []),
-        ...connectors.map(c => c.info?.rdns)
-      ].filter((val): val is string => typeof val === 'string' && val.length > 0)
-
-      if (rdnsCandidates.length) {
-        params.rdns = rdnsCandidates.join(',')
-      }
-    }
-
-    const { data } = await ApiController.fetchWallets(params)
-
-    state.explorerWallets = data
-    ConnectorController.extendConnectorsWithExplorerWallets(data)
-
-    const caipNetworkIds = ChainController.getRequestedCaipNetworkIds().join(',')
-    state.explorerFilteredWallets = data.filter(wallet =>
-      wallet.chains?.some(chain => caipNetworkIds.includes(chain))
-    )
   },
 
   async fetchFeaturedWallets() {
@@ -386,31 +310,19 @@ export const ApiController = {
     }
   },
 
-  async fetchWalletsByPage({
-    page,
-    entries: entriesOverride,
-    badge,
-    include: includeOverride,
-    exclude: excludeOverride
-  }: Pick<ApiGetWalletsRequest, 'page'> & {
-    entries?: number
-    badge?: BadgeType
-    include?: string[]
-    exclude?: string[]
-  }) {
+  async fetchWalletsByPage({ page }: Pick<ApiGetWalletsRequest, 'page'>) {
     const { includeWalletIds, excludeWalletIds, featuredWalletIds } = OptionsController.state
     const chains = ChainController.getRequestedCaipNetworkIds().join(',')
-    const defaultExclude = [
+    const exclude = [
       ...state.recommended.map(({ id }) => id),
       ...(excludeWalletIds ?? []),
       ...(featuredWalletIds ?? [])
     ].filter(Boolean)
     const params = {
       page,
-      entries: entriesOverride ?? entries,
-      include: includeOverride ?? includeWalletIds,
-      exclude: excludeOverride ?? defaultExclude,
-      badge_type: badge,
+      entries,
+      include: includeWalletIds,
+      exclude,
       chains
     }
     const { data, count, mobileFilteredOutWalletsLength } = await ApiController.fetchWallets(params)
@@ -448,30 +360,18 @@ export const ApiController = {
     }
   },
 
-  async searchWallet({
-    search,
-    badge,
-    entries: entriesOverride,
-    page: pageOverride,
-    include: includeOverride,
-    exclude: excludeOverride
-  }: Pick<ApiGetWalletsRequest, 'search' | 'badge'> & {
-    entries?: number
-    page?: number
-    include?: string[]
-    exclude?: string[]
-  }) {
+  async searchWallet({ search, badge }: Pick<ApiGetWalletsRequest, 'search' | 'badge'>) {
     const { includeWalletIds, excludeWalletIds } = OptionsController.state
     const chains = ChainController.getRequestedCaipNetworkIds().join(',')
     state.search = []
 
     const params = {
-      page: pageOverride ?? 1,
-      entries: entriesOverride ?? 100,
+      page: 1,
+      entries: 100,
       search: search?.trim(),
       badge_type: badge,
-      include: includeOverride ?? includeWalletIds,
-      exclude: excludeOverride ?? excludeWalletIds,
+      include: includeWalletIds,
+      exclude: excludeWalletIds,
       chains
     }
 
@@ -504,8 +404,7 @@ export const ApiController = {
     fetchConnectorImages = true,
     fetchFeaturedWallets = true,
     fetchRecommendedWallets = true,
-    fetchNetworkImages = true,
-    fetchWalletRanks = true
+    fetchNetworkImages = true
   }: PrefetchParameters = {}) {
     const promises = [
       fetchConnectorImages &&
@@ -515,9 +414,7 @@ export const ApiController = {
       fetchRecommendedWallets &&
         ApiController.initPromise('recommendedWallets', ApiController.fetchRecommendedWallets),
       fetchNetworkImages &&
-        ApiController.initPromise('networkImages', ApiController.fetchNetworkImages),
-      fetchWalletRanks &&
-        ApiController.initPromise('walletRanks', ApiController.prefetchWalletRanks)
+        ApiController.initPromise('networkImages', ApiController.fetchNetworkImages)
     ].filter(Boolean)
 
     return Promise.allSettled(promises)

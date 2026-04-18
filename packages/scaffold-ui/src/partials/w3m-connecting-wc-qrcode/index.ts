@@ -5,6 +5,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 import {
   AssetUtil,
   ConnectionController,
+  CoreHelperUtil,
   EventsController,
   RouterController,
   ThemeController
@@ -30,6 +31,7 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
 
   public constructor() {
     super()
+    window.addEventListener('resize', this.forceUpdate)
   }
 
   public override firstUpdated() {
@@ -51,6 +53,7 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
   public override disconnectedCallback() {
     super.disconnectedCallback()
     this.unsubscribe?.forEach(unsub => unsub())
+    window.removeEventListener('resize', this.forceUpdate)
   }
 
   // -- Render -------------------------------------------- //
@@ -75,7 +78,10 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
   // -- Private ------------------------------------------- //
   private onRenderProxy() {
     if (!this.ready && this.uri) {
-      this.ready = true
+      // This setTimeout needed to avoid the beginning of the animation from not starting to resize immediately and some weird svg errors
+      this.timeout = setTimeout(() => {
+        this.ready = true
+      }, 200)
     }
   }
 
@@ -84,19 +90,27 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
       return null
     }
 
+    const size = this.getBoundingClientRect().width - 40
     const alt = this.wallet ? this.wallet.name : undefined
     ConnectionController.setWcLinking(undefined)
     ConnectionController.setRecentWallet(this.wallet)
+    let uriWithLink = this.uri
 
-    const qrColor =
-      ThemeController.state.themeVariables['--apkt-qr-color'] ??
-      ThemeController.state.themeVariables['--w3m-qr-color']
+    /*
+     * Assign the uri with the link if the wallet has a mobile link
+     * so when the QR is scanned via the main camera it will prompt the wallet to open
+     */
+    if (this.wallet?.mobile_link) {
+      const { redirect } = CoreHelperUtil.formatNativeUrl(this.wallet?.mobile_link, this.uri, null)
+      uriWithLink = redirect
+    }
 
     return html` <wui-qr-code
+      size=${size}
       theme=${ThemeController.state.themeMode}
-      uri=${this.uri}
+      uri=${uriWithLink}
       imageSrc=${ifDefined(AssetUtil.getWalletImage(this.wallet))}
-      color=${ifDefined(qrColor)}
+      color=${ifDefined(ThemeController.state.themeVariables['--w3m-qr-color'])}
       alt=${ifDefined(alt)}
       data-testid="wui-qr-code"
     ></wui-qr-code>`
@@ -115,6 +129,10 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
       Copy link
       <wui-icon size="sm" color="inherit" name="copy" slot="iconRight"></wui-icon>
     </wui-button>`
+  }
+
+  private forceUpdate = () => {
+    this.requestUpdate()
   }
 }
 

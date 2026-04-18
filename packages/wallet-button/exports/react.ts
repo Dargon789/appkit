@@ -152,10 +152,13 @@ export function useAppKitWallet(parameters?: {
 
         const walletButton = WalletUtil.getWalletButton(wallet)
 
-        const connector =
-          walletButton && namespace
-            ? ConnectorController.getConnector({ id: walletButton.id, namespace })
-            : undefined
+        const connector = walletButton
+          ? ConnectorController.getConnector({
+              id: walletButton.id,
+              rdns: walletButton.rdns,
+              namespace
+            })
+          : undefined
 
         if (connector) {
           await ConnectorControllerUtil.connectExternal(connector).then(handleSuccess)
