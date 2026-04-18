@@ -9,6 +9,7 @@ import type {
   CaipAddress,
   CaipNetwork,
   CaipNetworkId,
+  ChainId,
   ChainNamespace,
   Hex,
   OnRampProvider,
@@ -119,6 +120,10 @@ export type Connector = {
   explorerWallet?: WcWallet
 }
 
+export interface ConnectorWithProviders extends Connector {
+  connectors?: Connector[]
+}
+
 export interface AuthConnector extends Connector {
   provider: W3mFrameProvider
   socials?: SocialProvider[]
@@ -152,6 +157,7 @@ export interface WcWallet {
   id: string
   name: string
   badge_type?: BadgeType
+  description?: string
   chains?: CaipNetworkId[]
   homepage?: string
   image_id?: string
@@ -172,6 +178,8 @@ export interface WcWallet {
       }[]
     | null
   display_index?: number
+  supports_wc?: boolean
+  supports_wcpay?: boolean
 }
 
 export interface ApiGetWalletsRequest {
@@ -210,6 +218,14 @@ export interface ThemeVariables {
   '--w3m-border-radius-master'?: string
   '--w3m-z-index'?: number
   '--w3m-qr-color'?: string
+  '--apkt-font-family'?: string
+  '--apkt-accent'?: string
+  '--apkt-color-mix'?: string
+  '--apkt-color-mix-strength'?: number
+  '--apkt-font-size-master'?: string
+  '--apkt-border-radius-master'?: string
+  '--apkt-z-index'?: number
+  '--apkt-qr-color'?: string
 }
 
 // -- BlockchainApiController Types ---------------------------------------------
@@ -257,6 +273,20 @@ export interface BlockchainApiSwapTokensRequest {
   chainId?: string
 }
 
+export interface BlockchainApiGetAddressBalanceRequest {
+  caipNetworkId: string
+  address: string
+  method?: string
+  params?: unknown
+}
+
+export interface BlockchainApiGetAddressBalanceResponse<T = string> {
+  ok: boolean
+  result: T
+  jsonrpc: string
+  id: string
+}
+
 export interface BlockchainApiSwapTokensResponse {
   tokens: SwapToken[]
 }
@@ -281,6 +311,7 @@ export interface BlockchainApiSwapQuoteResponse {
 }
 
 export interface BlockchainApiTokenPriceRequest {
+  caipNetworkId?: CaipNetworkId
   currency?: 'usd' | 'eur' | 'gbp' | 'aud' | 'cad' | 'inr' | 'jpy' | 'btc' | 'eth'
   addresses: string[]
 }
@@ -1109,12 +1140,16 @@ export type NamespaceTypeMap = {
   cosmos: 'eoa'
   sui: 'eoa'
   stacks: 'eoa'
+  ton: 'eoa'
+  tron: 'eoa'
 }
 
 export type AccountTypeMap = {
   [K in ChainNamespace]: {
     namespace: K
     address: string
+    chainId?: ChainId
+    caipAddress?: CaipAddress
     type: NamespaceTypeMap[K]
     publicKey?: K extends 'bip122' ? string : never
     path?: K extends 'bip122' ? string : never
@@ -1160,6 +1195,18 @@ export type EstimateGasTransactionArgs =
       chainNamespace: 'solana'
     }
 
+export type SolanaTransactionRequest = {
+  instructions: Array<{
+    keys: Array<{
+      pubkey: string
+      isSigner: boolean
+      isWritable: boolean
+    }>
+    programId: string
+    data: string
+  }>
+}
+
 export interface WriteContractArgs {
   tokenAddress: Address
   fromAddress: Address
@@ -1169,6 +1216,8 @@ export interface WriteContractArgs {
   args: unknown[]
   chainNamespace: ChainNamespace
 }
+
+export type WriteSolanaTransactionArgs = SolanaTransactionRequest
 
 export type AdapterNetworkState = {
   supportsAllNetworks: boolean
@@ -1241,6 +1290,7 @@ export type RemoteFeatures = {
   payWithExchange?: boolean
   payments?: boolean
   onramp?: OnRampProvider[] | false
+  headless?: boolean
 }
 
 export type Features = {
@@ -1342,6 +1392,12 @@ export type Features = {
    * @type {boolean}
    */
   reownAuthentication?: boolean
+  /**
+   * @description Enable or disable the AppKit Headless mode to build custom connect user interfaces.
+   * @default false
+   * @type {boolean}
+   */
+  headless?: boolean
 }
 
 export type FeaturesKeys = Exclude<
@@ -1369,6 +1425,8 @@ export type UseAppKitNetworkReturn = {
   caipNetwork: CaipNetwork | undefined
   chainId: number | string | undefined
   caipNetworkId: CaipNetworkId | undefined
+  approvedCaipNetworkIds: CaipNetworkId[] | undefined
+  supportsAllNetworks: boolean
   switchNetwork: (network: AppKitNetwork) => Promise<void>
 }
 
@@ -1397,7 +1455,7 @@ export type FeatureID =
   | 'fund_from_exchange'
   | 'payments'
   | 'reown_authentication'
-
+  | 'headless'
 export interface BaseFeature<T extends FeatureID, C extends string[] | null> {
   id: T
   isEnabled: boolean
@@ -1412,9 +1470,16 @@ export type TypedFeatureConfig =
   | BaseFeature<'reown_branding', null | []>
   | BaseFeature<'multi_wallet', null | []>
   | BaseFeature<'email_capture', EmailCaptureOptions[]>
+  | BaseFeature<'headless', null | []>
 
 export type ApiGetProjectConfigResponse = {
   features: TypedFeatureConfig[]
+}
+
+export type ApiGetUsageResponse = {
+  planLimits: {
+    tier: Tier
+  } & ProjectLimits
 }
 
 export type FeatureConfigMap = {
@@ -1484,6 +1549,33 @@ export type FeatureConfigMap = {
     returnType: boolean
     isLegacy: false
   }
+  headless: {
+    apiFeatureName: 'headless'
+    localFeatureName: 'headless'
+    returnType: boolean
+    isLegacy: false
+  }
 }
 
 export type FeatureKey = keyof FeatureConfigMap
+
+export type Tier = 'none' | 'starter' | 'pro' | 'enteprise'
+
+export type ProjectLimits = {
+  isAboveRpcLimit: boolean
+  isAboveMauLimit: boolean
+}
+
+export type ConnectorItemWithKind = {
+  kind: 'connector'
+  subtype: 'injected' | 'announced' | 'multiChain' | 'external' | 'walletConnect'
+  connector: ConnectorWithProviders
+}
+
+export type WalletItemWithKind = {
+  kind: 'wallet'
+  subtype: 'featured' | 'recommended' | 'custom' | 'recent'
+  wallet: WcWallet
+}
+
+export type ConnectorOrWalletItem = ConnectorItemWithKind | WalletItemWithKind

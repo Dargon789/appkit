@@ -38,12 +38,14 @@ import { ErrorUtil, UserRejectedRequestError } from '@reown/appkit-common'
 import type {
   AppKitNetwork,
   BaseNetwork,
+  CaipAddress,
   CaipNetwork,
   ChainNamespace,
   Connection,
   CustomRpcUrlMap
 } from '@reown/appkit-common'
 import { ConstantsUtil as CommonConstantsUtil, NetworkUtil } from '@reown/appkit-common'
+import { PresetsUtil } from '@reown/appkit-common'
 import {
   AdapterBlueprint,
   AssetController,
@@ -54,13 +56,13 @@ import {
   WalletConnectConnector
 } from '@reown/appkit-controllers'
 import { type ConnectorType, type Provider } from '@reown/appkit-controllers'
-import { CaipNetworksUtil, HelpersUtil, PresetsUtil } from '@reown/appkit-utils'
+import { CaipNetworksUtil, HelpersUtil } from '@reown/appkit-utils'
 import type { W3mFrameProvider } from '@reown/appkit-wallet'
 
 import { authConnector } from './connectors/AuthConnector.js'
 import { walletConnect } from './connectors/WalletConnectConnector.js'
 import { LimitterUtil } from './utils/LimitterUtil.js'
-import { getCoinbaseConnector, getSafeConnector } from './utils/helpers.js'
+import { getBaseAccountConnector, getCoinbaseConnector, getSafeConnector } from './utils/helpers.js'
 
 interface PendingTransactionsFilter {
   enable: boolean
@@ -129,21 +131,29 @@ export class WagmiAdapter extends AdapterBlueprint {
         return { accounts: [] }
       }
 
-      const { address, accounts } = provider.user
+      const { address, accounts, chainId } = provider.user
 
       return Promise.resolve({
         accounts: (accounts || [{ address, type: 'eoa' }]).map(account =>
-          CoreHelperUtil.createAccount('eip155', account.address, account.type)
+          CoreHelperUtil.createAccount({
+            caipAddress: `eip155:${chainId}:${account.address}` as CaipAddress,
+            type: account.type
+          })
         )
       })
     }
 
-    const { addresses, address } = getAccount(this.wagmiConfig)
+    const { addresses, address, chainId } = getAccount(this.wagmiConfig)
 
     return Promise.resolve({
-      accounts: [...new Set(addresses || [address])]?.map(val =>
-        CoreHelperUtil.createAccount('eip155', val || '', 'eoa')
-      )
+      accounts: chainId
+        ? [...new Set(addresses || [address])]?.map(val =>
+            CoreHelperUtil.createAccount({
+              caipAddress: `eip155:${chainId}:${val || ''}` as CaipAddress,
+              type: 'eoa'
+            })
+          )
+        : []
     })
   }
 
@@ -288,7 +298,16 @@ export class WagmiAdapter extends AdapterBlueprint {
 
   private async addThirdPartyConnectors() {
     const thirdPartyConnectors: CreateConnectorFn[] = []
-    const { enableCoinbase: isCoinbaseEnabled } = OptionsController.state || {}
+    const { enableCoinbase: isCoinbaseEnabled, enableBaseAccount: isBaseAccountEnabled } =
+      OptionsController.state || {}
+
+    if (isBaseAccountEnabled !== false) {
+      const baseAccountConnector = await getBaseAccountConnector(this.wagmiConfig.connectors)
+      if (baseAccountConnector) {
+        thirdPartyConnectors.push(baseAccountConnector)
+      }
+    }
+
     if (isCoinbaseEnabled !== false) {
       const coinbaseConnector = await getCoinbaseConnector(this.wagmiConfig.connectors)
       if (coinbaseConnector) {
@@ -382,6 +401,10 @@ export class WagmiAdapter extends AdapterBlueprint {
     })
   }
 
+  public async writeSolanaTransaction() {
+    return Promise.resolve({ hash: '' })
+  }
+
   public async signMessage(
     params: AdapterBlueprint.SignMessageParams
   ): Promise<AdapterBlueprint.SignMessageResult> {
@@ -401,6 +424,8 @@ export class WagmiAdapter extends AdapterBlueprint {
     params: AdapterBlueprint.SendTransactionParams
   ): Promise<AdapterBlueprint.SendTransactionResult> {
     const { chainId, address } = getAccount(this.wagmiConfig)
+    const wagmiChain = this.wagmiChains?.find(chain => chain.id === chainId)
+
     const txParams = {
       account: address,
       to: params.to as Hex,
@@ -408,7 +433,7 @@ export class WagmiAdapter extends AdapterBlueprint {
       gas: params.gas ? BigInt(params.gas) : undefined,
       gasPrice: params.gasPrice ? BigInt(params.gasPrice) : undefined,
       data: params.data as Hex,
-      chainId,
+      chain: wagmiChain,
       type: 'legacy' as const,
       parameters: ['nonce'] as const
     }
@@ -425,10 +450,10 @@ export class WagmiAdapter extends AdapterBlueprint {
   ): Promise<AdapterBlueprint.WriteContractResult> {
     const { caipNetwork, ...data } = params
     const chainId = Number(NetworkUtil.caipNetworkIdToNumber(caipNetwork.caipNetworkId))
+    const wagmiChain = this.wagmiChains?.find(chain => chain.id === chainId)
 
     const tx = await wagmiWriteContract(this.wagmiConfig, {
-      chain: this.wagmiChains?.[chainId],
-      chainId,
+      chain: wagmiChain,
       address: data.tokenAddress,
       account: data.fromAddress,
       abi: data.abi,
@@ -492,12 +517,17 @@ export class WagmiAdapter extends AdapterBlueprint {
       return
     }
 
-    const provider = (await connector.getProvider().catch(() => undefined)) as Provider | undefined
+    let provider: Provider | undefined = undefined
+    if (connector.id !== CommonConstantsUtil.CONNECTOR_ID.BASE_ACCOUNT) {
+      provider = (await connector.getProvider().catch(() => undefined)) as Provider | undefined
+    }
 
     const customConnectorImages = AssetController.state.connectorImages
     this.addConnector({
       id: connector.id,
-      explorerId: PresetsUtil.ConnectorExplorerIds[connector.id],
+      explorerId:
+        PresetsUtil.ConnectorExplorerIds[connector.id] ??
+        PresetsUtil.ConnectorExplorerIds[connector.name],
       imageUrl: customConnectorImages?.[connector.id] ?? connector.icon,
       name: PresetsUtil.ConnectorNamesMap[connector.id] ?? connector.name,
       imageId: PresetsUtil.ConnectorImageIds[connector.id],
@@ -531,8 +561,8 @@ export class WagmiAdapter extends AdapterBlueprint {
       this.wagmiConfig.connectors.map(connector => this.addWagmiConnector(connector))
     )
 
-    // Add third party connectors (Coinbase, Safe, etc.)
-    this.addThirdPartyConnectors()
+    // Add third party connectors (Base Account, Safe, etc.)
+    await this.addThirdPartyConnectors()
   }
 
   // Wagmi already handles connections
@@ -689,10 +719,12 @@ export class WagmiAdapter extends AdapterBlueprint {
         socialUri
       })
 
+      const resolvedProvider = provider ?? (await connector.getProvider())
+
       return {
         address: this.toChecksummedAddress(res.accounts[0]),
         chainId: res.chainId,
-        provider: provider as Provider,
+        provider: resolvedProvider as Provider,
         type: type as ConnectorType,
         id
       }

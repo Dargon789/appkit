@@ -1,5 +1,170 @@
 # @reown/appkit-cdn
 
+## 1.8.19
+
+### Patch Changes
+
+- [#5526](https://github.com/reown-com/appkit/pull/5526) [`a7646ab`](https://github.com/reown-com/appkit/commit/a7646ab7f3aacb62a8ef23e9670cf41a77609730) Thanks [@tomiir](https://github.com/tomiir)! - Adds more options to fetchWallets method on useAppKitWallets
+
+- [#5535](https://github.com/reown-com/appkit/pull/5535) [`249beb6`](https://github.com/reown-com/appkit/commit/249beb64220596d468c0f91de7b568f5f640b26f) Thanks [@tomiir](https://github.com/tomiir)! - Serializes caip address and chain Id into allAccounts
+
+- Updated dependencies [[`a7646ab`](https://github.com/reown-com/appkit/commit/a7646ab7f3aacb62a8ef23e9670cf41a77609730), [`6851c1b`](https://github.com/reown-com/appkit/commit/6851c1ba88c183bfc5b6ca1bf8e0efba26012b78), [`249beb6`](https://github.com/reown-com/appkit/commit/249beb64220596d468c0f91de7b568f5f640b26f)]:
+  - @reown/appkit-adapter-wagmi@1.8.19
+  - @reown/appkit@1.8.19
+  - @reown/appkit-adapter-ethers5@1.8.19
+  - @reown/appkit-adapter-ethers@1.8.19
+  - @reown/appkit-adapter-solana@1.8.19
+  - @reown/appkit-polyfills@1.8.19
+
+## 1.8.18
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @reown/appkit-adapter-ethers@1.8.18
+  - @reown/appkit-adapter-ethers5@1.8.18
+  - @reown/appkit-adapter-solana@1.8.18
+  - @reown/appkit-adapter-wagmi@1.8.18
+  - @reown/appkit@1.8.18
+  - @reown/appkit-polyfills@1.8.18
+
+## 1.8.17
+
+### Patch Changes
+
+- [#5447](https://github.com/reown-com/appkit/pull/5447) [`05762b5`](https://github.com/reown-com/appkit/commit/05762b5280c09a1bf72bc5d7617df3119be653a4) Thanks [@0xmkh](https://github.com/0xmkh)! - Added unsubscribe function to AppKit event listeners
+
+- [#5451](https://github.com/reown-com/appkit/pull/5451) [`dfb0893`](https://github.com/reown-com/appkit/commit/dfb0893141e07d9911459de640493642dcebd724) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed text color inconsistency in send amount input fields to properly apply theme primary text color
+
+- [#5452](https://github.com/reown-com/appkit/pull/5452) [`17b1a2c`](https://github.com/reown-com/appkit/commit/17b1a2c0879eb0cb670e457b25a7306ea3f84cda) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed an issue where the purpose type was not included in accounts returned by the bitcoin wallets
+
+- [#5450](https://github.com/reown-com/appkit/pull/5450) [`1c76e85`](https://github.com/reown-com/appkit/commit/1c76e853225fc85ab2b050de55adaae96f296c8f) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed an issue where the collapsed wallet button displayed a copy icon instead of a wallet icon
+
+- [#5444](https://github.com/reown-com/appkit/pull/5444) [`f8fec19`](https://github.com/reown-com/appkit/commit/f8fec190ec5754a78d819485d47fe37a168ffd3b) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed an issue where non-friendly error messages were displayed when failing to send a transaction on Solana
+
+- [#5449](https://github.com/reown-com/appkit/pull/5449) [`4a409be`](https://github.com/reown-com/appkit/commit/4a409bec5213638a33c7b3c22c94ea2828e37022) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed an issue where the checkmark icon was not displayed on iOS devices
+
+- [#5448](https://github.com/reown-com/appkit/pull/5448) [`e9f7498`](https://github.com/reown-com/appkit/commit/e9f7498b3f7938cfa4273429341ce0df8121b99a) Thanks [@0xmkh](https://github.com/0xmkh)! - Added support for directly opening the ProfileWallets view
+
+- [#5445](https://github.com/reown-com/appkit/pull/5445) [`0824170`](https://github.com/reown-com/appkit/commit/0824170ebb185fc40d4351ec3ed3a8ed11cd15c1) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed an issue where swaps failed when entering large amounts of high decimal tokens
+
+- [#5446](https://github.com/reown-com/appkit/pull/5446) [`9886b51`](https://github.com/reown-com/appkit/commit/9886b51d7d83b1340a9f116b9b9514ebf6bd14cd) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed an issue in headless mode where triggering a second WalletConnect connection attempt did not initiate the connection request
+
+- Updated dependencies [[`05762b5`](https://github.com/reown-com/appkit/commit/05762b5280c09a1bf72bc5d7617df3119be653a4), [`dfb0893`](https://github.com/reown-com/appkit/commit/dfb0893141e07d9911459de640493642dcebd724), [`17b1a2c`](https://github.com/reown-com/appkit/commit/17b1a2c0879eb0cb670e457b25a7306ea3f84cda), [`1c76e85`](https://github.com/reown-com/appkit/commit/1c76e853225fc85ab2b050de55adaae96f296c8f), [`f8fec19`](https://github.com/reown-com/appkit/commit/f8fec190ec5754a78d819485d47fe37a168ffd3b), [`4a409be`](https://github.com/reown-com/appkit/commit/4a409bec5213638a33c7b3c22c94ea2828e37022), [`e9f7498`](https://github.com/reown-com/appkit/commit/e9f7498b3f7938cfa4273429341ce0df8121b99a), [`0824170`](https://github.com/reown-com/appkit/commit/0824170ebb185fc40d4351ec3ed3a8ed11cd15c1), [`9886b51`](https://github.com/reown-com/appkit/commit/9886b51d7d83b1340a9f116b9b9514ebf6bd14cd)]:
+  - @reown/appkit@1.8.17
+  - @reown/appkit-adapter-ethers@1.8.17
+  - @reown/appkit-adapter-ethers5@1.8.17
+  - @reown/appkit-adapter-solana@1.8.17
+  - @reown/appkit-adapter-wagmi@1.8.17
+  - @reown/appkit-polyfills@1.8.17
+
+## 1.8.16
+
+### Patch Changes
+
+- [#5437](https://github.com/reown-com/appkit/pull/5437) [`e542ebd`](https://github.com/reown-com/appkit/commit/e542ebdbef99791f91ab000a257dac73f96fd81b) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed an issue where WalletConnect would not reconnect after page refresh when using multi-wallet
+
+- [#5423](https://github.com/reown-com/appkit/pull/5423) [`73d2b61`](https://github.com/reown-com/appkit/commit/73d2b616ec1e7a919e90e9fd7c8619aedf74475b) Thanks [@0xmkh](https://github.com/0xmkh)! - This update brings another level of upgrade to AppKit Pay and AppKit Deposit 🔥
+
+  - Users can pay with any token they choose, while the recipient always receives their preferred token through automatic swapping and bridging
+  - Implemented fee splitting between Reown and partners
+
+- [#5405](https://github.com/reown-com/appkit/pull/5405) [`c1954be`](https://github.com/reown-com/appkit/commit/c1954befd87a53fda56e9d93b82d31ccb5074aff) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed an issue where selecting Base Account incorrectly triggered the Coinbase Wallet extension connection instead of the Base Account SDK connection
+
+- Updated dependencies [[`e542ebd`](https://github.com/reown-com/appkit/commit/e542ebdbef99791f91ab000a257dac73f96fd81b), [`73d2b61`](https://github.com/reown-com/appkit/commit/73d2b616ec1e7a919e90e9fd7c8619aedf74475b), [`c1954be`](https://github.com/reown-com/appkit/commit/c1954befd87a53fda56e9d93b82d31ccb5074aff)]:
+  - @reown/appkit@1.8.16
+  - @reown/appkit-adapter-ethers@1.8.16
+  - @reown/appkit-adapter-ethers5@1.8.16
+  - @reown/appkit-adapter-solana@1.8.16
+  - @reown/appkit-adapter-wagmi@1.8.16
+  - @reown/appkit-polyfills@1.8.16
+
+## 1.8.15
+
+### Patch Changes
+
+- [#5378](https://github.com/reown-com/appkit/pull/5378) [`2867bfd`](https://github.com/reown-com/appkit/commit/2867bfd3f06394e559b918d46dc379dd498d1abf) Thanks [@magiziz](https://github.com/magiziz)! - Fixed an issue where profile wallets tabs were shown in the wrong order
+
+- [#5364](https://github.com/reown-com/appkit/pull/5364) [`d186212`](https://github.com/reown-com/appkit/commit/d1862126d3b7da93b52b99a4d709656311926c34) Thanks [@magiziz](https://github.com/magiziz)! - Fixed an issue where wallet buttons were not working in the in-app wallet browser
+
+- Updated dependencies [[`2867bfd`](https://github.com/reown-com/appkit/commit/2867bfd3f06394e559b918d46dc379dd498d1abf), [`ecf1794`](https://github.com/reown-com/appkit/commit/ecf1794d555806e376ab2253b48ab2b185e85a10), [`d186212`](https://github.com/reown-com/appkit/commit/d1862126d3b7da93b52b99a4d709656311926c34), [`e330f62`](https://github.com/reown-com/appkit/commit/e330f62532f95683ed69bdb0f4fef77f3039df30)]:
+  - @reown/appkit-adapter-ethers@1.8.15
+  - @reown/appkit-adapter-ethers5@1.8.15
+  - @reown/appkit-adapter-solana@1.8.15
+  - @reown/appkit-adapter-wagmi@1.8.15
+  - @reown/appkit@1.8.15
+  - @reown/appkit-polyfills@1.8.15
+
+## 1.8.14
+
+### Patch Changes
+
+- [#5296](https://github.com/reown-com/appkit/pull/5296) [`bc4a961`](https://github.com/reown-com/appkit/commit/bc4a961b448cedd0a8485a2188549b413b4e6512) Thanks [@magiziz](https://github.com/magiziz)! - Improved wallet search to filter out non-walletconnect and walletconnect wallets based on platform and SDK type
+
+- Updated dependencies [[`bd86560`](https://github.com/reown-com/appkit/commit/bd86560541de8a34696bb7deea6a405371b3db14), [`1dab4e5`](https://github.com/reown-com/appkit/commit/1dab4e5bfc4bf2e5219824f85128d264cd220f2b), [`2a7ece7`](https://github.com/reown-com/appkit/commit/2a7ece7a1b8ea13fe6ff2d9da151e4b877da75a5), [`6e9f251`](https://github.com/reown-com/appkit/commit/6e9f251040d1150ae7a254309050cc2853c5a085), [`bc4a961`](https://github.com/reown-com/appkit/commit/bc4a961b448cedd0a8485a2188549b413b4e6512)]:
+  - @reown/appkit@1.8.14
+  - @reown/appkit-adapter-ethers5@1.8.14
+  - @reown/appkit-adapter-ethers@1.8.14
+  - @reown/appkit-adapter-solana@1.8.14
+  - @reown/appkit-adapter-wagmi@1.8.14
+  - @reown/appkit-polyfills@1.8.14
+
+## 1.8.13
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @reown/appkit-adapter-ethers@1.8.13
+  - @reown/appkit-adapter-ethers5@1.8.13
+  - @reown/appkit-adapter-solana@1.8.13
+  - @reown/appkit-adapter-wagmi@1.8.13
+  - @reown/appkit@1.8.13
+  - @reown/appkit-polyfills@1.8.13
+
+## 1.8.12
+
+### Patch Changes
+
+- [#5274](https://github.com/reown-com/appkit/pull/5274) [`100ee2b`](https://github.com/reown-com/appkit/commit/100ee2bf54f9036e72e5961300e0b3edb8089239) Thanks [@magiziz](https://github.com/magiziz)! - Fixed an issue where remote config endpoint was being called when using appkit core
+
+- Updated dependencies [[`100ee2b`](https://github.com/reown-com/appkit/commit/100ee2bf54f9036e72e5961300e0b3edb8089239), [`c9ed02e`](https://github.com/reown-com/appkit/commit/c9ed02edd9149484e92407fa48219f7ac7e39568)]:
+  - @reown/appkit@1.8.12
+  - @reown/appkit-adapter-ethers@1.8.12
+  - @reown/appkit-adapter-ethers5@1.8.12
+  - @reown/appkit-adapter-solana@1.8.12
+  - @reown/appkit-adapter-wagmi@1.8.12
+  - @reown/appkit-polyfills@1.8.12
+
+## 1.8.11
+
+### Patch Changes
+
+- [#5247](https://github.com/reown-com/appkit/pull/5247) [`99cc58b`](https://github.com/reown-com/appkit/commit/99cc58bb335a359b261eab18676fed13ea325bde) Thanks [@enesozturk](https://github.com/enesozturk)! - Fixes package version injecting when building packages
+
+- [#5225](https://github.com/reown-com/appkit/pull/5225) [`fda02dc`](https://github.com/reown-com/appkit/commit/fda02dc9ee173ff34f604dc6b022f421bae44539) Thanks [@magiziz](https://github.com/magiziz)! - Added usage limit UI in AppKit that displays when limits are exceeded
+
+- Updated dependencies [[`15d9b6b`](https://github.com/reown-com/appkit/commit/15d9b6b7549590adffddb97a6c7e529d89b2b0df), [`1a9f436`](https://github.com/reown-com/appkit/commit/1a9f4367f7b65f91dd4e75bd3d1d018e1be59718), [`99cc58b`](https://github.com/reown-com/appkit/commit/99cc58bb335a359b261eab18676fed13ea325bde), [`fda02dc`](https://github.com/reown-com/appkit/commit/fda02dc9ee173ff34f604dc6b022f421bae44539)]:
+  - @reown/appkit-adapter-solana@1.8.11
+  - @reown/appkit@1.8.11
+  - @reown/appkit-adapter-ethers@1.8.11
+  - @reown/appkit-adapter-ethers5@1.8.11
+  - @reown/appkit-adapter-wagmi@1.8.11
+  - @reown/appkit-polyfills@1.8.11
+
+## 1.8.10
+
+### Patch Changes
+
+- [#5148](https://github.com/reown-com/appkit/pull/5148) [`bdce2c8`](https://github.com/reown-com/appkit/commit/bdce2c8dfa58bed7bd5f8114574c2db751e9bdd3) Thanks [@magiziz](https://github.com/magiziz)! - Fixed an issue where social login did not work with wallet button
+
+- Updated dependencies [[`bdce2c8`](https://github.com/reown-com/appkit/commit/bdce2c8dfa58bed7bd5f8114574c2db751e9bdd3), [`561a215`](https://github.com/reown-com/appkit/commit/561a215f4455a87a5993aa4850e553bc596d75e7), [`a492e24`](https://github.com/reown-com/appkit/commit/a492e24bf9e721b289d7a259303a72c65a0d7d7d), [`17ea7b3`](https://github.com/reown-com/appkit/commit/17ea7b32d4cbfca07cc74eac7ee98bf640fadec2)]:
+  - @reown/appkit-adapter-ethers@1.8.10
+  - @reown/appkit-adapter-ethers5@1.8.10
+  - @reown/appkit-adapter-solana@1.8.10
+  - @reown/appkit-adapter-wagmi@1.8.10
+  - @reown/appkit@1.8.10
+  - @reown/appkit-polyfills@1.8.10
+
 ## 1.8.9
 
 ### Patch Changes

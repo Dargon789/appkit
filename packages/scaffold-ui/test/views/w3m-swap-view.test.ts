@@ -62,6 +62,7 @@ const mockChainState: ChainControllerState = {
       parseUnits: vi.fn(),
       formatUnits: vi.fn(),
       writeContract: vi.fn(),
+      writeSolanaTransaction: vi.fn(),
       getEnsAddress: vi.fn(),
       getEnsAvatar: vi.fn(),
       grantPermissions: vi.fn(),
@@ -421,5 +422,21 @@ describe('W3mSwapView', () => {
 
     vitestExpect(swapTokensSpy).toHaveBeenCalledOnce()
     vi.useRealTimers()
+  })
+
+  it('should disable action button and show "Enter amount" when sourceTokenAmount is 0', async () => {
+    vi.spyOn(SwapController, 'state', 'get').mockReturnValue({
+      ...SwapController.state,
+      sourceToken: mockToken,
+      toToken: { ...mockToken, symbol: 'USDT' },
+      sourceTokenAmount: '0'
+    })
+
+    const element = await fixture<W3mSwapView>(html`<w3m-swap-view></w3m-swap-view>`)
+    await element.updateComplete
+
+    const actionButton = element.shadowRoot?.querySelector('[data-testid="swap-action-button"]')
+    expect(actionButton?.hasAttribute('disabled')).to.be.true
+    expect(actionButton?.textContent?.trim()).to.equal('Enter amount')
   })
 })

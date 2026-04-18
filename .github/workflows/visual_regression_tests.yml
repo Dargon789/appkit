@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   chromatic:
@@ -34,19 +35,70 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build packages
-        run: pnpm --filter "@reown/appkit-common" --filter "@reown/appkit-polyfills" --filter "@reown/appkit-wallet" --filter "@reown/appkit-controllers" --filter "@reown/appkit-ui" --filter "@reown/appkit-utils" --filter "@reown/appkit-scaffold-ui" build
+        run: pnpm --filter "@reown/appkit-common" --filter "@reown/appkit-polyfills" --filter "@reown/appkit-wallet" --filter "@reown/appkit-controllers" --filter "@reown/appkit-ui" --filter "@reown/appkit-utils" --filter "@reown/appkit-scaffold-ui" --filter "@reown/appkit-pay" build
 
       - name: Run Chromatic
+        id: chromatic
+        continue-on-error: true
         uses: chromaui/action@latest
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           workingDir: apps/gallery
           buildScriptName: build
           onlyChanged: true
-          exitZeroOnChanges: false
-          exitOnceUploaded: true
+          autoAcceptChanges: false
+          exitZeroOnChanges: true
           zip: true
 
-      - name: Publish Chromatic URL
-        if: always()
-        run: echo "Chromatic build URL will appear in the checks above ☝️"
+      - name: Comment on PR with Chromatic results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const chromaticUrl = '${{ steps.chromatic.outputs.url }}';
+            const buildUrl = '${{ steps.chromatic.outputs.buildUrl }}';
+            const storybookUrl = '${{ steps.chromatic.outputs.storybookUrl }}';
+            const changeCount = '${{ steps.chromatic.outputs.changeCount }}';
+            const outcome = '${{ steps.chromatic.outcome }}';
+
+            const status = outcome === 'success' ? '✅ Passed' : '❌ Failed';
+            const changesText = changeCount > 0 ? `⚠️ ${changeCount} visual change(s) detected` : '✨ No visual changes detected';
+
+            const commentBody = `## Visual Regression Test Results ${status}
+
+            ${changesText}
+
+            **Chromatic Build:** ${buildUrl || chromaticUrl || 'URL not available'}
+            **Storybook Preview:** ${storybookUrl || 'Not available'}
+
+            ${changeCount > 0 ? '👉 Please review the visual changes in Chromatic and accept or reject them.' : ''}`;
+
+            // Find existing comment
+            const comments = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            const botComment = comments.data.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('Visual Regression Test Results')
+            );
+
+            // Update existing comment or create new one
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                comment_id: botComment.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: commentBody
+              });
+            }

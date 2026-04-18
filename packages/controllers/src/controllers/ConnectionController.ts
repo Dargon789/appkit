@@ -26,13 +26,15 @@ import type {
   WalletGetAssetsParams,
   WalletGetAssetsResponse,
   WcWallet,
-  WriteContractArgs
+  WriteContractArgs,
+  WriteSolanaTransactionArgs
 } from '../utils/TypeUtil.js'
 import { AppKitError, withErrorBoundary } from '../utils/withErrorBoundary.js'
 import { ChainController, type ChainControllerState } from './ChainController.js'
 import { ConnectorController } from './ConnectorController.js'
 import { EventsController } from './EventsController.js'
 import { ModalController } from './ModalController.js'
+import { PublicStateController } from './PublicStateController.js'
 import { RouterController } from './RouterController.js'
 import { TransactionsController } from './TransactionsController.js'
 
@@ -115,6 +117,7 @@ export interface ConnectionControllerClient {
   reconnectExternal?: (options: ConnectExternalOptions) => Promise<void>
   checkInstalled?: (ids?: string[]) => boolean
   writeContract: (args: WriteContractArgs) => Promise<`0x${string}` | null>
+  writeSolanaTransaction: (args: WriteSolanaTransactionArgs) => Promise<string | null>
   getEnsAddress: (value: string) => Promise<false | string>
   getEnsAvatar: (value: string) => Promise<false | string>
   grantPermissions: (params: readonly unknown[] | object) => Promise<unknown>
@@ -142,6 +145,7 @@ export interface ConnectionControllerState {
   }
   wcBasic?: boolean
   wcError?: boolean
+  wcFetchingUri: boolean
   recentWallet?: WcWallet
   buffering: boolean
   status?: 'connecting' | 'connected' | 'disconnected'
@@ -156,6 +160,7 @@ const state = proxy<ConnectionControllerState>({
   recentConnections: new Map(),
   isSwitchingConnection: false,
   wcError: false,
+  wcFetchingUri: false,
   buffering: false,
   status: 'disconnected'
 })
@@ -221,33 +226,41 @@ const controller = {
   },
 
   async connectWalletConnect({ cache = 'auto' }: ConnectWalletConnectParameters = {}) {
+    state.wcFetchingUri = true
     const isInTelegramOrSafariIos =
       CoreHelperUtil.isTelegram() || (CoreHelperUtil.isSafari() && CoreHelperUtil.isIos())
 
-    if (cache === 'always' || (cache === 'auto' && isInTelegramOrSafariIos)) {
-      if (wcConnectionPromise) {
+    try {
+      if (cache === 'always' || (cache === 'auto' && isInTelegramOrSafariIos)) {
+        if (wcConnectionPromise) {
+          await wcConnectionPromise
+          wcConnectionPromise = undefined
+
+          return
+        }
+
+        if (!CoreHelperUtil.isPairingExpired(state?.wcPairingExpiry)) {
+          const link = state.wcUri
+          state.wcUri = link
+
+          return
+        }
+
+        wcConnectionPromise = ConnectionController._getClient()?.connectWalletConnect?.()
+        ConnectionController.state.status = 'connecting'
         await wcConnectionPromise
         wcConnectionPromise = undefined
-
-        return
+        state.wcPairingExpiry = undefined
+        ConnectionController.state.status = 'connected'
+      } else {
+        await ConnectionController._getClient()?.connectWalletConnect?.()
       }
-
-      if (!CoreHelperUtil.isPairingExpired(state?.wcPairingExpiry)) {
-        const link = state.wcUri
-        state.wcUri = link
-
-        return
-      }
-      wcConnectionPromise = ConnectionController._getClient()
-        ?.connectWalletConnect?.()
-        .catch(() => undefined)
-      ConnectionController.state.status = 'connecting'
-      await wcConnectionPromise
+    } catch (error) {
+      state.wcError = true
+      state.wcFetchingUri = false
+      state.status = 'disconnected'
       wcConnectionPromise = undefined
-      state.wcPairingExpiry = undefined
-      ConnectionController.state.status = 'connected'
-    } else {
-      await ConnectionController._getClient()?.connectWalletConnect?.()
+      throw error
     }
   },
 
@@ -261,6 +274,19 @@ const controller = {
     if (setChain) {
       ChainController.setActiveNamespace(chain)
     }
+
+    const connector = ConnectorController.state.allConnectors.find(c => c.id === options?.id)
+    const connectSuccessEventMethod = options.type === 'AUTH' ? 'email' : 'browser'
+    EventsController.sendEvent({
+      type: 'track',
+      event: 'CONNECT_SUCCESS',
+      properties: {
+        method: connectSuccessEventMethod,
+        name: connector?.name || 'Unknown',
+        view: RouterController.state.view,
+        walletRank: connector?.explorerWallet?.order
+      }
+    })
 
     return connectData
   },
@@ -351,6 +377,10 @@ const controller = {
     return ConnectionController._getClient()?.writeContract(args)
   },
 
+  async writeSolanaTransaction(args: WriteSolanaTransactionArgs) {
+    return ConnectionController._getClient()?.writeSolanaTransaction(args)
+  },
+
   async getEnsAddress(value: string) {
     return ConnectionController._getClient()?.getEnsAddress(value)
   },
@@ -368,16 +398,20 @@ const controller = {
     state.wcPairingExpiry = undefined
     state.wcLinking = undefined
     state.recentWallet = undefined
+    state.wcFetchingUri = false
     state.status = 'disconnected'
     TransactionsController.resetTransactions()
     StorageUtil.deleteWalletConnectDeepLink()
     StorageUtil.deleteRecentWallet()
+    PublicStateController.set({ connectingWallet: undefined })
   },
 
   resetUri() {
     state.wcUri = undefined
     state.wcPairingExpiry = undefined
     wcConnectionPromise = undefined
+    state.wcFetchingUri = false
+    PublicStateController.set({ connectingWallet: undefined })
   },
 
   finalizeWcConnection(address?: string) {
@@ -412,6 +446,7 @@ const controller = {
 
   setUri(uri: string) {
     state.wcUri = uri
+    state.wcFetchingUri = false
     state.wcPairingExpiry = CoreHelperUtil.getPairingExpiry()
   },
 
@@ -421,6 +456,7 @@ const controller = {
 
   setWcError(wcError: ConnectionControllerState['wcError']) {
     state.wcError = wcError
+    state.wcFetchingUri = false
     state.buffering = false
   },
 

@@ -51,11 +51,6 @@ export const wagmiSdkOptions: SdkOption[] = [
     description: 'Configuration using wagmi without socials'
   },
   {
-    title: 'Wallet Button',
-    link: '/appkit?name=wagmi-wallet-button',
-    description: 'Configuration using wagmi with wallet buttons'
-  },
-  {
     title: 'Permissions(Sync)',
     link: '/appkit?name=wagmi-permissions-sync',
     description: 'Configuration using wagmi and implementing ERC-7715 with passkey'
@@ -87,11 +82,6 @@ export const ethersSdkOptions: SdkOption[] = [
     title: 'Without Socials',
     link: '/appkit?name=ethers-no-socials',
     description: 'Configuration using ethers without socials'
-  },
-  {
-    title: 'Wallet Button',
-    link: '/appkit?name=ethers-wallet-button',
-    description: 'Configuration using ethers with wallet buttons'
   }
 ]
 
@@ -110,11 +100,6 @@ export const ethers5SdkOptions: SdkOption[] = [
     title: 'Without Socials',
     link: '/appkit?name=ethers5-no-socials',
     description: 'Configuration using ethers without socials'
-  },
-  {
-    title: 'Wallet Button',
-    link: '/appkit?name=ethers5-wallet-button',
-    description: 'Configuration using ethers with socials'
   }
 ]
 
@@ -133,11 +118,6 @@ export const solanaSdkOptions: SdkOption[] = [
     title: 'Without Socials',
     link: '/appkit?name=solana-no-socials',
     description: 'Configuration using ethers without socials'
-  },
-  {
-    title: 'Wallet Button',
-    link: '/appkit?name=solana-wallet-button',
-    description: 'Configuration using solana with wallet buttons'
   }
 ]
 
@@ -211,6 +191,11 @@ export const featuredSdkOptions: SdkOption[] = [
     title: 'Basic',
     link: '/appkit?name=multichain-no-adapters',
     description: 'Configuration with no adapters enabled for AppKit'
+  },
+  {
+    title: 'AppKit Headless',
+    link: '/appkit?name=headless',
+    description: 'Custom connect UI with AppKit Headless'
   }
 ]
 
@@ -219,11 +204,22 @@ export const bitcoinSdkOptions: SdkOption[] = [
     title: 'Default',
     link: '/appkit?name=bitcoin',
     description: 'Basic configuration using bitcoin as a driving library'
-  },
+  }
+]
+
+export const tonSdkOptions: SdkOption[] = [
   {
-    title: 'Wallet Button',
-    link: '/appkit?name=bitcoin-wallet-button',
-    description: 'Configuration using bitcoin with wallet buttons'
+    title: 'Default',
+    link: '/appkit?name=ton',
+    description: 'Basic configuration using Ton as a driving library'
+  }
+]
+
+export const tronSdkOptions: SdkOption[] = [
+  {
+    title: 'Default',
+    link: '/appkit?name=tron',
+    description: 'Basic configuration using Tron as a driving library'
   }
 ]
 
@@ -274,5 +270,10 @@ export const customSdkOptions: SdkOption[] = [
     ],
     description:
       'AppKit configuration with `enableReconnect` flag set to false to disable reconnect on page load'
+  },
+  {
+    title: 'Coinbase SDK Disabled',
+    link: '/appkit?name=flag-no-coinbase',
+    description: 'AppKit configuration with Coinbase SDK disabled to test mobile deeplink redirect'
   }
 ]

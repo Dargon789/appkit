@@ -1,3 +1,4 @@
+import type { AuthTypes } from '@walletconnect/types'
 import UniversalProvider from '@walletconnect/universal-provider'
 
 import type { CaipNetworkId, ChainNamespace } from '@reown/appkit-common'
@@ -102,7 +103,6 @@ export const SIWXUtil = {
     const siwx = OptionsController.state.siwx
     const address = CoreHelperUtil.getPlainAddress(ChainController.getActiveCaipAddress())
     const network = getActiveCaipNetwork()
-    const client = ConnectionController._getClient()
 
     if (!siwx) {
       throw new Error('SIWX is not enabled')
@@ -116,10 +116,6 @@ export const SIWXUtil = {
       throw new Error('No ActiveCaipNetwork or client found')
     }
 
-    if (!client) {
-      throw new Error('No ConnectionController client found')
-    }
-
     try {
       const siwxMessage = await siwx.createMessage({
         chainId: network.caipNetworkId,
@@ -127,13 +123,21 @@ export const SIWXUtil = {
       })
 
       const message = siwxMessage.toString()
-      const connectorId = ConnectorController.getConnectorId(network.chainNamespace)
 
-      if (connectorId === CommonConstantsUtil.CONNECTOR_ID.AUTH) {
-        RouterController.pushTransactionStack({})
+      let signature = ''
+      if (siwx.signMessage) {
+        signature = await siwx.signMessage({
+          message,
+          chainId: network.caipNetworkId,
+          accountAddress: address
+        })
+      } else {
+        const connectorId = ConnectorController.getConnectorId(network.chainNamespace)
+        if (connectorId === CommonConstantsUtil.CONNECTOR_ID.AUTH) {
+          RouterController.pushTransactionStack({})
+        }
+        signature = (await ConnectionController.signMessage(message)) || ''
       }
-
-      const signature = await client.signMessage(message)
 
       await siwx.addSession({
         data: siwxMessage,
@@ -438,7 +442,7 @@ export const SIWXUtil = {
             ...cacao.p,
             accountAddress: cacao.p.iss.split(':').slice(-1).join(''),
             chainId: cacao.p.iss.split(':').slice(2, 4).join(':') as CaipNetworkId,
-            uri: cacao.p.aud,
+            uri: cacao.p.aud ?? '',
             version: cacao.p.version || siwxMessage.version,
             expirationTime: cacao.p.exp,
             issuedAt: cacao.p.iat,
@@ -524,6 +528,28 @@ export interface SIWXConfig {
   createMessage: (input: SIWXMessage.Input) => Promise<SIWXMessage>
 
   /**
+   * This method will be called to sign a message with the wallet using the signer handler.
+   * This behavior can be overriden by passing in a `signer` parameter to the `SIWXConfig` constructor.
+   * Constraints:
+   * - This method MUST forward the message to the wallet for a signature request.
+   * - If the signature process fails or is cancelled it MUST throw an error.
+   *
+   * @param message string
+   * @param chainId CaipNetworkId
+   * @param accountAddress string
+   * @returns string
+   */
+  signMessage?: ({
+    message,
+    chainId,
+    accountAddress
+  }: {
+    message: string
+    chainId: string
+    accountAddress: string
+  }) => Promise<string>
+
+  /**
    * This method will be called to store a new single session.
    *
    * Constraints:
@@ -591,7 +617,7 @@ export interface SIWXSession {
   data: SIWXMessage.Data
   message: string
   signature: string
-  cacao?: Cacao
+  cacao?: AuthTypes.Cacao
 }
 
 /**
@@ -658,13 +684,9 @@ export namespace SIWXMessage {
  * https://chainagnostic.org/CAIPs/caip-74
  */
 export interface Cacao {
-  h: Cacao.Header
-  p: Cacao.Payload
-  s: {
-    t: 'eip191' | 'eip1271'
-    s: string
-    m?: string
-  }
+  h: AuthTypes.CacaoHeader
+  p: AuthTypes.BaseAuthRequestParams
+  s: AuthTypes.CacaoSignature
 }
 
 export namespace Cacao {
@@ -674,16 +696,17 @@ export namespace Cacao {
 
   export interface Payload {
     domain: string
-    aud: string
+    aud?: string
     nonce: string
-    iss: string
     version?: string
     iat?: string
     nbf?: string
     exp?: string
+    chainId?: string
     statement?: string
     requestId?: string
     resources?: string[]
+    expiry?: number
     type?: string
   }
 }

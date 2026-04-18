@@ -27,6 +27,7 @@ import {
   CoreHelperUtil,
   EventsController,
   ModalController,
+  PublicStateController,
   RouterController
 } from '../../exports/index.js'
 
@@ -51,6 +52,7 @@ const client: ConnectionControllerClient = {
   formatUnits: value => value.toString(),
   sendTransaction: () => Promise.resolve('0x'),
   writeContract: () => Promise.resolve('0x'),
+  writeSolanaTransaction: () => Promise.resolve('0x'),
   getEnsAddress: async (value: string) => Promise.resolve(value),
   getEnsAvatar: async (value: string) => Promise.resolve(value),
   getCapabilities: async () => Promise.resolve(''),
@@ -74,6 +76,7 @@ const partialClient: ConnectionControllerClient = {
   formatUnits: value => value.toString(),
   sendTransaction: () => Promise.resolve('0x'),
   writeContract: () => Promise.resolve('0x'),
+  writeSolanaTransaction: () => Promise.resolve('0x'),
   getEnsAddress: async (value: string) => Promise.resolve(value),
   getEnsAvatar: async (value: string) => Promise.resolve(value),
   getCapabilities: async () => Promise.resolve(''),
@@ -131,7 +134,8 @@ describe('ConnectionController', () => {
       buffering: false,
       isSwitchingConnection: false,
       status: 'disconnected',
-      _client: evmAdapter.connectionControllerClient
+      _client: evmAdapter.connectionControllerClient,
+      wcFetchingUri: false
     })
   })
   it('should update state correctly and set wcPromisae on connectWalletConnect()', async () => {
@@ -148,6 +152,84 @@ describe('ConnectionController', () => {
     const options = { id: externalId, type }
     await ConnectionController.connectExternal(options, chain)
     expect(clientConnectExternalSpy).toHaveBeenCalledWith(options)
+  })
+
+  it('connectExternal() should send CONNECT_SUCCESS event for regular connector', async () => {
+    const mockConnector = {
+      id: externalId,
+      type: 'INJECTED' as ConnectorType,
+      name: 'Test Wallet',
+      chain: chain,
+      explorerWallet: { order: 5 }
+    } as Connector
+
+    ConnectorController.state.allConnectors = [mockConnector]
+    RouterController.state.view = 'Connect' as RouterControllerState['view']
+
+    const sendEventSpy = vi.spyOn(EventsController, 'sendEvent').mockImplementation(() => {})
+
+    const options = { id: externalId, type: 'INJECTED' as ConnectorType }
+    await ConnectionController.connectExternal(options, chain)
+
+    expect(sendEventSpy).toHaveBeenCalledWith({
+      type: 'track',
+      event: 'CONNECT_SUCCESS',
+      properties: {
+        method: 'browser',
+        name: 'Test Wallet',
+        view: 'Connect',
+        walletRank: 5
+      }
+    })
+  })
+
+  it('connectExternal() should send CONNECT_SUCCESS event for AUTH connector with email method', async () => {
+    const mockAuthConnector = {
+      id: CommonConstantsUtil.CONNECTOR_ID.AUTH,
+      type: 'AUTH' as ConnectorType,
+      name: 'Email',
+      chain: chain
+    } as Connector
+
+    ConnectorController.state.allConnectors = [mockAuthConnector]
+    RouterController.state.view = 'Connect' as RouterControllerState['view']
+
+    const sendEventSpy = vi.spyOn(EventsController, 'sendEvent').mockImplementation(() => {})
+
+    const options = { id: CommonConstantsUtil.CONNECTOR_ID.AUTH, type: 'AUTH' as ConnectorType }
+    await ConnectionController.connectExternal(options, chain)
+
+    expect(sendEventSpy).toHaveBeenCalledWith({
+      type: 'track',
+      event: 'CONNECT_SUCCESS',
+      properties: {
+        method: 'email',
+        name: 'Email',
+        view: 'Connect',
+        walletRank: undefined
+      }
+    })
+  })
+
+  it('connectExternal() should send CONNECT_SUCCESS event with Unknown name when connector not found', async () => {
+    ConnectorController.state.allConnectors = []
+    RouterController.state.view = 'Account' as RouterControllerState['view']
+
+    const sendEventSpy = vi.spyOn(EventsController, 'sendEvent').mockImplementation(() => {})
+
+    const options = { id: 'unknown-connector', type: 'INJECTED' as ConnectorType }
+    await ConnectionController.connectExternal(options, chain)
+
+    expect(sendEventSpy).toHaveBeenCalledWith({
+      type: 'track',
+      event: 'CONNECT_SUCCESS',
+      properties: {
+        method: 'browser',
+        name: 'Unknown',
+        view: 'Account',
+        walletRank: undefined
+      }
+    })
   })
 
   it('checkInstalled() should trigger internal client call', () => {
@@ -182,9 +264,11 @@ describe('ConnectionController', () => {
   })
 
   it('should update state correctly on resetWcConnection()', () => {
+    const setPublicStateSpy = vi.spyOn(PublicStateController, 'set')
     ConnectionController.resetWcConnection()
     expect(ConnectionController.state.wcUri).toEqual(undefined)
     expect(ConnectionController.state.wcPairingExpiry).toEqual(undefined)
+    expect(setPublicStateSpy).toHaveBeenCalledWith({ connectingWallet: undefined })
   })
 
   it('should set wcUri correctly', () => {
@@ -218,6 +302,62 @@ describe('ConnectionController', () => {
     await ConnectionController.connectWalletConnect()
     expect(connectWalletConnectSpy).toHaveBeenCalledTimes(1)
     expect(ConnectionController.state.status).toEqual('connected')
+  })
+
+  it('should set wcError and status to disconnected when connectWalletConnect rejects in cached mode on telegram', async () => {
+    client.connectWalletConnect = vi.fn().mockRejectedValueOnce(new Error('Connection failed'))
+    vi.spyOn(CoreHelperUtil, 'isPairingExpired').mockReturnValue(true)
+    vi.spyOn(CoreHelperUtil, 'isTelegram').mockReturnValue(true)
+
+    ConnectionController.state.wcError = false
+
+    await expect(ConnectionController.connectWalletConnect()).rejects.toThrow('Connection failed')
+
+    expect(ConnectionController.state.wcError).toEqual(true)
+    expect(ConnectionController.state.wcFetchingUri).toEqual(false)
+    expect(ConnectionController.state.status).toEqual('disconnected')
+  })
+
+  it('should set wcError and status to disconnected when connectWalletConnect rejects with cache "always"', async () => {
+    client.connectWalletConnect = vi.fn().mockRejectedValueOnce(new Error('Connection failed'))
+    vi.spyOn(CoreHelperUtil, 'isPairingExpired').mockReturnValue(true)
+
+    ConnectionController.state.wcError = false
+
+    await expect(ConnectionController.connectWalletConnect({ cache: 'always' })).rejects.toThrow(
+      'Connection failed'
+    )
+
+    expect(ConnectionController.state.wcError).toEqual(true)
+    expect(ConnectionController.state.wcFetchingUri).toEqual(false)
+    expect(ConnectionController.state.status).toEqual('disconnected')
+  })
+
+  it('should not set wcError when connectWalletConnect succeeds in cached mode', async () => {
+    client.connectWalletConnect = vi.fn().mockResolvedValueOnce(undefined)
+    vi.spyOn(CoreHelperUtil, 'isPairingExpired').mockReturnValue(true)
+    vi.spyOn(CoreHelperUtil, 'isTelegram').mockReturnValue(true)
+
+    ConnectionController.state.wcError = false
+
+    await ConnectionController.connectWalletConnect()
+
+    expect(ConnectionController.state.wcError).toEqual(false)
+    expect(ConnectionController.state.status).toEqual('connected')
+  })
+
+  it('should set wcError and rethrow when connectWalletConnect rejects in non-cached mode', async () => {
+    client.connectWalletConnect = vi.fn().mockRejectedValueOnce(new Error('Connection failed'))
+
+    ConnectionController.state.wcError = false
+
+    await expect(ConnectionController.connectWalletConnect({ cache: 'never' })).rejects.toThrow(
+      'Connection failed'
+    )
+
+    expect(ConnectionController.state.wcError).toEqual(true)
+    expect(ConnectionController.state.wcFetchingUri).toEqual(false)
+    expect(ConnectionController.state.status).toEqual('disconnected')
   })
 
   it('should handle connectWalletConnect when cache argument is "never"', async () => {
@@ -636,5 +776,59 @@ describe('finalizeWcConnection', () => {
         })
       })
     )
+  })
+
+  it('should use qrcode method when wcLinking is not provided', () => {
+    const sendEventSpy = vi.spyOn(EventsController, 'sendEvent').mockImplementation(() => {})
+
+    vi.spyOn(RouterController, 'state', 'get').mockReturnValue({
+      ...RouterController.state,
+      view: 'Connect' as RouterControllerState['view'],
+      data: { wallet: { name: 'QRWallet', id: 'qr-test' } }
+    })
+
+    vi.spyOn(ConnectionController, 'state', 'get').mockReturnValue({
+      ...ConnectionController.state,
+      wcLinking: undefined,
+      recentWallet: { id: 'qr-test', order: 10, name: 'QRWallet' }
+    })
+
+    const address = '0xdef'
+
+    ConnectionController.finalizeWcConnection(address)
+
+    expect(sendEventSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'track',
+        event: 'CONNECT_SUCCESS',
+        address,
+        properties: expect.objectContaining({
+          method: 'qrcode',
+          name: 'QRWallet',
+          view: 'Connect',
+          walletRank: 10
+        })
+      })
+    )
+  })
+
+  it('should not send CONNECT_SUCCESS event when address is not provided', () => {
+    const sendEventSpy = vi.spyOn(EventsController, 'sendEvent').mockImplementation(() => {})
+
+    vi.spyOn(RouterController, 'state', 'get').mockReturnValue({
+      ...RouterController.state,
+      view: 'Connect' as RouterControllerState['view'],
+      data: { wallet: { name: 'TestWallet', id: 'test' } }
+    })
+
+    vi.spyOn(ConnectionController, 'state', 'get').mockReturnValue({
+      ...ConnectionController.state,
+      wcLinking: { href: 'wc://deeplink', name: 'TestWallet' },
+      recentWallet: { id: 'test', order: 5, name: 'TestWallet' }
+    })
+
+    ConnectionController.finalizeWcConnection(undefined)
+
+    expect(sendEventSpy).not.toHaveBeenCalled()
   })
 })

@@ -1,9 +1,16 @@
 import type { BaseWalletAdapter } from '@solana/wallet-adapter-base'
 import type { Commitment, ConnectionConfig } from '@solana/web3.js'
-import { PublicKey, SendTransactionError, Connection as SolanaConnection } from '@solana/web3.js'
+import {
+  PublicKey,
+  SendTransactionError,
+  Connection as SolanaConnection,
+  Transaction,
+  TransactionInstruction
+} from '@solana/web3.js'
 import UniversalProvider from '@walletconnect/universal-provider'
 import bs58 from 'bs58'
 
+import { SendTransactionError as CommonSendTransactionError } from '@reown/appkit-common'
 import { type ChainNamespace, ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
 import {
   AdapterBlueprint,
@@ -58,6 +65,10 @@ const TRANSACTION_ERROR_MAP = [
   {
     pattern: /Insufficient funds for fee/iu,
     message: 'Not enough SOL to cover fees or rent'
+  },
+  {
+    pattern: /Transfer: insufficient lamports/iu,
+    message: 'Not enough SOL to cover this transfer'
   }
 ]
 
@@ -133,6 +144,72 @@ export class SolanaAdapter extends AdapterBlueprint<SolanaProvider> {
     return Promise.resolve({
       hash: ''
     })
+  }
+
+  public async writeSolanaTransaction(
+    params: AdapterBlueprint.WriteSolanaTransactionParams
+  ): Promise<AdapterBlueprint.WriteSolanaTransactionResult> {
+    const provider = params.provider as SolanaProvider
+
+    const connection = SolStoreUtil.state.connection
+
+    if (!connection || !params.provider) {
+      throw new Error('Connection is not set')
+    }
+
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash()
+
+    const transaction = new Transaction({
+      feePayer: provider.publicKey,
+      blockhash,
+      lastValidBlockHeight
+    })
+
+    for (const instruction of params.instructions) {
+      transaction.add(
+        new TransactionInstruction({
+          keys: instruction.keys.map(key => ({
+            pubkey: new PublicKey(key.pubkey),
+            isSigner: key.isSigner,
+            isWritable: key.isWritable
+          })),
+          programId: new PublicKey(instruction.programId),
+          data: Buffer.from(instruction.data, 'hex')
+        })
+      )
+    }
+
+    const result = await provider.sendTransaction(transaction, connection).catch(error => {
+      if (error instanceof SendTransactionError) {
+        // Check both message and logs
+        const errMessage = error?.transactionError?.message ?? error?.message ?? ''
+        const logs = error?.logs?.join(' ') ?? ''
+        const fullErrorText = `${errMessage} ${logs}`
+
+        for (const { pattern, message } of TRANSACTION_ERROR_MAP) {
+          if (pattern.test(fullErrorText)) {
+            throw new Error(message)
+          }
+        }
+      }
+
+      throw error
+    })
+
+    await new Promise<void>(resolve => {
+      const interval = setInterval(async () => {
+        const status = await connection.getSignatureStatus(result)
+
+        if (status?.value) {
+          clearInterval(interval)
+          resolve()
+        }
+      }, 1000)
+    })
+
+    return {
+      hash: result
+    }
   }
 
   public async getCapabilities(): Promise<unknown> {
@@ -230,11 +307,14 @@ export class SolanaAdapter extends AdapterBlueprint<SolanaProvider> {
 
     const result = await provider.sendTransaction(transaction, connection).catch(error => {
       if (error instanceof SendTransactionError) {
+        // Check both message and logs
         const errMessage = error?.transactionError?.message ?? error?.message ?? ''
+        const logs = error?.logs?.join(' ') ?? ''
+        const fullErrorText = `${errMessage} ${logs}`
 
         for (const { pattern, message } of TRANSACTION_ERROR_MAP) {
-          if (pattern.test(errMessage)) {
-            throw new Error(message)
+          if (pattern.test(fullErrorText)) {
+            throw new CommonSendTransactionError(message)
           }
         }
       }

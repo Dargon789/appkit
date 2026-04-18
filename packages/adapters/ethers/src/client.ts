@@ -3,18 +3,21 @@ import { JsonRpcProvider, formatEther, getAddress } from 'ethers'
 
 import { WcConstantsUtil } from '@reown/appkit'
 import {
+  type CaipAddress,
   type ChainNamespace,
   ConstantsUtil as CommonConstantsUtil,
   ErrorUtil,
   ParseUtil,
   UserRejectedRequestError
 } from '@reown/appkit-common'
+import { ConstantsUtil, PresetsUtil } from '@reown/appkit-common'
 import {
   AssetController,
   ChainController,
   type CombinedProvider,
   type Connector,
   type ConnectorType,
+  ConnectorUtil,
   CoreHelperUtil,
   OptionsController,
   type Provider,
@@ -28,9 +31,16 @@ import {
   ProviderController,
   WalletConnectConnector
 } from '@reown/appkit-controllers'
-import { ConnectorUtil } from '@reown/appkit-scaffold-ui/utils'
-import { ConstantsUtil, HelpersUtil, PresetsUtil } from '@reown/appkit-utils'
-import { type Address, EthersHelpersUtil, type ProviderType } from '@reown/appkit-utils/ethers'
+import { HelpersUtil } from '@reown/appkit-utils'
+import {
+  type Address,
+  BaseProvider,
+  CoinbaseWalletProvider,
+  EthersHelpersUtil,
+  InjectedProvider,
+  type ProviderType,
+  SafeProvider
+} from '@reown/appkit-utils/ethers'
 import type { W3mFrameProvider } from '@reown/appkit-wallet'
 
 import { EthersMethods } from './utils/EthersMethods.js'
@@ -44,6 +54,7 @@ export class EthersAdapter extends AdapterBlueprint {
   private ethersConfig?: ProviderType
   private balancePromises: Record<string, Promise<AdapterBlueprint.GetBalanceResult>> = {}
   private universalProvider?: UniversalProvider
+  private ethersProviders: Omit<ProviderType, 'metadata' | 'EIP6963'> = {}
 
   constructor() {
     super({
@@ -53,99 +64,41 @@ export class EthersAdapter extends AdapterBlueprint {
   }
 
   private async createEthersConfig() {
-    const { metadata, coinbasePreference, enableCoinbase, enableInjected, enableEIP6963 } =
+    const { metadata, enableCoinbase, enableBaseAccount, enableInjected, enableEIP6963 } =
       OptionsController.state
 
     if (!metadata) {
       return undefined
     }
 
-    let injectedProvider: Provider | undefined = undefined
-
-    function getInjectedProvider() {
-      if (injectedProvider) {
-        return injectedProvider
-      }
-
-      if (typeof window === 'undefined') {
-        return undefined
-      }
-
-      if (!window.ethereum) {
-        return undefined
-      }
-
-      //  @ts-expect-error window.ethereum satisfies Provider
-      injectedProvider = window.ethereum
-
-      return injectedProvider
-    }
-
-    async function getSafeProvider() {
-      const { SafeProvider } = await import('./utils/SafeProvider.js')
-      const { default: SafeAppsSDK } = await import('@safe-global/safe-apps-sdk')
-      const appsSdk = new SafeAppsSDK()
-      const info = await appsSdk.safe.getInfo()
-
-      const provider = new SafeProvider(info, appsSdk)
-      await provider.connect().catch(error => {
-        // eslint-disable-next-line no-console
-        console.info('Failed to auto-connect to Safe:', error)
-      })
-
-      return provider
-    }
-
-    async function getCoinbaseProvider() {
-      const caipNetworks = ChainController.getCaipNetworks()
-      try {
-        const { createCoinbaseWalletSDK } = await import('@coinbase/wallet-sdk')
-        if (typeof window === 'undefined') {
-          return undefined
-        }
-
-        const coinbaseSdk = createCoinbaseWalletSDK({
-          appName: metadata?.name,
-          appLogoUrl: metadata?.icons[0],
-          appChainIds: caipNetworks?.map(caipNetwork => caipNetwork.id as number) || [1, 84532],
-          preference: {
-            options: coinbasePreference ?? 'all'
-          }
-        })
-
-        return coinbaseSdk.getProvider()
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Failed to import Coinbase Wallet SDK:', error)
-
-        return undefined
-      }
-    }
-
-    const providers: ProviderType = { metadata: metadata ?? {} }
-
     if (enableInjected !== false) {
-      providers.injected = getInjectedProvider()
+      const injectedProvider = new InjectedProvider()
+      await injectedProvider.initialize()
+      this.ethersProviders.injected = injectedProvider
+    }
+
+    if (enableBaseAccount !== false) {
+      // Do not initialize provider to prevent unnecessary api calls - lazy load
+      this.ethersProviders.baseAccount = new BaseProvider()
     }
 
     if (enableCoinbase !== false) {
-      const coinbaseProvider = await getCoinbaseProvider()
-
-      if (coinbaseProvider) {
-        providers.coinbase = coinbaseProvider
-      }
+      // Do not initialize provider to prevent unnecessary api calls - lazy load
+      this.ethersProviders.coinbaseWallet = new CoinbaseWalletProvider()
     }
 
     if (CoreHelperUtil.isSafeApp()) {
-      const safeProvider = await getSafeProvider()
-      if (safeProvider) {
-        providers.safe = safeProvider
-      }
+      const safeProvider = new SafeProvider()
+      // Initialize the safe provider during intialization
+      await safeProvider.initialize()
+      this.ethersProviders.safe = safeProvider
     }
 
-    providers.EIP6963 = enableEIP6963 !== false
-
-    return providers
+    return {
+      ...this.ethersProviders,
+      EIP6963: enableEIP6963 !== false,
+      metadata
+    }
   }
 
   public async signMessage(
@@ -299,26 +252,28 @@ export class EthersAdapter extends AdapterBlueprint {
       key => key !== 'metadata' && key !== 'EIP6963'
     )
 
-    connectors.forEach(connector => {
-      const key = connector === 'coinbase' ? 'coinbaseWalletSDK' : connector
-
+    const connectorPromises = connectors.map(async connector => {
       const isInjectedConnector = connector === CommonConstantsUtil.CONNECTOR_ID.INJECTED
 
       if (this.namespace) {
+        const provider =
+          this.ethersProviders[connector as keyof Omit<ProviderType, 'metadata' | 'EIP6963'>]
         this.addConnector({
-          id: key,
-          explorerId: PresetsUtil.ConnectorExplorerIds[key],
-          imageUrl: AssetController.state.connectorImages?.[key],
-          name: PresetsUtil.ConnectorNamesMap[key] || 'Unknown',
-          imageId: PresetsUtil.ConnectorImageIds[key],
-          type: PresetsUtil.ConnectorTypesMap[key] ?? 'EXTERNAL',
-          info: isInjectedConnector ? undefined : { rdns: key },
+          id: connector,
+          explorerId: PresetsUtil.ConnectorExplorerIds[connector],
+          imageUrl: AssetController.state.connectorImages?.[connector],
+          name: PresetsUtil.ConnectorNamesMap[connector] || 'Unknown',
+          imageId: PresetsUtil.ConnectorImageIds[connector],
+          type: PresetsUtil.ConnectorTypesMap[connector] ?? 'EXTERNAL',
+          info: isInjectedConnector ? undefined : { rdns: connector },
           chain: this.namespace,
           chains: [],
-          provider: this.ethersConfig?.[connector as keyof ProviderType] as Provider
+          provider: (await provider?.getProvider()) as Provider
         })
       }
     })
+
+    await Promise.all(connectorPromises)
   }
 
   private async disconnectAll() {
@@ -341,6 +296,10 @@ export class EthersAdapter extends AdapterBlueprint {
     )
 
     return { connections }
+  }
+
+  public async writeSolanaTransaction() {
+    return Promise.resolve({ hash: '' })
   }
 
   public async syncConnections({
@@ -448,6 +407,9 @@ export class EthersAdapter extends AdapterBlueprint {
           this.addConnector({
             id,
             type,
+            explorerId:
+              PresetsUtil.ConnectorExplorerIds[info.rdns || ''] ??
+              PresetsUtil.ConnectorExplorerIds[info.name || ''],
             imageUrl: info?.icon,
             name: info?.name || 'Unknown',
             provider,
@@ -513,11 +475,19 @@ export class EthersAdapter extends AdapterBlueprint {
         }
       }
 
-      const selectedProvider = connector?.provider as Provider
+      let selectedProvider = connector?.provider as Provider | undefined
+      const ethersProvider =
+        this.ethersProviders[connector.id as keyof Omit<ProviderType, 'metadata' | 'EIP6963'>]
+      if (ethersProvider) {
+        await ethersProvider.initialize()
+        selectedProvider = (await ethersProvider.getProvider()) as Provider | undefined
+      }
 
       if (!selectedProvider) {
         throw new Error('Provider not found')
       }
+
+      connector.provider = selectedProvider
 
       let accounts: string[] = []
 
@@ -648,10 +618,13 @@ export class EthersAdapter extends AdapterBlueprint {
       connectors: this.connectors
     })
 
-    if (connection) {
+    if (connection && connection.caipNetwork) {
       return {
         accounts: connection.accounts.map(({ address }) =>
-          CoreHelperUtil.createAccount(CommonConstantsUtil.CHAIN.EVM, address, 'eoa')
+          CoreHelperUtil.createAccount({
+            caipAddress: `${connection?.caipNetwork?.caipNetworkId}:${address}` as CaipAddress,
+            type: 'eoa'
+          })
         )
       }
     }
@@ -661,11 +634,14 @@ export class EthersAdapter extends AdapterBlueprint {
       if (!provider.user) {
         return { accounts: [] }
       }
-      const { accounts, address } = provider.user
+      const { accounts, address, chainId } = provider.user
 
       return Promise.resolve({
         accounts: (accounts || [{ address, type: 'eoa' }]).map(account =>
-          CoreHelperUtil.createAccount(CommonConstantsUtil.CHAIN.EVM, account.address, account.type)
+          CoreHelperUtil.createAccount({
+            caipAddress: `eip155:${chainId}:${account.address}` as CaipAddress,
+            type: account.type
+          })
         )
       })
     }
@@ -674,10 +650,17 @@ export class EthersAdapter extends AdapterBlueprint {
       method: 'eth_requestAccounts'
     })
 
+    const caipNetwork = ChainController.getActiveCaipNetwork(this.namespace as ChainNamespace)
+
     return {
-      accounts: accounts.map(account =>
-        CoreHelperUtil.createAccount(CommonConstantsUtil.CHAIN.EVM, account, 'eoa')
-      )
+      accounts: caipNetwork
+        ? accounts.map(account =>
+            CoreHelperUtil.createAccount({
+              caipAddress: `${caipNetwork?.caipNetworkId}:${account}`,
+              type: 'eoa'
+            })
+          )
+        : []
     }
   }
 

@@ -30,7 +30,9 @@ describe('OptionsController', () => {
         bip122: 'payment',
         eip155: 'smartAccount',
         polkadot: 'eoa',
-        solana: 'eoa'
+        solana: 'eoa',
+        ton: 'eoa',
+        tron: 'eoa'
       },
       enableNetworkSwitch: true,
       experimental_preferUniversalLinks: false,
@@ -60,7 +62,9 @@ describe('OptionsController', () => {
       bip122: 'payment',
       eip155: 'eoa',
       polkadot: 'eoa',
-      solana: 'eoa'
+      solana: 'eoa',
+      ton: 'eoa',
+      tron: 'eoa'
     })
   })
 

@@ -38,7 +38,9 @@ const mockConnectorState: ConnectorControllerState = {
     bip122: undefined,
     cosmos: undefined,
     sui: undefined,
-    stacks: undefined
+    stacks: undefined,
+    ton: undefined,
+    tron: undefined
   },
   filterByNamespaceMap: {
     eip155: true,
@@ -47,7 +49,9 @@ const mockConnectorState: ConnectorControllerState = {
     bip122: true,
     cosmos: true,
     sui: true,
-    stacks: true
+    stacks: true,
+    ton: true,
+    tron: true
   }
 }
 
@@ -91,7 +95,15 @@ const mockApiState: ApiControllerState = {
   isFetchingRecommendedWallets: false,
   filteredWallets: [],
   explorerWallets: [],
-  explorerFilteredWallets: []
+  explorerFilteredWallets: [],
+  plan: {
+    tier: 'starter',
+    hasExceededUsageLimit: false,
+    limits: {
+      isAboveRpcLimit: false,
+      isAboveMauLimit: false
+    }
+  }
 }
 
 describe('W3mAllWalletsWidget', () => {

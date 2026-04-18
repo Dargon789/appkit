@@ -6,17 +6,25 @@ import type {
   ParsedCaipAddress,
   SdkVersion
 } from '@reown/appkit-common'
-import { ConstantsUtil as CommonConstants } from '@reown/appkit-common'
+import { ConstantsUtil as CommonConstants, ParseUtil } from '@reown/appkit-common'
 import type { CaipAddress, CaipNetwork } from '@reown/appkit-common'
 
 import { ConstantsUtil } from './ConstantsUtil.js'
 import { StorageUtil } from './StorageUtil.js'
-import type { AccountTypeMap, ChainAdapter, LinkingRecord, NamespaceTypeMap } from './TypeUtil.js'
+import type { AccountTypeMap, ChainAdapter, LinkingRecord } from './TypeUtil.js'
 
 type SDKFramework = 'html' | 'react' | 'vue' | 'cdn' | 'unity'
 export type OpenTarget = '_blank' | '_self' | 'popupWindow' | '_top'
 
 export const CoreHelperUtil = {
+  getWindow(): Window | undefined {
+    if (typeof window === 'undefined') {
+      return undefined
+    }
+
+    return window
+  },
+
   isMobile() {
     if (this.isClient()) {
       return Boolean(
@@ -87,6 +95,7 @@ export const CoreHelperUtil = {
       return false
     }
   },
+
   isSafeApp() {
     if (CoreHelperUtil.isClient() && window.self !== window.top) {
       try {
@@ -157,16 +166,15 @@ export const CoreHelperUtil = {
     let safeAppUrl = appUrl
     let safeUniversalLink = universalLink
 
-    if (safeAppUrl) {
-      if (!safeAppUrl.includes('://')) {
-        safeAppUrl = appUrl.replaceAll('/', '').replaceAll(':', '')
-        safeAppUrl = `${safeAppUrl}://`
-      }
-
-      if (!safeAppUrl.endsWith('/')) {
-        safeAppUrl = `${safeAppUrl}/`
-      }
+    if (!safeAppUrl.includes('://')) {
+      safeAppUrl = appUrl.replaceAll('/', '').replaceAll(':', '')
+      safeAppUrl = `${safeAppUrl}://`
     }
+
+    if (!safeAppUrl.endsWith('/')) {
+      safeAppUrl = `${safeAppUrl}/`
+    }
+
     if (safeUniversalLink && !safeUniversalLink?.endsWith('/')) {
       safeUniversalLink = `${safeUniversalLink}/`
     }
@@ -395,6 +403,14 @@ export const CoreHelperUtil = {
       case 'solana':
         return /[1-9A-HJ-NP-Za-km-z]{32,44}$/iu.test(address)
 
+      case 'bip122': {
+        const isP2PKH = /^[1][a-km-zA-HJ-NP-Z1-9]{25,34}$/u.test(address)
+        const isP2SH = /^[3][a-km-zA-HJ-NP-Z1-9]{25,34}$/u.test(address)
+        const isBech32 = /^bc1[a-z0-9]{39,87}$/u.test(address)
+        const isBech32m = /^bc1p[a-z0-9]{58}$/u.test(address)
+
+        return isP2PKH || isP2SH || isBech32 || isBech32m
+      }
       default:
         return false
     }
@@ -429,20 +445,22 @@ export const CoreHelperUtil = {
     return `${platform}-${adapterNames}-${version}`
   },
 
-  // eslint-disable-next-line max-params
-  createAccount<N extends ChainNamespace>(
-    namespace: N,
-    address: string,
-    type: NamespaceTypeMap[N],
-    publicKey?: string,
+  createAccount<N extends ChainNamespace>(params: {
+    caipAddress: CaipAddress
+    type: string
+    publicKey?: string
     path?: string
-  ): AccountTypeMap[N] {
+  }): AccountTypeMap[N] {
+    const { chainNamespace, chainId, address } = ParseUtil.parseCaipAddress(params.caipAddress)
+
     return {
-      namespace,
+      namespace: chainNamespace,
       address,
-      type,
-      publicKey,
-      path
+      chainId,
+      caipAddress: params.caipAddress,
+      type: params.type,
+      publicKey: params.publicKey,
+      path: params.path
     } as AccountTypeMap[N]
   },
 
@@ -529,5 +547,20 @@ export const CoreHelperUtil = {
     const newUrl = beforeKeyValue + newKeyValue + afterKeyValue
 
     return newUrl
+  },
+  isNumber(value: unknown): boolean {
+    if (typeof value !== 'number' && typeof value !== 'string') {
+      return false
+    }
+
+    return !isNaN(Number(value))
+  },
+
+  appendPayToUri(wcUri: string, wcPayUrl?: string): string {
+    if (!wcPayUrl) {
+      return wcUri
+    }
+
+    return `${wcUri}&pay=${encodeURIComponent(wcPayUrl)}`
   }
 }

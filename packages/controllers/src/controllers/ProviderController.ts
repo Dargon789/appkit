@@ -22,6 +22,7 @@ export type ProviderType =
   | 'eip6963'
   | 'AUTH'
   | 'coinbaseWalletSDK'
+  | 'baseAccount'
 
 const CLEAN_PROVIDERS_STATE = {
   eip155: undefined,
@@ -30,7 +31,9 @@ const CLEAN_PROVIDERS_STATE = {
   bip122: undefined,
   cosmos: undefined,
   sui: undefined,
-  stacks: undefined
+  stacks: undefined,
+  ton: undefined,
+  tron: undefined
 }
 
 const state = proxy<ProviderControllerState>({

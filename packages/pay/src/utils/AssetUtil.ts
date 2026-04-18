@@ -1,5 +1,9 @@
-import type { CaipNetworkId, ChainNamespace } from '@reown/appkit-common'
-import { ParseUtil } from '@reown/appkit-common'
+import type { Balance, CaipNetworkId, ChainNamespace } from '@reown/appkit-common'
+import { NumberUtil, ParseUtil } from '@reown/appkit-common'
+import { ChainController, CoreHelperUtil } from '@reown/appkit-controllers'
+import { HelpersUtil } from '@reown/appkit-utils'
+
+import type { PaymentAsset, PaymentAssetWithAmount } from '../types/options.js'
 
 const SUPPORT_PAY_WITH_WALLET_CHAIN_NAMESPACES = ['eip155', 'solana']
 
@@ -22,6 +26,13 @@ const CHAIN_ASSET_INFO_MAP: Partial<
   }
 }
 
+const EVM_NATIVE_SLIP44_OVERRIDES: Record<string, string> = {
+  // BNB on Binance Smart Chain
+  '56': '714',
+  // BNB on opBNB
+  '204': '714'
+}
+
 export function formatCaip19Asset(caipNetworkId: CaipNetworkId, asset: string): string {
   const { chainNamespace, chainId } = ParseUtil.parseCaipNetworkId(caipNetworkId)
 
@@ -36,6 +47,9 @@ export function formatCaip19Asset(caipNetworkId: CaipNetworkId, asset: string): 
   if (asset !== 'native') {
     assetNamespace = chainInfo.defaultTokenNamespace
     assetReference = asset
+  } else if (chainNamespace === 'eip155' && EVM_NATIVE_SLIP44_OVERRIDES[chainId]) {
+    // Use chain-specific SLIP-44 coin type for native tokens
+    assetReference = EVM_NATIVE_SLIP44_OVERRIDES[chainId]
   }
 
   const networkPart = `${chainNamespace}:${chainId}`
@@ -47,4 +61,73 @@ export function isPayWithWalletSupported(networkId: CaipNetworkId): boolean {
   const { chainNamespace } = ParseUtil.parseCaipNetworkId(networkId)
 
   return SUPPORT_PAY_WITH_WALLET_CHAIN_NAMESPACES.includes(chainNamespace)
+}
+
+export function formatBalanceToPaymentAsset(balance: Balance): PaymentAssetWithAmount {
+  const allNetworks = ChainController.getAllRequestedCaipNetworks()
+  const targetNetwork = allNetworks.find(net => net.caipNetworkId === balance.chainId)
+
+  let asset = balance.address
+
+  if (!targetNetwork) {
+    throw new Error(`Target network not found for balance chainId "${balance.chainId}"`)
+  }
+
+  if (HelpersUtil.isLowerCaseMatch(balance.symbol, targetNetwork.nativeCurrency.symbol)) {
+    asset = 'native'
+  } else if (CoreHelperUtil.isCaipAddress(asset)) {
+    const { address } = ParseUtil.parseCaipAddress(asset)
+
+    asset = address
+  } else if (!asset) {
+    throw new Error(`Balance address not found for balance symbol "${balance.symbol}"`)
+  }
+
+  return {
+    network: targetNetwork.caipNetworkId,
+    asset,
+    metadata: {
+      name: balance.name,
+      symbol: balance.symbol,
+      decimals: Number(balance.quantity.decimals),
+      logoURI: balance.iconUrl
+    },
+    amount: balance.quantity.numeric
+  }
+}
+
+export function formatPaymentAssetToBalance(paymentAsset: PaymentAsset): Balance {
+  return {
+    chainId: paymentAsset.network,
+    address: `${paymentAsset.network}:${paymentAsset.asset}`,
+    symbol: paymentAsset.metadata.symbol,
+    name: paymentAsset.metadata.name,
+    iconUrl: paymentAsset.metadata.logoURI || '',
+    price: 0,
+    quantity: {
+      numeric: '0',
+      decimals: paymentAsset.metadata.decimals.toString()
+    }
+  }
+}
+
+export function formatAmount(amount: string | number): string {
+  const num = NumberUtil.bigNumber(amount, { safe: true })
+
+  if (num.lt(0.001)) {
+    return '<0.001'
+  }
+
+  return num.round(4).toString()
+}
+
+export function isTestnetAsset(paymentAsset: PaymentAsset) {
+  const allNetworks = ChainController.getAllRequestedCaipNetworks()
+  const targetNetwork = allNetworks.find(net => net.caipNetworkId === paymentAsset.network)
+
+  if (!targetNetwork) {
+    return false
+  }
+
+  return Boolean(targetNetwork.testnet)
 }
