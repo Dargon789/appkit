@@ -13,7 +13,6 @@ executors:
           password: $DOCKER_HUB_PASSWORD
 jobs:
   web3-defi-game-project-:
-
     executor: my-custom-executor
     steps:
       - checkout

@@ -1,4 +1,29 @@
-import{q as h,v as w,w as m,i as f,r as v,x as b}from"./index-DVkBgnkX.js";import{r as u,c as g}from"./if-defined-DVOmkLu5.js";const e=h({message:"",open:!1,triggerRect:{width:0,height:0,top:0,left:0},variant:"shade"}),s={state:e,subscribe(o){return m(e,()=>o(e))},subscribeKey(o,t){return w(e,o,t)},showTooltip({message:o,triggerRect:t,variant:i}){e.open=!0,e.message=o,e.triggerRect=t,e.variant=i},hide(){e.open=!1,e.message="",e.triggerRect={width:0,height:0,top:0,left:0}}},x=f`
+import { c as g, r as u } from './if-defined-DVOmkLu5.js'
+import { x as b, i as f, q as h, w as m, r as v, v as w } from './index-DVkBgnkX.js'
+
+import { r as u, c as g } from './if-defined-DVOmkLu5.js'
+const e = h({
+    message: '',
+    open: !1,
+    triggerRect: { width: 0, height: 0, top: 0, left: 0 },
+    variant: 'shade'
+  }),
+  s = {
+    state: e,
+    subscribe(o) {
+      return m(e, () => o(e))
+    },
+    subscribeKey(o, t) {
+      return w(e, o, t)
+    },
+    showTooltip({ message: o, triggerRect: t, variant: i }) {
+      ;(e.open = !0), (e.message = o), (e.triggerRect = t), (e.variant = i)
+    },
+    hide() {
+      ;(e.open = !1), (e.message = ''), (e.triggerRect = { width: 0, height: 0, top: 0, left: 0 })
+    }
+  },
+  x = f`
   :host {
     pointer-events: none;
   }
@@ -62,13 +87,61 @@ import{q as h,v as w,w as m,i as f,r as v,x as b}from"./index-DVkBgnkX.js";impor
     right: 0%;
     transform: translate(65%, -50%) rotate(270deg);
   }
-`;var n=function(o,t,i,l){var p=arguments.length,r=p<3?t:l===null?l=Object.getOwnPropertyDescriptor(t,i):l,c;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")r=Reflect.decorate(o,t,i,l);else for(var d=o.length-1;d>=0;d--)(c=o[d])&&(r=(p<3?c(r):p>3?c(t,i,r):c(t,i))||r);return p>3&&r&&Object.defineProperty(t,i,r),r};let a=class extends v{constructor(){super(),this.unsubscribe=[],this.open=s.state.open,this.message=s.state.message,this.triggerRect=s.state.triggerRect,this.variant=s.state.variant,this.unsubscribe.push(s.subscribe(t=>{this.open=t.open,this.message=t.message,this.triggerRect=t.triggerRect,this.variant=t.variant}))}disconnectedCallback(){this.unsubscribe.forEach(t=>t())}render(){this.dataset.variant=this.variant;const t=this.triggerRect.top,i=this.triggerRect.left;return this.style.cssText=`
+`
+var n = function (o, t, i, l) {
+  var p = arguments.length,
+    r = p < 3 ? t : l === null ? (l = Object.getOwnPropertyDescriptor(t, i)) : l,
+    c
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    r = Reflect.decorate(o, t, i, l)
+  else
+    for (var d = o.length - 1; d >= 0; d--)
+      (c = o[d]) && (r = (p < 3 ? c(r) : p > 3 ? c(t, i, r) : c(t, i)) || r)
+  return p > 3 && r && Object.defineProperty(t, i, r), r
+}
+let a = class extends v {
+  constructor() {
+    super(),
+      (this.unsubscribe = []),
+      (this.open = s.state.open),
+      (this.message = s.state.message),
+      (this.triggerRect = s.state.triggerRect),
+      (this.variant = s.state.variant),
+      this.unsubscribe.push(
+        s.subscribe(t => {
+          ;(this.open = t.open),
+            (this.message = t.message),
+            (this.triggerRect = t.triggerRect),
+            (this.variant = t.variant)
+        })
+      )
+  }
+  disconnectedCallback() {
+    this.unsubscribe.forEach(t => t())
+  }
+  render() {
+    this.dataset.variant = this.variant
+    const t = this.triggerRect.top,
+      i = this.triggerRect.left
+    return (
+      (this.style.cssText = `
     --w3m-tooltip-top: ${t}px;
     --w3m-tooltip-left: ${i}px;
-    --w3m-tooltip-parent-width: ${this.triggerRect.width/2}px;
-    --w3m-tooltip-display: ${this.open?"flex":"none"};
-    --w3m-tooltip-opacity: ${this.open?1:0};
-    `,b`<wui-flex>
+    --w3m-tooltip-parent-width: ${this.triggerRect.width / 2}px;
+    --w3m-tooltip-display: ${this.open ? 'flex' : 'none'};
+    --w3m-tooltip-opacity: ${this.open ? 1 : 0};
+    `),
+      b`<wui-flex>
       <wui-icon data-placement="top" color="fg-100" size="inherit" name="cursor"></wui-icon>
       <wui-text color="inherit" variant="small-500">${this.message}</wui-text>
-    </wui-flex>`}};a.styles=[x];n([u()],a.prototype,"open",void 0);n([u()],a.prototype,"message",void 0);n([u()],a.prototype,"triggerRect",void 0);n([u()],a.prototype,"variant",void 0);a=n([g("w3m-tooltip"),g("w3m-tooltip")],a);export{s as T};
+    </wui-flex>`
+    )
+  }
+}
+a.styles = [x]
+n([u()], a.prototype, 'open', void 0)
+n([u()], a.prototype, 'message', void 0)
+n([u()], a.prototype, 'triggerRect', void 0)
+n([u()], a.prototype, 'variant', void 0)
+a = n([g('w3m-tooltip'), g('w3m-tooltip')], a)
+export { s as T }
