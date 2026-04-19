@@ -41,7 +41,8 @@ import type {
   UseAppKitNetworkReturn,
   User,
   WalletFeature,
-  WriteContractArgs
+  WriteContractArgs,
+  WriteSolanaTransactionArgs
 } from '@reown/appkit-controllers'
 import {
   AdapterController,
@@ -106,6 +107,7 @@ export type Views =
   | 'WhatIsANetwork'
   | 'AllWallets'
   | 'WalletSend'
+  | 'ProfileWallets'
 
 type ViewArguments = {
   Swap: NonNullable<RouterControllerState['data']>['swap']
@@ -430,6 +432,7 @@ export abstract class AppKitBaseClient {
     OptionsController.setEnableWalletGuide(options.enableWalletGuide !== false)
     OptionsController.setEnableWallets(options.enableWallets !== false)
     OptionsController.setEIP6963Enabled(options.enableEIP6963 !== false)
+    OptionsController.setEnableCoinbase(options.enableCoinbase !== false)
     OptionsController.setEnableNetworkSwitch(options.enableNetworkSwitch !== false)
     OptionsController.setEnableReconnect(options.enableReconnect !== false)
     OptionsController.setEnableMobileFullScreen(options.enableMobileFullScreen === true)
@@ -842,6 +845,35 @@ export abstract class AppKitBaseClient {
         const result = await adapter?.writeContract({ ...args, caipNetwork, provider, caipAddress })
 
         return result?.hash as Hex | null
+      },
+      writeSolanaTransaction: async (args: WriteSolanaTransactionArgs) => {
+        const namespace = ChainController.state.activeChain
+        const adapter = this.getAdapter(namespace)
+
+        if (!namespace) {
+          throw new Error('writeContract: namespace is required but got undefined')
+        }
+
+        if (!adapter) {
+          throw new Error('writeContract: adapter is required but got undefined')
+        }
+
+        const caipNetwork = this.getCaipNetwork()
+        const caipAddress = this.getCaipAddress()
+        const provider = ProviderController.getProvider(namespace)
+
+        if (!caipNetwork || !caipAddress) {
+          throw new Error('writeContract: caipNetwork or caipAddress is required but got undefined')
+        }
+
+        const result = await adapter?.writeSolanaTransaction({
+          ...args,
+          caipNetwork,
+          provider,
+          caipAddress
+        })
+
+        return result?.hash
       },
       parseUnits: (value: string, decimals: number) => {
         const adapter = this.getAdapter(ChainController.state.activeChain)
@@ -1715,10 +1747,15 @@ export abstract class AppKitBaseClient {
     } else if (connectorId) {
       if (
         connectorId === ConstantsUtil.CONNECTOR_ID.COINBASE_SDK ||
-        connectorId === ConstantsUtil.CONNECTOR_ID.COINBASE
+        connectorId === ConstantsUtil.CONNECTOR_ID.COINBASE ||
+        connectorId === ConstantsUtil.CONNECTOR_ID.BASE_ACCOUNT
       ) {
         const connector = this.getConnectors().find(c => c.id === connectorId)
-        const name = connector?.name || 'Coinbase Wallet'
+        const defaultName =
+          connectorId === ConstantsUtil.CONNECTOR_ID.BASE_ACCOUNT
+            ? 'Base Account'
+            : 'Coinbase Wallet'
+        const name = connector?.name || defaultName
         const icon = connector?.imageUrl || this.getConnectorImage(connector)
         const info = connector?.info
 
@@ -1840,6 +1877,13 @@ export abstract class AppKitBaseClient {
           },
           onConnect: accounts => {
             const { address } = CoreHelperUtil.getAccount(accounts[0])
+
+            for (const namespace of this.chainNamespaces) {
+              StorageUtil.removeDisconnectedConnectorId(
+                ConstantsUtil.CONNECTOR_ID.WALLET_CONNECT,
+                namespace
+              )
+            }
 
             ConnectionController.finalizeWcConnection(address as string)
           },
@@ -2367,16 +2411,19 @@ export abstract class AppKitBaseClient {
       throw new Error('AppKit:getAccount - namespace is required')
     }
 
-    const allAccounts = connections.flatMap(connection =>
-      connection.accounts.map(({ address, type, publicKey }) =>
-        CoreHelperUtil.createAccount(
-          namespace,
-          address,
-          (type || 'eoa') as NamespaceTypeMap[ChainNamespace],
-          publicKey
-        )
-      )
-    )
+    const allAccounts = connections.flatMap(connection => {
+      const { caipNetwork } = connection
+
+      return caipNetwork
+        ? connection.accounts.map(({ address, type, publicKey }) =>
+            CoreHelperUtil.createAccount({
+              caipAddress: `${caipNetwork.caipNetworkId}:${address}`,
+              type: type || 'eoa',
+              publicKey
+            })
+          )
+        : []
+    })
 
     if (!accountState) {
       return undefined
@@ -2415,6 +2462,8 @@ export abstract class AppKitBaseClient {
     callback: (newState: UseAppKitAccountReturn) => void,
     namespace?: ChainNamespace
   ) {
+    const unsubArr: (() => void)[] = []
+
     const updateVal = () => {
       const account = this.getAccount(namespace)
 
@@ -2426,21 +2475,32 @@ export abstract class AppKitBaseClient {
     }
 
     if (namespace) {
-      ChainController.subscribeChainProp('accountState', updateVal, namespace)
+      const unsub = ChainController.subscribeChainProp('accountState', updateVal, namespace)
+      unsubArr.push(unsub)
     } else {
-      ChainController.subscribe(updateVal)
+      const unsub = ChainController.subscribe(updateVal)
+      unsubArr.push(unsub)
     }
-    ConnectorController.subscribe(updateVal)
+
+    const unsub = ConnectorController.subscribe(updateVal)
+    unsubArr.push(unsub)
+
+    return () => {
+      unsubArr.forEach(fn => fn())
+    }
   }
 
   public subscribeNetwork(
     callback: (newState: Omit<UseAppKitNetworkReturn, 'switchNetwork'>) => void
   ) {
-    return ChainController.subscribe(({ activeCaipNetwork }) => {
+    return ChainController.subscribe(({ activeCaipNetwork, activeChain, chains }) => {
+      const networkState = activeChain ? chains.get(activeChain)?.networkState : undefined
       callback({
         caipNetwork: activeCaipNetwork,
         chainId: activeCaipNetwork?.id,
-        caipNetworkId: activeCaipNetwork?.caipNetworkId
+        caipNetworkId: activeCaipNetwork?.caipNetworkId,
+        approvedCaipNetworkIds: networkState?.approvedCaipNetworkIds,
+        supportsAllNetworks: networkState?.supportsAllNetworks ?? true
       })
     })
   }
@@ -2463,13 +2523,13 @@ export abstract class AppKitBaseClient {
   }
 
   public subscribeShouldUpdateToAddress(callback: (newState?: string) => void) {
-    ChainController.subscribeChainProp('accountState', accountState =>
+    return ChainController.subscribeChainProp('accountState', accountState =>
       callback(accountState?.shouldUpdateToAddress)
     )
   }
 
   public subscribeCaipNetworkChange(callback: (newState?: CaipNetwork) => void) {
-    ChainController.subscribeKey('activeCaipNetwork', callback)
+    return ChainController.subscribeKey('activeCaipNetwork', callback)
   }
 
   public getState() {

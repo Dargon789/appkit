@@ -38,6 +38,7 @@ import { ErrorUtil, UserRejectedRequestError } from '@reown/appkit-common'
 import type {
   AppKitNetwork,
   BaseNetwork,
+  CaipAddress,
   CaipNetwork,
   ChainNamespace,
   Connection,
@@ -61,7 +62,7 @@ import type { W3mFrameProvider } from '@reown/appkit-wallet'
 import { authConnector } from './connectors/AuthConnector.js'
 import { walletConnect } from './connectors/WalletConnectConnector.js'
 import { LimitterUtil } from './utils/LimitterUtil.js'
-import { getBaseAccountConnector, getSafeConnector } from './utils/helpers.js'
+import { getBaseAccountConnector, getCoinbaseConnector, getSafeConnector } from './utils/helpers.js'
 
 interface PendingTransactionsFilter {
   enable: boolean
@@ -130,21 +131,29 @@ export class WagmiAdapter extends AdapterBlueprint {
         return { accounts: [] }
       }
 
-      const { address, accounts } = provider.user
+      const { address, accounts, chainId } = provider.user
 
       return Promise.resolve({
         accounts: (accounts || [{ address, type: 'eoa' }]).map(account =>
-          CoreHelperUtil.createAccount('eip155', account.address, account.type)
+          CoreHelperUtil.createAccount({
+            caipAddress: `eip155:${chainId}:${account.address}` as CaipAddress,
+            type: account.type
+          })
         )
       })
     }
 
-    const { addresses, address } = getAccount(this.wagmiConfig)
+    const { addresses, address, chainId } = getAccount(this.wagmiConfig)
 
     return Promise.resolve({
-      accounts: [...new Set(addresses || [address])]?.map(val =>
-        CoreHelperUtil.createAccount('eip155', val || '', 'eoa')
-      )
+      accounts: chainId
+        ? [...new Set(addresses || [address])]?.map(val =>
+            CoreHelperUtil.createAccount({
+              caipAddress: `eip155:${chainId}:${val || ''}` as CaipAddress,
+              type: 'eoa'
+            })
+          )
+        : []
     })
   }
 
@@ -289,11 +298,20 @@ export class WagmiAdapter extends AdapterBlueprint {
 
   private async addThirdPartyConnectors() {
     const thirdPartyConnectors: CreateConnectorFn[] = []
-    const { enableCoinbase: isCoinbaseEnabled } = OptionsController.state || {}
-    if (isCoinbaseEnabled !== false) {
+    const { enableCoinbase: isCoinbaseEnabled, enableBaseAccount: isBaseAccountEnabled } =
+      OptionsController.state || {}
+
+    if (isBaseAccountEnabled !== false) {
       const baseAccountConnector = await getBaseAccountConnector(this.wagmiConfig.connectors)
       if (baseAccountConnector) {
         thirdPartyConnectors.push(baseAccountConnector)
+      }
+    }
+
+    if (isCoinbaseEnabled !== false) {
+      const coinbaseConnector = await getCoinbaseConnector(this.wagmiConfig.connectors)
+      if (coinbaseConnector) {
+        thirdPartyConnectors.push(coinbaseConnector)
       }
     }
 
@@ -381,6 +399,10 @@ export class WagmiAdapter extends AdapterBlueprint {
         chains: []
       }
     })
+  }
+
+  public async writeSolanaTransaction() {
+    return Promise.resolve({ hash: '' })
   }
 
   public async signMessage(
