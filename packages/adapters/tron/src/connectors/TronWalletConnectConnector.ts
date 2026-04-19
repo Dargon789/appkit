@@ -108,7 +108,7 @@ export class TronWalletConnectConnector
     return result?.txID || ''
   }
 
-  async switchNetwork(): Promise<void> {
+  async switchNetwork(_chainId: string): Promise<void> {
     return Promise.resolve()
   }
 

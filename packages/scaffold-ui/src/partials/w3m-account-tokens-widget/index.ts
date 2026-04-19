@@ -2,6 +2,7 @@ import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 
 import {
+  AccountController,
   ChainController,
   EventsController,
   OptionsController,
@@ -24,7 +25,7 @@ export class W3mAccountTokensWidget extends LitElement {
   private unsubscribe: (() => void)[] = []
 
   // -- State & Properties -------------------------------- //
-  @state() private tokenBalance = ChainController.getAccountData()?.tokenBalance
+  @state() private tokenBalance = AccountController.state.tokenBalance
 
   @state() private remoteFeatures = OptionsController.state.remoteFeatures
 
@@ -32,8 +33,8 @@ export class W3mAccountTokensWidget extends LitElement {
     super()
     this.unsubscribe.push(
       ...[
-        ChainController.subscribeChainProp('accountState', val => {
-          this.tokenBalance = val?.tokenBalance
+        AccountController.subscribe(val => {
+          this.tokenBalance = val.tokenBalance
         }),
         OptionsController.subscribeKey('remoteFeatures', val => {
           this.remoteFeatures = val

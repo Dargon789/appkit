@@ -5,7 +5,8 @@ import type { CaipNetworkId } from '@reown/appkit-common'
 import type { SIWXSession } from '@reown/appkit-controllers'
 
 import {
-  type AccountState,
+  AccountController,
+  type AccountControllerState,
   type AdapterNetworkState,
   type ChainAdapter,
   ChainController,
@@ -30,23 +31,13 @@ export const extendedMainnet = {
   }
 } as CaipNetwork
 
-export const solanaCaipNetwork = {
-  id: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-  caipNetworkId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-  name: 'Solana',
-  chainNamespace: 'solana',
-  nativeCurrency: { name: 'Solana', symbol: 'SOL', decimals: 9 },
-  rpcUrls: { default: { http: [] } },
-  blockExplorers: { default: { name: 'Solscan', url: 'https://solscan.io' } }
-} as CaipNetwork
-
 export function mockChainControllerState(
   state: Partial<
     Omit<ChainControllerState, 'chains'> & {
       chains: Map<
         ChainNamespace,
         Partial<Omit<ChainAdapter, 'accountState' | 'networkState'>> & {
-          accountState?: Partial<AccountState>
+          accountState?: Partial<AccountControllerState>
           networkState?: Partial<AdapterNetworkState>
         }
       >
@@ -63,7 +54,7 @@ export function mockChainControllerState(
 export function updateChainsMap(
   namespace: ChainNamespace,
   state: Partial<Omit<ChainAdapter, 'accountState' | 'networkState'>> & {
-    accountState?: Partial<AccountState>
+    accountState?: Partial<AccountControllerState>
     networkState?: Partial<AdapterNetworkState>
   }
 ) {
@@ -72,9 +63,9 @@ export function updateChainsMap(
   ChainController.state.chains.set(namespace, { ...currentState, ...state })
 }
 
-export function mockAccountState(state: AccountState) {
-  vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-    ...ChainController.getAccountData(),
+export function mockAccountControllerState(state: AccountControllerState) {
+  vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
+    ...AccountController.state,
     ...state
   })
 }

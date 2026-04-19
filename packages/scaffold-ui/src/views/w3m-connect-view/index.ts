@@ -15,8 +15,7 @@ import {
   OptionsStateController,
   type RemoteFeatures,
   RouterController,
-  type WalletGuideType,
-  WalletUtil
+  type WalletGuideType
 } from '@reown/appkit-controllers'
 import { MathUtil, customElement } from '@reown/appkit-ui'
 import '@reown/appkit-ui/wui-flex'
@@ -30,6 +29,7 @@ import '../../partials/w3m-legal-checkbox/index.js'
 import '../../partials/w3m-social-login-widget/index.js'
 import '../../partials/w3m-wallet-login-list/index.js'
 import { HelpersUtil } from '../../utils/HelpersUtil.js'
+import { WalletUtil } from '../../utils/WalletUtil.js'
 import styles from './styles.js'
 
 // -- Constants ----------------------------------------- //
@@ -326,6 +326,7 @@ export class W3mConnectView extends LitElement {
     if (hasOtherMethods && shouldCollapseWallets) {
       return html`<wui-list-button
         data-testid="w3m-collapse-wallets-button"
+        icon="wallet"
         tabIdx=${ifDefined(tabIndex)}
         @click=${this.onContinueWalletClick.bind(this)}
         text="Continue with a wallet"

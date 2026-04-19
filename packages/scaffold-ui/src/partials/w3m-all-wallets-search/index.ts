@@ -2,12 +2,7 @@ import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 
 import type { BadgeType, WcWallet } from '@reown/appkit-controllers'
-import {
-  ApiController,
-  ConnectorController,
-  OptionsController,
-  WalletUtil
-} from '@reown/appkit-controllers'
+import { ApiController, ConnectorController } from '@reown/appkit-controllers'
 import { customElement } from '@reown/appkit-ui'
 import '@reown/appkit-ui/wui-flex'
 import '@reown/appkit-ui/wui-grid'
@@ -15,6 +10,7 @@ import '@reown/appkit-ui/wui-icon-box'
 import '@reown/appkit-ui/wui-loading-spinner'
 import '@reown/appkit-ui/wui-text'
 
+import { WalletUtil } from '../../utils/WalletUtil.js'
 import '../w3m-all-wallets-list-item/index.js'
 import styles from './styles.js'
 
@@ -30,18 +26,12 @@ export class W3mAllWalletsSearch extends LitElement {
   // -- State & Properties -------------------------------- //
   @state() private loading = true
 
-  @state() private mobileFullScreen = OptionsController.state.enableMobileFullScreen
-
   @property() private query = ''
 
   @property() private badge?: BadgeType
 
   // -- Render -------------------------------------------- //
   public override render() {
-    if (this.mobileFullScreen) {
-      this.setAttribute('data-mobile-fullscreen', 'true')
-    }
-
     this.onSearch()
 
     return this.loading
@@ -62,10 +52,9 @@ export class W3mAllWalletsSearch extends LitElement {
 
   private walletsTemplate() {
     const { search } = ApiController.state
-    const markedInstalledWallets = WalletUtil.markWalletsAsInstalled(search)
-    const walletsByWcSupport = WalletUtil.filterWalletsByWcSupport(markedInstalledWallets)
+    const wallets = WalletUtil.markWalletsAsInstalled(search)
 
-    if (!walletsByWcSupport.length) {
+    if (!search.length) {
       return html`
         <wui-flex
           data-testid="no-wallet-found"
@@ -90,8 +79,8 @@ export class W3mAllWalletsSearch extends LitElement {
         columngap="2"
         justifyContent="space-between"
       >
-        ${walletsByWcSupport.map(
-          (wallet, index) => html`
+        ${wallets.map(
+          wallet => html`
             <w3m-all-wallets-list-item
               @click=${() => this.onConnectWallet(wallet)}
               .wallet=${wallet}
@@ -99,7 +88,6 @@ export class W3mAllWalletsSearch extends LitElement {
               explorerId=${wallet.id}
               certified=${this.badge === 'certified'}
               walletQuery=${this.query}
-              displayIndex=${index}
             ></w3m-all-wallets-list-item>
           `
         )}

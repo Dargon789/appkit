@@ -1,7 +1,6 @@
-import { ref } from 'valtio/vanilla'
-
 import { ConstantsUtil } from '@reown/appkit-common'
 
+import { AccountController } from '../controllers/AccountController.js'
 import { ChainController } from '../controllers/ChainController.js'
 import { ConnectorController } from '../controllers/ConnectorController.js'
 import { EventsController } from '../controllers/EventsController.js'
@@ -28,11 +27,10 @@ export async function connectFarcaster() {
   const authConnector = ConnectorController.getAuthConnector()
 
   if (authConnector) {
-    const accountData = ChainController.getAccountData()
-    if (!accountData?.farcasterUrl) {
+    if (!AccountController.state.farcasterUrl) {
       try {
         const { url } = await authConnector.provider.getFarcasterUri()
-        ChainController.setAccountProp('farcasterUrl', url, ChainController.state.activeChain)
+        AccountController.setFarcasterUrl(url, ChainController.state.activeChain)
       } catch (error) {
         RouterController.goBack()
         SnackController.showError(error)
@@ -61,11 +59,7 @@ export async function connectSocial(
       }
 
       if (popupWindow) {
-        ChainController.setAccountProp(
-          'socialWindow',
-          ref(popupWindow),
-          ChainController.state.activeChain
-        )
+        AccountController.setSocialWindow(popupWindow, ChainController.state.activeChain)
       } else if (!CoreHelperUtil.isTelegram()) {
         throw new Error('Could not create social popup')
       }
@@ -94,23 +88,12 @@ export async function connectSocial(
     }
   } catch (error) {
     popupWindow?.close()
-    const errorMessage = CoreHelperUtil.parseError(error)
-    SnackController.showError(errorMessage)
-
-    EventsController.sendEvent({
-      type: 'track',
-      event: 'SOCIAL_LOGIN_ERROR',
-      properties: { provider: socialProvider, message: errorMessage }
-    })
+    SnackController.showError((error as Error)?.message)
   }
 }
 
 export async function executeSocialLogin(socialProvider: SocialProvider) {
-  ChainController.setAccountProp(
-    'socialProvider',
-    socialProvider,
-    ChainController.state.activeChain
-  )
+  AccountController.setSocialProvider(socialProvider, ChainController.state.activeChain)
   EventsController.sendEvent({
     type: 'track',
     event: 'SOCIAL_LOGIN_STARTED',

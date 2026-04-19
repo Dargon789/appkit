@@ -121,10 +121,10 @@ describe('useAppKitAccount', () => {
     ])
     const authConnector = {
       id: ConstantsUtil.CONNECTOR_ID.AUTH,
-      type: 'AUTH'
+      type: 'ID_AUTH'
     } as AuthConnector
     ConnectorController.state.connectors = [authConnector]
-    vi.spyOn(StorageUtil, 'getConnectedConnectorId').mockReturnValue('AUTH')
+    vi.spyOn(StorageUtil, 'getConnectedConnectorId').mockReturnValue('ID_AUTH')
 
     await nextTick()
 
@@ -304,10 +304,6 @@ describe('useAppKitConnections', () => {
   })
 
   it('should return empty state when multiWallet is disabled', () => {
-    vi.spyOn(ConnectionControllerUtil, 'getConnectionsData').mockReturnValue({
-      connections: [],
-      recentConnections: []
-    })
     vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
       ...OptionsController.state,
       remoteFeatures: { multiWallet: false }
@@ -581,10 +577,6 @@ describe('useAppKitConnection', () => {
   })
 
   it('should return empty state when multiWallet is disabled', () => {
-    vi.spyOn(ConnectionControllerUtil, 'getConnectionsData').mockReturnValue({
-      connections: [],
-      recentConnections: []
-    })
     vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
       ...OptionsController.state,
       remoteFeatures: { multiWallet: false }

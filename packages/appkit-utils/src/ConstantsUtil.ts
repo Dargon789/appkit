@@ -14,7 +14,6 @@ export const ConstantsUtil = {
   XVERSE_CONNECTOR_NAME: 'Xverse Wallet',
   LEATHER_CONNECTOR_NAME: 'Leather',
   OKX_CONNECTOR_NAME: 'OKX Wallet',
-  BINANCE_CONNECTOR_NAME: 'Binance Wallet',
 
   EIP155: CommonConstantsUtil.CHAIN.EVM,
   ADD_CHAIN_METHOD: 'wallet_addEthereumChain',
@@ -30,7 +29,7 @@ export const ConstantsUtil = {
   CONNECTOR_TYPE_ANNOUNCED: 'ANNOUNCED',
   CONNECTOR_TYPE_AUTH: 'AUTH',
   CONNECTOR_TYPE_MULTI_CHAIN: 'MULTI_CHAIN',
-  CONNECTOR_TYPE_W3M_AUTH: 'AUTH',
+  CONNECTOR_TYPE_W3M_AUTH: 'ID_AUTH',
   getSDKVersionWarningMessage(currentVersion: string, latestVersion: string) {
     return `
      @@@@@@@           @@@@@@@@@@@@@@@@@@      
