@@ -11,7 +11,7 @@
     "@reown/appkit": "workspace:*",
     "@reown/appkit-adapter-wagmi": "workspace:*",
     "@tanstack/vue-query": "5.75.5",
-    "@wagmi/connectors": "5.11.2",
+    "@wagmi/connectors": "7.0.0",
     "@wagmi/core": "2.22.1",
     "@wagmi/vue": "0.4.11",
     "viem": "2.45.0",
