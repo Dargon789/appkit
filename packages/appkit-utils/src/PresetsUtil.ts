@@ -6,8 +6,10 @@ import { ConstantsUtil } from './ConstantsUtil.js'
 export const PresetsUtil = {
   ConnectorExplorerIds: {
     [CommonConstantsUtil.CONNECTOR_ID.COINBASE]:
-      'fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa',
+      'd0ca99ff52b99abc48743dad0f7fc891e041be73574f7fac4afe5d4bb83845c8',
     [CommonConstantsUtil.CONNECTOR_ID.COINBASE_SDK]:
+      'd0ca99ff52b99abc48743dad0f7fc891e041be73574f7fac4afe5d4bb83845c8',
+    [CommonConstantsUtil.CONNECTOR_ID.BASE_ACCOUNT]:
       'fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa',
     [CommonConstantsUtil.CONNECTOR_ID.SAFE]:
       '225affb176778569276e484e1b92637ad061b01e13a048b35a9d280c3b58970f',
@@ -38,7 +40,11 @@ export const PresetsUtil = {
     [ConstantsUtil.XVERSE_CONNECTOR_NAME]:
       '2a87d74ae02e10bdd1f51f7ce6c4e1cc53cd5f2c0b6b5ad0d7b3007d2b13de7b',
     [ConstantsUtil.LEATHER_CONNECTOR_NAME]:
-      '483afe1df1df63daf313109971ff3ef8356ddf1cc4e45877d205eee0b7893a13'
+      '483afe1df1df63daf313109971ff3ef8356ddf1cc4e45877d205eee0b7893a13',
+    [ConstantsUtil.OKX_CONNECTOR_NAME]:
+      '971e689d0a5be527bac79629b4ee9b925e82208e5168b733496a09c0faed0709',
+    [ConstantsUtil.BINANCE_CONNECTOR_NAME]:
+      '2fafea35bb471d22889ccb49c08d99dd0a18a37982602c33f696a5723934ba25'
   } as Record<string, string>,
   NetworkImageIds: {
     // Ethereum
@@ -67,8 +73,9 @@ export const PresetsUtil = {
     1301: '4eeea7ef-0014-4649-5d1d-07271a80f600',
     // Unichain Mainnet
     130: '2257980a-3463-48c6-cbac-a42d2a956e00',
-    // Monad Testnet
+    // Monad
     10_143: '0a728e83-bacb-46db-7844-948f05434900',
+    143: '0a728e83-bacb-46db-7844-948f05434900',
     // Gnosis
     100: '02b53f6a-e3d4-479e-1cb4-21178987d100',
     // EVMos
@@ -108,12 +115,25 @@ export const PresetsUtil = {
     // Bitcoin
     '000000000019d6689c085ae165831e93': '0b4838db-0161-4ffe-022d-532bf03dba00',
     // Bitcoin Testnet
-    '000000000933ea01ad0ee984209779ba': '39354064-d79b-420b-065d-f980c4b78200'
+    '000000000933ea01ad0ee984209779ba': '39354064-d79b-420b-065d-f980c4b78200',
+    // Bitcoin Signet
+    '00000008819873e925422c1ff0f99f7c': 'b3406e4a-bbfc-44fb-e3a6-89673c78b700',
+    // TON
+    '-239': '20f673c0-095e-49b2-07cf-eb5049dcf600',
+    // TON Testnet
+    '-3': '20f673c0-095e-49b2-07cf-eb5049dcf600',
+    // TRON
+    '0x2b6653dc': '3502bb86-cc4e-420f-a387-59ea63a28b00',
+    // TRON Shasta Testnet
+    '0x94a9059e': '3502bb86-cc4e-420f-a387-59ea63a28b00',
+    // TRON Nile Testnet
+    '0xcd8690dc': '3502bb86-cc4e-420f-a387-59ea63a28b00'
   } as Record<string, string>,
 
   ConnectorImageIds: {
     [CommonConstantsUtil.CONNECTOR_ID.COINBASE]: '0c2840c3-5b04-4c44-9661-fbd4b49e1800',
     [CommonConstantsUtil.CONNECTOR_ID.COINBASE_SDK]: '0c2840c3-5b04-4c44-9661-fbd4b49e1800',
+    [CommonConstantsUtil.CONNECTOR_ID.BASE_ACCOUNT]: 'bba2c8be-7fd1-463e-42b1-796ecb0ad200',
     [CommonConstantsUtil.CONNECTOR_ID.SAFE]: '461db637-8616-43ce-035a-d89b8a1d5800',
     [CommonConstantsUtil.CONNECTOR_ID.LEDGER]: '54a1aa77-d202-4f8d-0fb2-5d2bb6db0300',
     [CommonConstantsUtil.CONNECTOR_ID.WALLET_CONNECT]: 'ef1a1fcf-7fe8-4d69-bd6d-fda1345b4400',
@@ -125,6 +145,7 @@ export const PresetsUtil = {
     [CommonConstantsUtil.CONNECTOR_ID.WALLET_CONNECT]: 'WalletConnect',
     [CommonConstantsUtil.CONNECTOR_ID.COINBASE]: 'Coinbase',
     [CommonConstantsUtil.CONNECTOR_ID.COINBASE_SDK]: 'Coinbase',
+    [CommonConstantsUtil.CONNECTOR_ID.BASE_ACCOUNT]: 'Base Account',
     [CommonConstantsUtil.CONNECTOR_ID.LEDGER]: 'Ledger',
     [CommonConstantsUtil.CONNECTOR_ID.SAFE]: 'Safe'
   } as Record<string, string>,
@@ -134,6 +155,9 @@ export const PresetsUtil = {
     [CommonConstantsUtil.CONNECTOR_ID.WALLET_CONNECT]: 'WALLET_CONNECT',
     [CommonConstantsUtil.CONNECTOR_ID.EIP6963]: 'ANNOUNCED',
     [CommonConstantsUtil.CONNECTOR_ID.AUTH]: 'AUTH',
+    [CommonConstantsUtil.CONNECTOR_ID.COINBASE]: 'EXTERNAL',
+    [CommonConstantsUtil.CONNECTOR_ID.COINBASE_SDK]: 'EXTERNAL',
+    [CommonConstantsUtil.CONNECTOR_ID.BASE_ACCOUNT]: 'EXTERNAL',
     [ConstantsUtil.CONNECTOR_TYPE_AUTH]: 'AUTH'
   } as Record<string, ConnectorType>,
 

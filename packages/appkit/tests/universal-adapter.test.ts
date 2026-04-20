@@ -2,8 +2,8 @@ import type UniversalProvider from '@walletconnect/universal-provider'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { CaipNetwork } from '@reown/appkit-common'
+import { WalletConnectConnector } from '@reown/appkit-controllers'
 
-import { WalletConnectConnector } from '../src/connectors'
 import { UniversalAdapter } from '../src/universal-adapter/client'
 
 // Mock provider
@@ -278,6 +278,8 @@ describe('UniversalAdapter', () => {
           {
             address: 'mock_address_1',
             namespace: 'eip155',
+            chainId: 'mock_network',
+            caipAddress: 'eip155:mock_network:mock_address_1',
             path: undefined,
             publicKey: undefined,
             type: 'eoa'
@@ -285,6 +287,8 @@ describe('UniversalAdapter', () => {
           {
             address: 'mock_address_2',
             namespace: 'eip155',
+            chainId: 'mock_network',
+            caipAddress: 'eip155:mock_network:mock_address_2',
             path: undefined,
             publicKey: undefined,
             type: 'eoa'

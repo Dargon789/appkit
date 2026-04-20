@@ -3,9 +3,10 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 
 import type { ChainNamespace } from '@reown/appkit-common'
-import { ProviderUtil } from '@reown/appkit-utils'
+import { ChainController, ProviderController } from '@reown/appkit-controllers'
 
 import { type ConnectorType, createAppKit, useAppKitProvider } from '../../exports/vue-core.js'
+import { useAppKitNetwork } from '../../exports/vue.js'
 import { mainnet } from '../mocks/Networks.js'
 
 const TestComponent = defineComponent({
@@ -36,8 +37,8 @@ describe('useAppKitProvider', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    vi.spyOn(ProviderUtil, 'state', 'get').mockReturnValue({
-      ...ProviderUtil.state,
+    vi.spyOn(ProviderController, 'state', 'get').mockReturnValue({
+      ...ProviderController.state,
       providers: {
         eip155: { test: 'provider' }
       } as unknown as Record<ChainNamespace, ConnectorType>,
@@ -46,7 +47,7 @@ describe('useAppKitProvider', () => {
       } as unknown as Record<ChainNamespace, ConnectorType>
     })
 
-    vi.spyOn(ProviderUtil, 'subscribe').mockImplementation(callback => {
+    vi.spyOn(ProviderController, 'subscribe').mockImplementation(callback => {
       mockSubscribe(callback)
 
       return mockUnsubscribe
@@ -64,7 +65,7 @@ describe('useAppKitProvider', () => {
     mount(TestComponent)
 
     expect(mockSubscribe).toHaveBeenCalled()
-    expect(ProviderUtil.subscribe).toHaveBeenCalled()
+    expect(ProviderController.subscribe).toHaveBeenCalled()
   })
 
   it('should update state when provider changes', async () => {
@@ -93,5 +94,94 @@ describe('useAppKitProvider', () => {
     wrapper.unmount()
 
     expect(mockUnsubscribe).toHaveBeenCalled()
+  })
+})
+
+describe('useAppKitNetwork', () => {
+  const NetworkTestComponent = defineComponent({
+    setup() {
+      const state = useAppKitNetwork()
+
+      return { state }
+    },
+    render() {
+      return h('div', {}, [
+        h(
+          'div',
+          { 'data-testid': 'approvedCaipNetworkIds' },
+          JSON.stringify(this.state.approvedCaipNetworkIds)
+        ),
+        h(
+          'div',
+          { 'data-testid': 'supportsAllNetworks' },
+          JSON.stringify(this.state.supportsAllNetworks)
+        )
+      ])
+    }
+  })
+
+  let mockUnsubscribeKey: ReturnType<typeof vi.fn>
+  let mockUnsubscribeChainProp: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+
+    mockUnsubscribeKey = vi.fn()
+    mockUnsubscribeChainProp = vi.fn()
+    vi.spyOn(ChainController, 'subscribeKey').mockReturnValue(mockUnsubscribeKey)
+    vi.spyOn(ChainController, 'subscribeChainProp').mockReturnValue(mockUnsubscribeChainProp)
+  })
+
+  it('should return defaults when no chain is active', () => {
+    ChainController.state.activeChain = undefined
+
+    const wrapper = mount(NetworkTestComponent)
+
+    expect(wrapper.get('[data-testid="supportsAllNetworks"]').text()).toBe('true')
+  })
+
+  it('should return approved networks from chain networkState', () => {
+    ChainController.state.activeChain = 'eip155'
+    ChainController.state.chains = new Map([
+      [
+        'eip155',
+        {
+          networkState: {
+            approvedCaipNetworkIds: ['eip155:1', 'eip155:137'],
+            supportsAllNetworks: false
+          }
+        }
+      ]
+    ])
+
+    const wrapper = mount(NetworkTestComponent)
+
+    expect(wrapper.get('[data-testid="approvedCaipNetworkIds"]').text()).toBe(
+      '["eip155:1","eip155:137"]'
+    )
+    expect(wrapper.get('[data-testid="supportsAllNetworks"]').text()).toBe('false')
+  })
+
+  it('should subscribe to activeCaipNetwork and networkState', () => {
+    ChainController.state.activeChain = 'eip155'
+    ChainController.state.chains = new Map([
+      ['eip155', { networkState: { supportsAllNetworks: true } }]
+    ])
+
+    const wrapper = mount(NetworkTestComponent)
+
+    expect(ChainController.subscribeKey).toHaveBeenCalledWith(
+      'activeCaipNetwork',
+      expect.any(Function)
+    )
+    expect(ChainController.subscribeChainProp).toHaveBeenCalledWith(
+      'networkState',
+      expect.any(Function)
+    )
+
+    wrapper.unmount()
+
+    expect(mockUnsubscribeKey).toHaveBeenCalled()
+    expect(mockUnsubscribeChainProp).toHaveBeenCalled()
   })
 })

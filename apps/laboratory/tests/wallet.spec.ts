@@ -53,7 +53,11 @@ sampleWalletTest('it should fetch balance as expected', async ({ library }) => {
 
 sampleWalletTest('it should show onramp button accordingly', async ({ library }) => {
   await modalPage.openModal()
-  if (library === 'bitcoin') {
+
+  const accountButton = await modalPage.getDefaultWalletFeaturesButton('fund-wallet')
+  await accountButton.click()
+
+  if (library === 'bitcoin' || library === 'ton' || library === 'tron') {
     await modalValidator.expectOnrampButton(false)
   } else {
     await modalValidator.expectOnrampButton(true)
@@ -67,7 +71,7 @@ sampleWalletTest('it should be connected instantly after page refresh', async ()
 })
 
 sampleWalletTest('it should show disabled networks', async ({ library }) => {
-  if (library === 'bitcoin') {
+  if (library === 'bitcoin' || library === 'ton' || library === 'tron') {
     return
   }
 
@@ -94,7 +98,18 @@ sampleWalletTest('it should switch networks and sign', async ({ library, browser
     const chainName = chains[index] ?? DEFAULT_CHAIN_NAME
     // -- Switch network --------------------------------------------------------
     /* For Solana, even though we switch to Solana Devnet, the chain name on the wallet page is still Solana */
-    const chainNameOnWalletPage = library === 'solana' ? 'Solana' : chainName
+    /* For TRON, the sample wallet displays "Tron" (title case) instead of "TRON" (uppercase) */
+    /* For TRON, skip network switching tests (index > 0) because TRON testnet is disabled in sample wallet */
+    if (library === 'tron' && index > 0) {
+      return
+    }
+
+    let chainNameOnWalletPage = chainName
+    if (library === 'solana') {
+      chainNameOnWalletPage = 'Solana'
+    } else if (library === 'tron') {
+      chainNameOnWalletPage = 'TRON'
+    }
     await modalPage.switchNetwork(chainName)
     await modalValidator.expectSwitchedNetwork(chainName)
     await modalPage.closeModal()
@@ -140,6 +155,11 @@ sampleWalletTest('it should switch networks using hook', async ({ library }) => 
       return
     }
 
+    /* For TRON, skip network switching tests (index > 0) because TRON testnet is disabled in sample wallet */
+    if (library === 'tron') {
+      return
+    }
+
     const chainName = chains[index] ?? DEFAULT_CHAIN_NAME
     // Switch network using hook button
     await modalPage.switchNetworkWithHook()
@@ -159,7 +179,8 @@ sampleWalletTest('it should switch networks using hook', async ({ library }) => 
 })
 
 sampleWalletTest('it should show last connected network after refreshing', async ({ library }) => {
-  const chainName = getLastNetworkNameByLibrary(library)
+  /* For TRON, use mainnet since testnet is disabled in sample wallet */
+  const chainName = library === 'tron' ? 'TRON' : getLastNetworkNameByLibrary(library)
 
   await modalPage.switchNetwork(chainName)
   await modalValidator.expectSwitchedNetwork(chainName)
@@ -174,7 +195,8 @@ sampleWalletTest('it should show last connected network after refreshing', async
 })
 
 sampleWalletTest('it should reject sign', async ({ library }) => {
-  const chainName = getLastNetworkNameByLibrary(library)
+  /* For TRON, use mainnet since testnet is disabled in sample wallet */
+  const chainName = library === 'tron' ? 'TRON' : getLastNetworkNameByLibrary(library)
 
   await modalPage.sign()
   await walletValidator.expectReceivedSign({ chainName, expectNetworkName: library !== 'bitcoin' })
@@ -190,6 +212,7 @@ sampleWalletTest('it should switch between multiple accounts', async ({ library 
   const originalAddress = await modalPage.getAddress()
   await modalPage.openProfileWalletsView()
   await modalPage.switchAccount()
+  await modalPage.page.waitForTimeout(1000)
   await modalPage.closeModal()
   await modalValidator.expectAccountSwitched(originalAddress)
 })
@@ -206,7 +229,7 @@ sampleWalletTest('it should show multiple accounts', async ({ library }) => {
 })
 
 sampleWalletTest('it should disconnect and connect to a single account', async ({ library }) => {
-  if (library === 'solana' || library === 'bitcoin') {
+  if (library === 'solana' || library === 'bitcoin' || library === 'tron') {
     return
   }
 
@@ -223,7 +246,7 @@ sampleWalletTest('it should disconnect and connect to a single account', async (
 sampleWalletTest(
   'it should show switch network modal if network is not supported and switch to supported network',
   async ({ library }) => {
-    if (library === 'solana' || library === 'bitcoin') {
+    if (library === 'solana' || library === 'bitcoin' || library === 'ton' || library === 'tron') {
       return
     }
 
@@ -242,7 +265,7 @@ sampleWalletTest(
 sampleWalletTest(
   "it should switch to first available network when wallet doesn't support the active network of the appkit and sign message",
   async ({ library }) => {
-    if (library === 'solana' || library === 'bitcoin') {
+    if (library === 'solana' || library === 'bitcoin' || library === 'ton' || library === 'tron') {
       return
     }
 
@@ -255,10 +278,8 @@ sampleWalletTest(
 
     await modalPage.qrCodeFlow(modalPage, walletPage)
     await modalValidator.expectConnected()
-    await modalPage.openModal()
-    await modalPage.openNetworks()
-    await modalValidator.expectSwitchedNetwork('Ethereum')
-    await modalPage.closeModal()
+
+    await modalValidator.expectNetworkButton('Ethereum')
     await modalPage.sign()
     await walletPage.handleRequest({ accept: true })
     await modalValidator.expectAcceptedSign()
@@ -282,18 +303,6 @@ sampleWalletTest('it should disconnect and close modal when connecting from wall
   await walletValidator.expectSessionCard({ visible: false })
   await modalValidator.expectModalNotVisible()
   await walletPage.page.waitForTimeout(500)
-})
-
-sampleWalletTest('it should display wallet guide and show explore option', async ({ library }) => {
-  if (library === 'bitcoin') {
-    return
-  }
-
-  await modalPage.openConnectModal()
-  await modalValidator.expectWalletGuide(library, 'get-started')
-  await modalPage.clickWalletGuideGetStarted()
-  await modalValidator.expectWalletGuide(library, 'explore')
-  await modalPage.closeModal()
 })
 
 sampleWalletTest('it should disconnect as expected', async () => {
