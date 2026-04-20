@@ -136,7 +136,7 @@ export class TonProvider {
     const payload: TonProvider.SignData['params'] = params
 
     const dataToSign = this.getToSign(params)
-    const signature = sign(dataToSign, this.keypair.secretKey);
+    const signature = sign(dataToSign, this.keypair.secretKey)
     const addressStr = this.wallet.address.toString()
 
     const result = {

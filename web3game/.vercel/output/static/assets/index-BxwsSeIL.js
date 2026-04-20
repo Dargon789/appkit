@@ -1,4 +1,11 @@
-import{i as v,b as g,f as h,r as p,x as u}from"./index-DVkBgnkX.js";import{n as t,c as w,U as m}from"./if-defined-DVOmkLu5.js";import"./index-QpqlfPgl.js";const S={URLS:{FAQ:"https://walletconnect.com/faq"}},f=v`
+import { U as m, n as t, c as w } from './if-defined-DVOmkLu5.js'
+import { b as g, f as h, r as p, x as u, i as v } from './index-DVkBgnkX.js'
+import './index-QpqlfPgl.js'
+
+import { n as t, c as w, U as m } from './if-defined-DVOmkLu5.js'
+import './index-QpqlfPgl.js'
+const S = { URLS: { FAQ: 'https://walletconnect.com/faq' } },
+  f = v`
   a {
     border: 1px solid var(--wui-color-gray-glass-010);
     border-radius: var(--wui-border-radius-3xl);
@@ -179,23 +186,72 @@ import{i as v,b as g,f as h,r as p,x as u}from"./index-DVkBgnkX.js";import{n as 
   a[data-variant='error']:active {
     background-color: var(--wui-color-error-glass-020);
   }
-`;var r=function(s,o,e,n){var c=arguments.length,i=c<3?o:n===null?n=Object.getOwnPropertyDescriptor(o,e):n,l;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")i=Reflect.decorate(s,o,e,n);else for(var d=s.length-1;d>=0;d--)(l=s[d])&&(i=(c<3?l(i):c>3?l(o,e,i):l(o,e))||i);return c>3&&i&&Object.defineProperty(o,e,i),i};let a=class extends p{constructor(){super(...arguments),this.variant="fill",this.imageSrc=void 0,this.imageIcon=void 0,this.imageIconSize="md",this.disabled=!1,this.icon="externalLink",this.href="",this.text=void 0}render(){const e=this.variant==="success"||this.variant==="transparent"||this.variant==="shadeSmall"?"small-600":"paragraph-600";return u`
+`
+var r = function (s, o, e, n) {
+  var c = arguments.length,
+    i = c < 3 ? o : n === null ? (n = Object.getOwnPropertyDescriptor(o, e)) : n,
+    l
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    i = Reflect.decorate(s, o, e, n)
+  else
+    for (var d = s.length - 1; d >= 0; d--)
+      (l = s[d]) && (i = (c < 3 ? l(i) : c > 3 ? l(o, e, i) : l(o, e)) || i)
+  return c > 3 && i && Object.defineProperty(o, e, i), i
+}
+let a = class extends p {
+  constructor() {
+    super(...arguments),
+      (this.variant = 'fill'),
+      (this.imageSrc = void 0),
+      (this.imageIcon = void 0),
+      (this.imageIconSize = 'md'),
+      (this.disabled = !1),
+      (this.icon = 'externalLink'),
+      (this.href = ''),
+      (this.text = void 0)
+  }
+  render() {
+    const e =
+      this.variant === 'success' || this.variant === 'transparent' || this.variant === 'shadeSmall'
+        ? 'small-600'
+        : 'paragraph-600'
+    return u`
       <a
         rel="noreferrer"
         target="_blank"
         href=${this.href}
-        class=${this.disabled?"disabled":""}
+        class=${this.disabled ? 'disabled' : ''}
         data-variant=${this.variant}
       >
         ${this.imageTemplate()}
         <wui-text variant=${e} color="inherit">
-          ${this.title?this.title:m.getHostName(this.href)}
+          ${this.title ? this.title : m.getHostName(this.href)}
         </wui-text>
         <wui-icon name=${this.icon} color="inherit" size="inherit"></wui-icon>
       </a>
-    `}imageTemplate(){return this.imageSrc?u`<wui-image src=${this.imageSrc}></wui-image>`:this.imageIcon?u`<wui-icon
+    `
+  }
+  imageTemplate() {
+    return this.imageSrc
+      ? u`<wui-image src=${this.imageSrc}></wui-image>`
+      : this.imageIcon
+        ? u`<wui-icon
         name=${this.imageIcon}
         color="inherit"
         size=${this.imageIconSize}
         class="image-icon"
-      ></wui-icon>`:null}};a.styles=[g,h,f];r([t()],a.prototype,"variant",void 0);r([t()],a.prototype,"imageSrc",void 0);r([t()],a.prototype,"imageIcon",void 0);r([t()],a.prototype,"imageIconSize",void 0);r([t({type:Boolean})],a.prototype,"disabled",void 0);r([t()],a.prototype,"icon",void 0);r([t()],a.prototype,"href",void 0);r([t()],a.prototype,"text",void 0);a=r([w("wui-chip")],a);export{S as N};
+      ></wui-icon>`
+        : null
+  }
+}
+a.styles = [g, h, f]
+r([t()], a.prototype, 'variant', void 0)
+r([t()], a.prototype, 'imageSrc', void 0)
+r([t()], a.prototype, 'imageIcon', void 0)
+r([t()], a.prototype, 'imageIconSize', void 0)
+r([t({ type: Boolean })], a.prototype, 'disabled', void 0)
+r([t()], a.prototype, 'icon', void 0)
+r([t()], a.prototype, 'href', void 0)
+r([t()], a.prototype, 'text', void 0)
+a = r([w('wui-chip')], a)
+export { S as N }

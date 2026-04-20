@@ -1,22 +1,23 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next'
+import { headers } from 'next/headers'
 
-
-import { headers } from 'next/headers' // added
-import './globals.css';
 import ContextProvider from '@/context'
 
+// added
+import './globals.css'
+
 export const metadata: Metadata = {
-  title: "AppKit in Next.js + wagmi",
-  description: "AppKit example dApp",
-};
+  title: 'AppKit in Next.js + wagmi',
+  description: 'AppKit example dApp'
+}
 
 export default async function RootLayout({
-  children,
+  children
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
-  const headersData = await headers();
-  const cookies = headersData.get('cookie');
+  const headersData = await headers()
+  const cookies = headersData.get('cookie')
 
   return (
     <html lang="en">
@@ -24,5 +25,5 @@ export default async function RootLayout({
         <ContextProvider cookies={cookies}>{children}</ContextProvider>
       </body>
     </html>
-  );
+  )
 }
