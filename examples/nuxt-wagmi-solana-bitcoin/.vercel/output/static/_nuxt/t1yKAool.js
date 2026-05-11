@@ -1,4 +1,3 @@
-import{as as a}from"./cxC4FtgZ.js";const t=a` <svg
   width="36"
   height="36"
   fill="none"
@@ -29,4 +28,3 @@ import{as as a}from"./cxC4FtgZ.js";const t=a` <svg
     stroke="#fff"
     stroke-opacity=".05"
   />
-</svg>`;export{t as playStoreSvg};

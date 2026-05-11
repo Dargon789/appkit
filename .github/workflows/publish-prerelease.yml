@@ -58,4 +58,3 @@ jobs:
           pnpm changeset:version
           pnpm changeset:pre:exit
           pnpm publish:canary
-  

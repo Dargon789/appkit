@@ -1,4 +1,6 @@
-import{F as l}from"./index-DVkBgnkX.js";const f=l`<svg fill="none" viewBox="0 0 40 40">
+import { F as l } from './index-DVkBgnkX.js'
+
+const f = l`<svg fill="none" viewBox="0 0 40 40">
   <g clip-path="url(#a)">
     <g clip-path="url(#b)">
       <circle cx="20" cy="19.89" r="20" fill="#1877F2" />
@@ -23,4 +25,5 @@ import{F as l}from"./index-DVkBgnkX.js";const f=l`<svg fill="none" viewBox="0 0 
     <clipPath id="b"><path fill="#fff" d="M0 0h40v40H0z" /></clipPath>
     <clipPath id="c"><path fill="#fff" d="M8 7.89h24v24H8z" /></clipPath>
   </defs>
-</svg>`;export{f as facebookSvg};
+</svg>`
+export { f as facebookSvg }

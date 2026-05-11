@@ -1,4 +1,36 @@
-import{i as g,b as V,f as j,r as b,x as c,h as _,R as l,C as E,d as x,S as f,e as u,j as T,k as N,O as W,M as k}from"./index-DVkBgnkX.js";import{n as I,c as h,r as d,U as A}from"./if-defined-DVOmkLu5.js";import"./index-DeEXhxyT.js";import"./index-B2osUT2V.js";import"./index-Cxc8tIRM.js";import{e as U,n as z}from"./index-Cn1TwpSs.js";import"./index-C22vu2Z6.js";import"./index-BfDAOq8h.js";const M=g`
+import { U as A, n as I, r as d, c as h } from './if-defined-DVOmkLu5.js'
+import './index-B2osUT2V.js'
+import './index-BfDAOq8h.js'
+import './index-C22vu2Z6.js'
+import { e as U, n as z } from './index-Cn1TwpSs.js'
+import './index-Cxc8tIRM.js'
+import {
+  C as E,
+  k as N,
+  j as T,
+  b as V,
+  O as W,
+  h as _,
+  r as b,
+  x as c,
+  S as f,
+  i as g,
+  f as j,
+  M as k,
+  R as l,
+  e as u,
+  d as x
+} from './index-DVkBgnkX.js'
+import './index-DeEXhxyT.js'
+
+import { n as I, c as h, r as d, U as A } from './if-defined-DVOmkLu5.js'
+import './index-DeEXhxyT.js'
+import './index-B2osUT2V.js'
+import './index-Cxc8tIRM.js'
+import { e as U, n as z } from './index-Cn1TwpSs.js'
+import './index-C22vu2Z6.js'
+import './index-BfDAOq8h.js'
+const M = g`
   :host {
     position: relative;
     display: inline-block;
@@ -57,32 +89,181 @@ import{i as g,b as V,f as j,r as b,x as c,h as _,R as l,C as E,d as x,S as f,e a
       background-color: var(--wui-color-gray-glass-015);
     }
   }
-`;var R=function(a,e,t,n){var o=arguments.length,i=o<3?e:n===null?n=Object.getOwnPropertyDescriptor(e,t):n,r;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")i=Reflect.decorate(a,e,t,n);else for(var s=a.length-1;s>=0;s--)(r=a[s])&&(i=(o<3?r(i):o>3?r(e,t,i):r(e,t))||i);return o>3&&i&&Object.defineProperty(e,t,i),i};let w=class extends b{constructor(){super(...arguments),this.disabled=!1,this.value=""}render(){return c`<input
+`
+var R = function (a, e, t, n) {
+  var o = arguments.length,
+    i = o < 3 ? e : n === null ? (n = Object.getOwnPropertyDescriptor(e, t)) : n,
+    r
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    i = Reflect.decorate(a, e, t, n)
+  else
+    for (var s = a.length - 1; s >= 0; s--)
+      (r = a[s]) && (i = (o < 3 ? r(i) : o > 3 ? r(e, t, i) : r(e, t)) || i)
+  return o > 3 && i && Object.defineProperty(e, t, i), i
+}
+let w = class extends b {
+  constructor() {
+    super(...arguments), (this.disabled = !1), (this.value = '')
+  }
+  render() {
+    return c`<input
       type="number"
       maxlength="1"
       inputmode="numeric"
       autofocus
       ?disabled=${this.disabled}
       value=${this.value}
-    /> `}};w.styles=[V,j,M];R([I({type:Boolean})],w.prototype,"disabled",void 0);R([I({type:String})],w.prototype,"value",void 0);w=R([h("wui-input-numeric")],w);const B=g`
+    /> `
+  }
+}
+w.styles = [V, j, M]
+R([I({ type: Boolean })], w.prototype, 'disabled', void 0)
+R([I({ type: String })], w.prototype, 'value', void 0)
+w = R([h('wui-input-numeric')], w)
+const B = g`
   :host {
     position: relative;
     display: block;
   }
-`;var C=function(a,e,t,n){var o=arguments.length,i=o<3?e:n===null?n=Object.getOwnPropertyDescriptor(e,t):n,r;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")i=Reflect.decorate(a,e,t,n);else for(var s=a.length-1;s>=0;s--)(r=a[s])&&(i=(o<3?r(i):o>3?r(e,t,i):r(e,t))||i);return o>3&&i&&Object.defineProperty(e,t,i),i};let m=class extends b{constructor(){super(...arguments),this.length=6,this.otp="",this.values=Array.from({length:this.length}).map(()=>""),this.numerics=[],this.shouldInputBeEnabled=e=>this.values.slice(0,e).every(n=>n!==""),this.handleKeyDown=(e,t)=>{const n=e.target,o=this.getInputElement(n),i=["ArrowLeft","ArrowRight","Shift","Delete"];if(!o)return;i.includes(e.key)&&e.preventDefault();const r=o.selectionStart;switch(e.key){case"ArrowLeft":r&&o.setSelectionRange(r+1,r+1),this.focusInputField("prev",t);break;case"ArrowRight":this.focusInputField("next",t);break;case"Shift":this.focusInputField("next",t);break;case"Delete":o.value===""?this.focusInputField("prev",t):this.updateInput(o,t,"");break;case"Backspace":o.value===""?this.focusInputField("prev",t):this.updateInput(o,t,"");break}},this.focusInputField=(e,t)=>{if(e==="next"){const n=t+1;if(!this.shouldInputBeEnabled(n))return;const o=this.numerics[n<this.length?n:t],i=o?this.getInputElement(o):void 0;i&&(i.disabled=!1,i.focus())}if(e==="prev"){const n=t-1,o=this.numerics[n>-1?n:t],i=o?this.getInputElement(o):void 0;i&&i.focus()}}}firstUpdated(){var t,n;this.otp&&(this.values=this.otp.split(""));const e=(t=this.shadowRoot)==null?void 0:t.querySelectorAll("wui-input-numeric");e&&(this.numerics=Array.from(e)),(n=this.numerics[0])==null||n.focus()}render(){return c`
+`
+var C = function (a, e, t, n) {
+  var o = arguments.length,
+    i = o < 3 ? e : n === null ? (n = Object.getOwnPropertyDescriptor(e, t)) : n,
+    r
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    i = Reflect.decorate(a, e, t, n)
+  else
+    for (var s = a.length - 1; s >= 0; s--)
+      (r = a[s]) && (i = (o < 3 ? r(i) : o > 3 ? r(e, t, i) : r(e, t)) || i)
+  return o > 3 && i && Object.defineProperty(e, t, i), i
+}
+let m = class extends b {
+  constructor() {
+    super(...arguments),
+      (this.length = 6),
+      (this.otp = ''),
+      (this.values = Array.from({ length: this.length }).map(() => '')),
+      (this.numerics = []),
+      (this.shouldInputBeEnabled = e => this.values.slice(0, e).every(n => n !== '')),
+      (this.handleKeyDown = (e, t) => {
+        const n = e.target,
+          o = this.getInputElement(n),
+          i = ['ArrowLeft', 'ArrowRight', 'Shift', 'Delete']
+        if (!o) return
+        i.includes(e.key) && e.preventDefault()
+        const r = o.selectionStart
+        switch (e.key) {
+          case 'ArrowLeft':
+            r && o.setSelectionRange(r + 1, r + 1), this.focusInputField('prev', t)
+            break
+          case 'ArrowRight':
+            this.focusInputField('next', t)
+            break
+          case 'Shift':
+            this.focusInputField('next', t)
+            break
+          case 'Delete':
+            o.value === '' ? this.focusInputField('prev', t) : this.updateInput(o, t, '')
+            break
+          case 'Backspace':
+            o.value === '' ? this.focusInputField('prev', t) : this.updateInput(o, t, '')
+            break
+        }
+      }),
+      (this.focusInputField = (e, t) => {
+        if (e === 'next') {
+          const n = t + 1
+          if (!this.shouldInputBeEnabled(n)) return
+          const o = this.numerics[n < this.length ? n : t],
+            i = o ? this.getInputElement(o) : void 0
+          i && ((i.disabled = !1), i.focus())
+        }
+        if (e === 'prev') {
+          const n = t - 1,
+            o = this.numerics[n > -1 ? n : t],
+            i = o ? this.getInputElement(o) : void 0
+          i && i.focus()
+        }
+      })
+  }
+  firstUpdated() {
+    var t, n
+    this.otp && (this.values = this.otp.split(''))
+    const e = (t = this.shadowRoot) == null ? void 0 : t.querySelectorAll('wui-input-numeric')
+    e && (this.numerics = Array.from(e)), (n = this.numerics[0]) == null || n.focus()
+  }
+  render() {
+    return c`
       <wui-flex gap="xxs" data-testid="wui-otp-input">
-        ${Array.from({length:this.length}).map((e,t)=>c`
+        ${Array.from({ length: this.length }).map(
+          (e, t) => c`
             <wui-input-numeric
-              @input=${n=>this.handleInput(n,t)}
-              @click=${n=>this.selectInput(n)}
-              @keydown=${n=>this.handleKeyDown(n,t)}
+              @input=${n => this.handleInput(n, t)}
+              @click=${n => this.selectInput(n)}
+              @keydown=${n => this.handleKeyDown(n, t)}
               .disabled=${!this.shouldInputBeEnabled(t)}
-              .value=${this.values[t]||""}
+              .value=${this.values[t] || ''}
             >
             </wui-input-numeric>
-          `)}
+          `
+        )}
       </wui-flex>
-    `}updateInput(e,t,n){const o=this.numerics[t],i=e||(o?this.getInputElement(o):void 0);i&&(i.value=n,this.values=this.values.map((r,s)=>s===t?n:r))}selectInput(e){const t=e.target;if(t){const n=this.getInputElement(t);n==null||n.select()}}handleInput(e,t){const n=e.target,o=this.getInputElement(n);if(o){const i=o.value;e.inputType==="insertFromPaste"?this.handlePaste(o,i,t):A.isNumber(i)&&e.data?(this.updateInput(o,t,e.data),this.focusInputField("next",t)):this.updateInput(o,t,"")}this.dispatchInputChangeEvent()}handlePaste(e,t,n){const o=t[0];if(o&&A.isNumber(o)){this.updateInput(e,n,o);const r=t.substring(1);if(n+1<this.length&&r.length){const s=this.numerics[n+1],$=s?this.getInputElement(s):void 0;$&&this.handlePaste($,r,n+1)}else this.focusInputField("next",n)}else this.updateInput(e,n,"")}getInputElement(e){var t;return(t=e.shadowRoot)!=null&&t.querySelector("input")?e.shadowRoot.querySelector("input"):null}dispatchInputChangeEvent(){const e=this.values.join("");this.dispatchEvent(new CustomEvent("inputChange",{detail:e,bubbles:!0,composed:!0}))}};m.styles=[V,B];C([I({type:Number})],m.prototype,"length",void 0);C([I({type:String})],m.prototype,"otp",void 0);C([d()],m.prototype,"values",void 0);m=C([h("wui-otp")],m);const q=g`
+    `
+  }
+  updateInput(e, t, n) {
+    const o = this.numerics[t],
+      i = e || (o ? this.getInputElement(o) : void 0)
+    i && ((i.value = n), (this.values = this.values.map((r, s) => (s === t ? n : r))))
+  }
+  selectInput(e) {
+    const t = e.target
+    if (t) {
+      const n = this.getInputElement(t)
+      n == null || n.select()
+    }
+  }
+  handleInput(e, t) {
+    const n = e.target,
+      o = this.getInputElement(n)
+    if (o) {
+      const i = o.value
+      e.inputType === 'insertFromPaste'
+        ? this.handlePaste(o, i, t)
+        : A.isNumber(i) && e.data
+          ? (this.updateInput(o, t, e.data), this.focusInputField('next', t))
+          : this.updateInput(o, t, '')
+    }
+    this.dispatchInputChangeEvent()
+  }
+  handlePaste(e, t, n) {
+    const o = t[0]
+    if (o && A.isNumber(o)) {
+      this.updateInput(e, n, o)
+      const r = t.substring(1)
+      if (n + 1 < this.length && r.length) {
+        const s = this.numerics[n + 1],
+          $ = s ? this.getInputElement(s) : void 0
+        $ && this.handlePaste($, r, n + 1)
+      } else this.focusInputField('next', n)
+    } else this.updateInput(e, n, '')
+  }
+  getInputElement(e) {
+    var t
+    return (t = e.shadowRoot) != null && t.querySelector('input')
+      ? e.shadowRoot.querySelector('input')
+      : null
+  }
+  dispatchInputChangeEvent() {
+    const e = this.values.join('')
+    this.dispatchEvent(new CustomEvent('inputChange', { detail: e, bubbles: !0, composed: !0 }))
+  }
+}
+m.styles = [V, B]
+C([I({ type: Number })], m.prototype, 'length', void 0)
+C([I({ type: String })], m.prototype, 'otp', void 0)
+C([d()], m.prototype, 'values', void 0)
+m = C([h('wui-otp')], m)
+const q = g`
   wui-loading-spinner {
     margin: 9px auto;
   }
@@ -91,18 +272,52 @@ import{i as g,b as V,f as j,r as b,x as c,h as _,R as l,C as E,d as x,S as f,e a
   .email-display wui-text {
     max-width: 100%;
   }
-`;var O=function(a,e,t,n){var o=arguments.length,i=o<3?e:n===null?n=Object.getOwnPropertyDescriptor(e,t):n,r;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")i=Reflect.decorate(a,e,t,n);else for(var s=a.length-1;s>=0;s--)(r=a[s])&&(i=(o<3?r(i):o>3?r(e,t,i):r(e,t))||i);return o>3&&i&&Object.defineProperty(e,t,i),i};const H=6;let p=class extends b{firstUpdated(){this.startOTPTimeout()}disconnectedCallback(){clearTimeout(this.OTPTimeout)}constructor(){var e;super(),this.loading=!1,this.timeoutTimeLeft=_.getTimeToNextEmailLogin(),this.error="",this.otp="",this.email=(e=l.state.data)==null?void 0:e.email,this.authConnector=E.getAuthConnector()}render(){if(!this.email)throw new Error("w3m-email-otp-widget: No email provided");const e=!!this.timeoutTimeLeft,t=this.getFooterLabels(e);return c`
+`
+var O = function (a, e, t, n) {
+  var o = arguments.length,
+    i = o < 3 ? e : n === null ? (n = Object.getOwnPropertyDescriptor(e, t)) : n,
+    r
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    i = Reflect.decorate(a, e, t, n)
+  else
+    for (var s = a.length - 1; s >= 0; s--)
+      (r = a[s]) && (i = (o < 3 ? r(i) : o > 3 ? r(e, t, i) : r(e, t)) || i)
+  return o > 3 && i && Object.defineProperty(e, t, i), i
+}
+const H = 6
+let p = class extends b {
+  firstUpdated() {
+    this.startOTPTimeout()
+  }
+  disconnectedCallback() {
+    clearTimeout(this.OTPTimeout)
+  }
+  constructor() {
+    var e
+    super(),
+      (this.loading = !1),
+      (this.timeoutTimeLeft = _.getTimeToNextEmailLogin()),
+      (this.error = ''),
+      (this.otp = ''),
+      (this.email = (e = l.state.data) == null ? void 0 : e.email),
+      (this.authConnector = E.getAuthConnector())
+  }
+  render() {
+    if (!this.email) throw new Error('w3m-email-otp-widget: No email provided')
+    const e = !!this.timeoutTimeLeft,
+      t = this.getFooterLabels(e)
+    return c`
       <wui-flex
         flexDirection="column"
         alignItems="center"
-        .padding=${["l","0","l","0"]}
+        .padding=${['l', '0', 'l', '0']}
         gap="l"
       >
         <wui-flex
           class="email-display"
           flexDirection="column"
           alignItems="center"
-          .padding=${["0","xl","0","xl"]}
+          .padding=${['0', 'xl', '0', 'xl']}
         >
           <wui-text variant="paragraph-400" color="fg-100" align="center">
             Enter the code we sent to
@@ -114,19 +329,27 @@ import{i as g,b as V,f as j,r as b,x as c,h as _,R as l,C as E,d as x,S as f,e a
 
         <wui-text variant="small-400" color="fg-200">The code expires in 20 minutes</wui-text>
 
-        ${this.loading?c`<wui-loading-spinner size="xl" color="accent-100"></wui-loading-spinner>`:c` <wui-flex flexDirection="column" alignItems="center" gap="xs">
+        ${
+          this.loading
+            ? c`<wui-loading-spinner size="xl" color="accent-100"></wui-loading-spinner>`
+            : c` <wui-flex flexDirection="column" alignItems="center" gap="xs">
               <wui-otp
                 dissabled
                 length="6"
                 @inputChange=${this.onOtpInputChange.bind(this)}
                 .otp=${this.otp}
               ></wui-otp>
-              ${this.error?c`
+              ${
+                this.error
+                  ? c`
                     <wui-text variant="small-400" align="center" color="error-100">
                       ${this.error}. Try Again
                     </wui-text>
-                  `:null}
-            </wui-flex>`}
+                  `
+                  : null
+              }
+            </wui-flex>`
+        }
 
         <wui-flex alignItems="center" gap="xs">
           <wui-text variant="small-400" color="fg-200">${t.title}</wui-text>
@@ -135,16 +358,146 @@ import{i as g,b as V,f as j,r as b,x as c,h as _,R as l,C as E,d as x,S as f,e a
           </wui-link>
         </wui-flex>
       </wui-flex>
-    `}startOTPTimeout(){this.timeoutTimeLeft=_.getTimeToNextEmailLogin(),this.OTPTimeout=setInterval(()=>{this.timeoutTimeLeft>0?this.timeoutTimeLeft=_.getTimeToNextEmailLogin():clearInterval(this.OTPTimeout)},1e3)}async onOtpInputChange(e){var t;try{this.loading||(this.otp=e.detail,this.authConnector&&this.otp.length===H&&(this.loading=!0,await((t=this.onOtpSubmit)==null?void 0:t.call(this,this.otp))))}catch(n){this.error=x.parseError(n),this.loading=!1}}async onResendCode(){try{if(this.onOtpResend){if(!this.loading&&!this.timeoutTimeLeft){if(this.error="",this.otp="",!E.getAuthConnector()||!this.email)throw new Error("w3m-email-otp-widget: Unable to resend email");this.loading=!0,await this.onOtpResend(this.email),this.startOTPTimeout(),f.showSuccess("Code email resent")}}else this.onStartOver&&this.onStartOver()}catch(e){f.showError(e)}finally{this.loading=!1}}getFooterLabels(e){return this.onStartOver?{title:"Something wrong?",action:`Try again ${e?`in ${this.timeoutTimeLeft}s`:""}`}:{title:"Didn't receive it?",action:`Resend ${e?`in ${this.timeoutTimeLeft}s`:"Code"}`}}};p.styles=q;O([d()],p.prototype,"loading",void 0);O([d()],p.prototype,"timeoutTimeLeft",void 0);O([d()],p.prototype,"error",void 0);p=O([h("w3m-email-otp-widget")],p);var G=function(a,e,t,n){var o=arguments.length,i=o<3?e:n===null?n=Object.getOwnPropertyDescriptor(e,t):n,r;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")i=Reflect.decorate(a,e,t,n);else for(var s=a.length-1;s>=0;s--)(r=a[s])&&(i=(o<3?r(i):o>3?r(e,t,i):r(e,t))||i);return o>3&&i&&Object.defineProperty(e,t,i),i};let D=class extends p{constructor(){super(...arguments),this.onOtpSubmit=async e=>{try{if(this.authConnector){if(await this.authConnector.provider.connectOtp({otp:e}),u.sendEvent({type:"track",event:"EMAIL_VERIFICATION_CODE_PASS"}),T.state.activeChain)await N.connectExternal(this.authConnector,T.state.activeChain);else throw new Error("Active chain is not set on ChainControll");u.sendEvent({type:"track",event:"CONNECT_SUCCESS",properties:{method:"email",name:this.authConnector.name||"Unknown"}}),W.state.siwx||k.close()}}catch(t){throw u.sendEvent({type:"track",event:"EMAIL_VERIFICATION_CODE_FAIL",properties:{message:x.parseError(t)}}),t}},this.onOtpResend=async e=>{this.authConnector&&(await this.authConnector.provider.connectEmail({email:e}),u.sendEvent({type:"track",event:"EMAIL_VERIFICATION_CODE_SENT"}))}}};D=G([h("w3m-email-verify-otp-view")],D);const K=g`
+    `
+  }
+  startOTPTimeout() {
+    ;(this.timeoutTimeLeft = _.getTimeToNextEmailLogin()),
+      (this.OTPTimeout = setInterval(() => {
+        this.timeoutTimeLeft > 0
+          ? (this.timeoutTimeLeft = _.getTimeToNextEmailLogin())
+          : clearInterval(this.OTPTimeout)
+      }, 1e3))
+  }
+  async onOtpInputChange(e) {
+    var t
+    try {
+      this.loading ||
+        ((this.otp = e.detail),
+        this.authConnector &&
+          this.otp.length === H &&
+          ((this.loading = !0),
+          await ((t = this.onOtpSubmit) == null ? void 0 : t.call(this, this.otp))))
+    } catch (n) {
+      ;(this.error = x.parseError(n)), (this.loading = !1)
+    }
+  }
+  async onResendCode() {
+    try {
+      if (this.onOtpResend) {
+        if (!this.loading && !this.timeoutTimeLeft) {
+          if (((this.error = ''), (this.otp = ''), !E.getAuthConnector() || !this.email))
+            throw new Error('w3m-email-otp-widget: Unable to resend email')
+          ;(this.loading = !0),
+            await this.onOtpResend(this.email),
+            this.startOTPTimeout(),
+            f.showSuccess('Code email resent')
+        }
+      } else this.onStartOver && this.onStartOver()
+    } catch (e) {
+      f.showError(e)
+    } finally {
+      this.loading = !1
+    }
+  }
+  getFooterLabels(e) {
+    return this.onStartOver
+      ? { title: 'Something wrong?', action: `Try again ${e ? `in ${this.timeoutTimeLeft}s` : ''}` }
+      : {
+          title: "Didn't receive it?",
+          action: `Resend ${e ? `in ${this.timeoutTimeLeft}s` : 'Code'}`
+        }
+  }
+}
+p.styles = q
+O([d()], p.prototype, 'loading', void 0)
+O([d()], p.prototype, 'timeoutTimeLeft', void 0)
+O([d()], p.prototype, 'error', void 0)
+p = O([h('w3m-email-otp-widget')], p)
+var G = function (a, e, t, n) {
+  var o = arguments.length,
+    i = o < 3 ? e : n === null ? (n = Object.getOwnPropertyDescriptor(e, t)) : n,
+    r
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    i = Reflect.decorate(a, e, t, n)
+  else
+    for (var s = a.length - 1; s >= 0; s--)
+      (r = a[s]) && (i = (o < 3 ? r(i) : o > 3 ? r(e, t, i) : r(e, t)) || i)
+  return o > 3 && i && Object.defineProperty(e, t, i), i
+}
+let D = class extends p {
+  constructor() {
+    super(...arguments),
+      (this.onOtpSubmit = async e => {
+        try {
+          if (this.authConnector) {
+            if (
+              (await this.authConnector.provider.connectOtp({ otp: e }),
+              u.sendEvent({ type: 'track', event: 'EMAIL_VERIFICATION_CODE_PASS' }),
+              T.state.activeChain)
+            )
+              await N.connectExternal(this.authConnector, T.state.activeChain)
+            else throw new Error('Active chain is not set on ChainControll')
+            u.sendEvent({
+              type: 'track',
+              event: 'CONNECT_SUCCESS',
+              properties: { method: 'email', name: this.authConnector.name || 'Unknown' }
+            }),
+              W.state.siwx || k.close()
+          }
+        } catch (t) {
+          throw (
+            (u.sendEvent({
+              type: 'track',
+              event: 'EMAIL_VERIFICATION_CODE_FAIL',
+              properties: { message: x.parseError(t) }
+            }),
+            t)
+          )
+        }
+      }),
+      (this.onOtpResend = async e => {
+        this.authConnector &&
+          (await this.authConnector.provider.connectEmail({ email: e }),
+          u.sendEvent({ type: 'track', event: 'EMAIL_VERIFICATION_CODE_SENT' }))
+      })
+  }
+}
+D = G([h('w3m-email-verify-otp-view')], D)
+const K = g`
   wui-icon-box {
     height: var(--wui-icon-box-size-xl);
     width: var(--wui-icon-box-size-xl);
   }
-`;var F=function(a,e,t,n){var o=arguments.length,i=o<3?e:n===null?n=Object.getOwnPropertyDescriptor(e,t):n,r;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")i=Reflect.decorate(a,e,t,n);else for(var s=a.length-1;s>=0;s--)(r=a[s])&&(i=(o<3?r(i):o>3?r(e,t,i):r(e,t))||i);return o>3&&i&&Object.defineProperty(e,t,i),i};let y=class extends b{constructor(){var e;super(),this.email=(e=l.state.data)==null?void 0:e.email,this.authConnector=E.getAuthConnector(),this.loading=!1,this.listenForDeviceApproval()}render(){if(!this.email)throw new Error("w3m-email-verify-device-view: No email provided");if(!this.authConnector)throw new Error("w3m-email-verify-device-view: No auth connector provided");return c`
+`
+var F = function (a, e, t, n) {
+  var o = arguments.length,
+    i = o < 3 ? e : n === null ? (n = Object.getOwnPropertyDescriptor(e, t)) : n,
+    r
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    i = Reflect.decorate(a, e, t, n)
+  else
+    for (var s = a.length - 1; s >= 0; s--)
+      (r = a[s]) && (i = (o < 3 ? r(i) : o > 3 ? r(e, t, i) : r(e, t)) || i)
+  return o > 3 && i && Object.defineProperty(e, t, i), i
+}
+let y = class extends b {
+  constructor() {
+    var e
+    super(),
+      (this.email = (e = l.state.data) == null ? void 0 : e.email),
+      (this.authConnector = E.getAuthConnector()),
+      (this.loading = !1),
+      this.listenForDeviceApproval()
+  }
+  render() {
+    if (!this.email) throw new Error('w3m-email-verify-device-view: No email provided')
+    if (!this.authConnector)
+      throw new Error('w3m-email-verify-device-view: No auth connector provided')
+    return c`
       <wui-flex
         flexDirection="column"
         alignItems="center"
-        .padding=${["xxl","s","xxl","s"]}
+        .padding=${['xxl', 's', 'xxl', 's']}
         gap="l"
       >
         <wui-icon-box
@@ -177,7 +530,40 @@ import{i as g,b as V,f as j,r as b,x as c,h as _,R as l,C as E,d as x,S as f,e a
           </wui-flex>
         </wui-flex>
       </wui-flex>
-    `}async listenForDeviceApproval(){if(this.authConnector)try{await this.authConnector.provider.connectDevice(),u.sendEvent({type:"track",event:"DEVICE_REGISTERED_FOR_EMAIL"}),u.sendEvent({type:"track",event:"EMAIL_VERIFICATION_CODE_SENT"}),l.replace("EmailVerifyOtp",{email:this.email})}catch{l.goBack()}}async onResendCode(){try{if(!this.loading){if(!this.authConnector||!this.email)throw new Error("w3m-email-login-widget: Unable to resend email");this.loading=!0,await this.authConnector.provider.connectEmail({email:this.email}),this.listenForDeviceApproval(),f.showSuccess("Code email resent")}}catch(e){f.showError(e)}finally{this.loading=!1}}};y.styles=K;F([d()],y.prototype,"loading",void 0);y=F([h("w3m-email-verify-device-view")],y);const Y=g`
+    `
+  }
+  async listenForDeviceApproval() {
+    if (this.authConnector)
+      try {
+        await this.authConnector.provider.connectDevice(),
+          u.sendEvent({ type: 'track', event: 'DEVICE_REGISTERED_FOR_EMAIL' }),
+          u.sendEvent({ type: 'track', event: 'EMAIL_VERIFICATION_CODE_SENT' }),
+          l.replace('EmailVerifyOtp', { email: this.email })
+      } catch {
+        l.goBack()
+      }
+  }
+  async onResendCode() {
+    try {
+      if (!this.loading) {
+        if (!this.authConnector || !this.email)
+          throw new Error('w3m-email-login-widget: Unable to resend email')
+        ;(this.loading = !0),
+          await this.authConnector.provider.connectEmail({ email: this.email }),
+          this.listenForDeviceApproval(),
+          f.showSuccess('Code email resent')
+      }
+    } catch (e) {
+      f.showError(e)
+    } finally {
+      this.loading = !1
+    }
+  }
+}
+y.styles = K
+F([d()], y.prototype, 'loading', void 0)
+y = F([h('w3m-email-verify-device-view')], y)
+const Y = g`
   wui-email-input {
     width: 100%;
   }
@@ -187,7 +573,37 @@ import{i as g,b as V,f as j,r as b,x as c,h as _,R as l,C as E,d as x,S as f,e a
     display: block;
     position: relative;
   }
-`;var S=function(a,e,t,n){var o=arguments.length,i=o<3?e:n===null?n=Object.getOwnPropertyDescriptor(e,t):n,r;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")i=Reflect.decorate(a,e,t,n);else for(var s=a.length-1;s>=0;s--)(r=a[s])&&(i=(o<3?r(i):o>3?r(e,t,i):r(e,t))||i);return o>3&&i&&Object.defineProperty(e,t,i),i};let v=class extends b{constructor(){var e;super(...arguments),this.formRef=U(),this.initialEmail=((e=l.state.data)==null?void 0:e.email)??"",this.email="",this.loading=!1}firstUpdated(){var e;(e=this.formRef.value)==null||e.addEventListener("keydown",t=>{t.key==="Enter"&&this.onSubmitEmail(t)})}render(){const e=!this.loading&&this.email.length>3&&this.email!==this.initialEmail;return c`
+`
+var S = function (a, e, t, n) {
+  var o = arguments.length,
+    i = o < 3 ? e : n === null ? (n = Object.getOwnPropertyDescriptor(e, t)) : n,
+    r
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    i = Reflect.decorate(a, e, t, n)
+  else
+    for (var s = a.length - 1; s >= 0; s--)
+      (r = a[s]) && (i = (o < 3 ? r(i) : o > 3 ? r(e, t, i) : r(e, t)) || i)
+  return o > 3 && i && Object.defineProperty(e, t, i), i
+}
+let v = class extends b {
+  constructor() {
+    var e
+    super(...arguments),
+      (this.formRef = U()),
+      (this.initialEmail = ((e = l.state.data) == null ? void 0 : e.email) ?? ''),
+      (this.email = ''),
+      (this.loading = !1)
+  }
+  firstUpdated() {
+    var e
+    ;(e = this.formRef.value) == null ||
+      e.addEventListener('keydown', t => {
+        t.key === 'Enter' && this.onSubmitEmail(t)
+      })
+  }
+  render() {
+    const e = !this.loading && this.email.length > 3 && this.email !== this.initialEmail
+    return c`
       <wui-flex flexDirection="column" padding="m" gap="m">
         <form ${z(this.formRef)} @submit=${this.onSubmitEmail.bind(this)}>
           <wui-email-input
@@ -216,4 +632,113 @@ import{i as g,b as V,f as j,r as b,x as c,h as _,R as l,C as E,d as x,S as f,e a
           </wui-button>
         </wui-flex>
       </wui-flex>
-    `}onEmailInputChange(e){this.email=e.detail}async onSubmitEmail(e){try{if(this.loading)return;this.loading=!0,e.preventDefault();const t=E.getAuthConnector();if(!t)throw new Error("w3m-update-email-wallet: Auth connector not found");const n=await t.provider.updateEmail({email:this.email});u.sendEvent({type:"track",event:"EMAIL_EDIT"}),n.action==="VERIFY_SECONDARY_OTP"?l.push("UpdateEmailSecondaryOtp",{email:this.initialEmail,newEmail:this.email}):l.push("UpdateEmailPrimaryOtp",{email:this.initialEmail,newEmail:this.email})}catch(t){f.showError(t),this.loading=!1}}};v.styles=Y;S([d()],v.prototype,"email",void 0);S([d()],v.prototype,"loading",void 0);v=S([h("w3m-update-email-wallet-view")],v);var J=function(a,e,t,n){var o=arguments.length,i=o<3?e:n===null?n=Object.getOwnPropertyDescriptor(e,t):n,r;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")i=Reflect.decorate(a,e,t,n);else for(var s=a.length-1;s>=0;s--)(r=a[s])&&(i=(o<3?r(i):o>3?r(e,t,i):r(e,t))||i);return o>3&&i&&Object.defineProperty(e,t,i),i};let P=class extends p{constructor(){var e;super(),this.email=(e=l.state.data)==null?void 0:e.email,this.onOtpSubmit=async t=>{try{this.authConnector&&(await this.authConnector.provider.updateEmailPrimaryOtp({otp:t}),u.sendEvent({type:"track",event:"EMAIL_VERIFICATION_CODE_PASS"}),l.replace("UpdateEmailSecondaryOtp",l.state.data))}catch(n){throw u.sendEvent({type:"track",event:"EMAIL_VERIFICATION_CODE_FAIL",properties:{message:x.parseError(n)}}),n}},this.onStartOver=()=>{l.replace("UpdateEmailWallet",l.state.data)}}};P=J([h("w3m-update-email-primary-otp-view")],P);var Q=function(a,e,t,n){var o=arguments.length,i=o<3?e:n===null?n=Object.getOwnPropertyDescriptor(e,t):n,r;if(typeof Reflect=="object"&&typeof Reflect.decorate=="function")i=Reflect.decorate(a,e,t,n);else for(var s=a.length-1;s>=0;s--)(r=a[s])&&(i=(o<3?r(i):o>3?r(e,t,i):r(e,t))||i);return o>3&&i&&Object.defineProperty(e,t,i),i};let L=class extends p{constructor(){var e;super(),this.email=(e=l.state.data)==null?void 0:e.newEmail,this.onOtpSubmit=async t=>{try{this.authConnector&&(await this.authConnector.provider.updateEmailSecondaryOtp({otp:t}),u.sendEvent({type:"track",event:"EMAIL_VERIFICATION_CODE_PASS"}),l.reset("Account"))}catch(n){throw u.sendEvent({type:"track",event:"EMAIL_VERIFICATION_CODE_FAIL",properties:{message:x.parseError(n)}}),n}},this.onStartOver=()=>{l.replace("UpdateEmailWallet",l.state.data)}}};L=Q([h("w3m-update-email-secondary-otp-view")],L);export{y as W3mEmailVerifyDeviceView,D as W3mEmailVerifyOtpView,P as W3mUpdateEmailPrimaryOtpView,L as W3mUpdateEmailSecondaryOtpView,v as W3mUpdateEmailWalletView};
+    `
+  }
+  onEmailInputChange(e) {
+    this.email = e.detail
+  }
+  async onSubmitEmail(e) {
+    try {
+      if (this.loading) return
+      ;(this.loading = !0), e.preventDefault()
+      const t = E.getAuthConnector()
+      if (!t) throw new Error('w3m-update-email-wallet: Auth connector not found')
+      const n = await t.provider.updateEmail({ email: this.email })
+      u.sendEvent({ type: 'track', event: 'EMAIL_EDIT' }),
+        n.action === 'VERIFY_SECONDARY_OTP'
+          ? l.push('UpdateEmailSecondaryOtp', { email: this.initialEmail, newEmail: this.email })
+          : l.push('UpdateEmailPrimaryOtp', { email: this.initialEmail, newEmail: this.email })
+    } catch (t) {
+      f.showError(t), (this.loading = !1)
+    }
+  }
+}
+v.styles = Y
+S([d()], v.prototype, 'email', void 0)
+S([d()], v.prototype, 'loading', void 0)
+v = S([h('w3m-update-email-wallet-view')], v)
+var J = function (a, e, t, n) {
+  var o = arguments.length,
+    i = o < 3 ? e : n === null ? (n = Object.getOwnPropertyDescriptor(e, t)) : n,
+    r
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    i = Reflect.decorate(a, e, t, n)
+  else
+    for (var s = a.length - 1; s >= 0; s--)
+      (r = a[s]) && (i = (o < 3 ? r(i) : o > 3 ? r(e, t, i) : r(e, t)) || i)
+  return o > 3 && i && Object.defineProperty(e, t, i), i
+}
+let P = class extends p {
+  constructor() {
+    var e
+    super(),
+      (this.email = (e = l.state.data) == null ? void 0 : e.email),
+      (this.onOtpSubmit = async t => {
+        try {
+          this.authConnector &&
+            (await this.authConnector.provider.updateEmailPrimaryOtp({ otp: t }),
+            u.sendEvent({ type: 'track', event: 'EMAIL_VERIFICATION_CODE_PASS' }),
+            l.replace('UpdateEmailSecondaryOtp', l.state.data))
+        } catch (n) {
+          throw (
+            (u.sendEvent({
+              type: 'track',
+              event: 'EMAIL_VERIFICATION_CODE_FAIL',
+              properties: { message: x.parseError(n) }
+            }),
+            n)
+          )
+        }
+      }),
+      (this.onStartOver = () => {
+        l.replace('UpdateEmailWallet', l.state.data)
+      })
+  }
+}
+P = J([h('w3m-update-email-primary-otp-view')], P)
+var Q = function (a, e, t, n) {
+  var o = arguments.length,
+    i = o < 3 ? e : n === null ? (n = Object.getOwnPropertyDescriptor(e, t)) : n,
+    r
+  if (typeof Reflect == 'object' && typeof Reflect.decorate == 'function')
+    i = Reflect.decorate(a, e, t, n)
+  else
+    for (var s = a.length - 1; s >= 0; s--)
+      (r = a[s]) && (i = (o < 3 ? r(i) : o > 3 ? r(e, t, i) : r(e, t)) || i)
+  return o > 3 && i && Object.defineProperty(e, t, i), i
+}
+let L = class extends p {
+  constructor() {
+    var e
+    super(),
+      (this.email = (e = l.state.data) == null ? void 0 : e.newEmail),
+      (this.onOtpSubmit = async t => {
+        try {
+          this.authConnector &&
+            (await this.authConnector.provider.updateEmailSecondaryOtp({ otp: t }),
+            u.sendEvent({ type: 'track', event: 'EMAIL_VERIFICATION_CODE_PASS' }),
+            l.reset('Account'))
+        } catch (n) {
+          throw (
+            (u.sendEvent({
+              type: 'track',
+              event: 'EMAIL_VERIFICATION_CODE_FAIL',
+              properties: { message: x.parseError(n) }
+            }),
+            n)
+          )
+        }
+      }),
+      (this.onStartOver = () => {
+        l.replace('UpdateEmailWallet', l.state.data)
+      })
+  }
+}
+L = Q([h('w3m-update-email-secondary-otp-view')], L)
+export {
+  y as W3mEmailVerifyDeviceView,
+  D as W3mEmailVerifyOtpView,
+  P as W3mUpdateEmailPrimaryOtpView,
+  L as W3mUpdateEmailSecondaryOtpView,
+  v as W3mUpdateEmailWalletView
+}

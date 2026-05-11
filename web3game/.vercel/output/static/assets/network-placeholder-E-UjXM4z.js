@@ -1,4 +1,6 @@
-import{F as l}from"./index-DVkBgnkX.js";const e=l`<svg fill="none" viewBox="0 0 22 20">
+import { F as l } from './index-DVkBgnkX.js'
+
+const e = l`<svg fill="none" viewBox="0 0 22 20">
   <path
     fill="currentColor"
     fill-rule="evenodd"
@@ -11,4 +13,5 @@ import{F as l}from"./index-DVkBgnkX.js";const e=l`<svg fill="none" viewBox="0 0 
     d="M4.63 9.43a1.5 1.5 0 1 0 1.5-2.6 1.5 1.5 0 0 0-1.5 2.6Zm.32-1.55a.5.5 0 0 1 .68-.19.5.5 0 0 1 .18.68.5.5 0 0 1-.68.19.5.5 0 0 1-.18-.68ZM17.94 8.88a1.5 1.5 0 1 1-2.6-1.5 1.5 1.5 0 1 1 2.6 1.5ZM16.9 7.69a.5.5 0 0 0-.68.19.5.5 0 0 0 .18.68.5.5 0 0 0 .68-.19.5.5 0 0 0-.18-.68ZM9.75 17.75a1.5 1.5 0 1 1 2.6 1.5 1.5 1.5 0 1 1-2.6-1.5Zm1.05 1.18a.5.5 0 0 0 .68-.18.5.5 0 0 0-.18-.68.5.5 0 0 0-.68.18.5.5 0 0 0 .18.68Z"
     clip-rule="evenodd"
   />
-</svg>`;export{e as networkPlaceholderSvg};
+</svg>`
+export { e as networkPlaceholderSvg }
