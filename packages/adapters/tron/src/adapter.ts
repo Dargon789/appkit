@@ -309,7 +309,7 @@ export class TronAdapter extends AdapterBlueprint<TronConnector> {
 
     try {
       const response = await BlockchainApiController.getAddressBalance<{
-        data: { balance: number }[]
+        data: { balance: string }[]
       }>({
         caipNetworkId,
         address,
@@ -317,9 +317,7 @@ export class TronAdapter extends AdapterBlueprint<TronConnector> {
         params: [{ address }]
       })
 
-      const balanceInSun = response?.data?.[0]?.balance ?? 0
-
-      const formattedBalance = NumberUtil.bigNumber(balanceInSun)
+      const balanceInSun = response?.data?.[0]?.balance ?? '0'
         .div(10 ** 6)
         .toString()
 
