@@ -18,7 +18,7 @@ const ALLOWED_LOOSE_DEPENDENCIES = ['@wallet connect/logger']
 
 // -- Data --------------------------------------------------------------------
 const { modified_files, created_files, deleted_files, diffForFile } = danger.git
-const updated_files = [...modified_files, ...created_files].filter(f => !f.includes('danger file'))
+const updated_files = [...modified_files, ...created_files].filter(f => !f.includes('dangerfile'))
 const all_files = [...updated_files, ...created_files, ...deleted_files].filter(
   f => !f.includes('danger file')
 )
