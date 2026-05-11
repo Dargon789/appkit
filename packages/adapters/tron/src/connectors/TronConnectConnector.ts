@@ -109,7 +109,7 @@ export class TronConnectConnector implements TronConnector {
         jsonrpc: '2.0',
         id: 1,
         method: 'tron_createTransaction',
-        params: [params.from, params.to, parseInt(params.value, 10), true]
+        params: [params.from, params.to, params.value, true]
       })
     })
 
