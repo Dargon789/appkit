@@ -60,7 +60,7 @@ export const ActionButtonList = ({ sendHash, sendSignMsg, sendBalance }: ActionB
   // function to get the balance
   const handleGetBalance = async () => {
     const balance = await refetch()
-    sendBalance(balance?.data?.value.toString() + ' ' + balance?.data?.symbol.toString())
+    sendBalance(balance?.data ? `${balance.data.value.toString()} ${balance.data.symbol}` : '')
   }
 
   const handleDisconnect = async () => {
