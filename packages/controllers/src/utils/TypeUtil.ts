@@ -9,6 +9,7 @@ import type {
   CaipAddress,
   CaipNetwork,
   CaipNetworkId,
+  ChainId,
   ChainNamespace,
   Hex,
   OnRampProvider,
@@ -18,7 +19,7 @@ import type {
 } from '@reown/appkit-common'
 import type { W3mFrameProvider, W3mFrameTypes } from '@reown/appkit-wallet'
 
-import type { AccountControllerState } from '../controllers/AccountController.js'
+import type { AccountState } from '../controllers/ChainController.js'
 import type { ConnectionControllerClient } from '../controllers/ConnectionController.js'
 import type { ReownName } from '../controllers/EnsController.js'
 import type { OnRampProviderOption } from '../controllers/OnRampController.js'
@@ -88,7 +89,6 @@ export type ConnectorType =
   | 'ANNOUNCED'
   | 'AUTH'
   | 'MULTI_CHAIN'
-  | 'ID_AUTH'
 
 export type SocialProvider =
   | 'google'
@@ -116,6 +116,11 @@ export type Connector = {
   }
   provider?: Provider | W3mFrameProvider | UniversalProvider
   chain: ChainNamespace
+  connectors?: Connector[]
+  explorerWallet?: WcWallet
+}
+
+export interface ConnectorWithProviders extends Connector {
   connectors?: Connector[]
 }
 
@@ -152,6 +157,7 @@ export interface WcWallet {
   id: string
   name: string
   badge_type?: BadgeType
+  description?: string
   chains?: CaipNetworkId[]
   homepage?: string
   image_id?: string
@@ -172,6 +178,8 @@ export interface WcWallet {
       }[]
     | null
   display_index?: number
+  supports_wc?: boolean
+  supports_wcpay?: boolean
 }
 
 export interface ApiGetWalletsRequest {
@@ -182,6 +190,8 @@ export interface ApiGetWalletsRequest {
   badge?: BadgeType
   include?: string[]
   exclude?: string[]
+  names?: string
+  rdns?: string
 }
 
 export interface ApiGetWalletsResponse {
@@ -208,6 +218,14 @@ export interface ThemeVariables {
   '--w3m-border-radius-master'?: string
   '--w3m-z-index'?: number
   '--w3m-qr-color'?: string
+  '--apkt-font-family'?: string
+  '--apkt-accent'?: string
+  '--apkt-color-mix'?: string
+  '--apkt-color-mix-strength'?: number
+  '--apkt-font-size-master'?: string
+  '--apkt-border-radius-master'?: string
+  '--apkt-z-index'?: number
+  '--apkt-qr-color'?: string
 }
 
 // -- BlockchainApiController Types ---------------------------------------------
@@ -253,6 +271,20 @@ export type SwapTokenWithBalance = SwapToken & {
 
 export interface BlockchainApiSwapTokensRequest {
   chainId?: string
+}
+
+export interface BlockchainApiGetAddressBalanceRequest {
+  caipNetworkId: string
+  address: string
+  method?: string
+  params?: unknown
+}
+
+export interface BlockchainApiGetAddressBalanceResponse<T = string> {
+  ok: boolean
+  result: T
+  jsonrpc: string
+  id: string
 }
 
 export interface BlockchainApiSwapTokensResponse {
@@ -421,14 +453,35 @@ export type CustomWallet = Pick<
 
 // -- EventsController Types ----------------------------------------------------
 
+export type WalletImpressionItem = {
+  name: string
+  walletRank: number | undefined
+  explorerId: string
+  view: string
+  displayIndex?: number
+  query?: string
+  certified?: boolean
+}
+
+export type ConnectorImpressionItem = {
+  name: string
+  walletRank: number | undefined
+  rdnsId?: string
+  view: string
+  displayIndex?: number
+}
+
 export type PendingEvent = {
   eventId: string
   url: string
   domain: string
   timestamp: number
   props: {
+    type: 'track' | 'error'
+    event: string
     address?: string
-    properties: unknown
+    properties?: unknown
+    items?: Array<WalletImpressionItem | ConnectorImpressionItem>
   }
 }
 
@@ -880,6 +933,18 @@ export type Event =
   | {
       type: 'track'
       address?: string
+      event: 'SEND_REJECTED'
+      properties: {
+        message: string
+        isSmartAccount: boolean
+        network: string
+        token: string
+        amount: number
+      }
+    }
+  | {
+      type: 'track'
+      address?: string
       event: 'CONNECT_PROXY_ERROR'
       properties: {
         message: string
@@ -912,27 +977,14 @@ export type Event =
         name: string
         walletRank: number | undefined
         explorerId: string
+        type: 'chrome_store' | 'app_store' | 'play_store' | 'homepage'
       }
     }
   | {
       type: 'track'
       address?: string
-      event: 'WALLET_IMPRESSION'
-      properties:
-        | {
-            name: string
-            walletRank: number | undefined
-            explorerId: string
-            view: string
-            query?: string
-            certified?: boolean
-          }
-        | {
-            name: string
-            walletRank: number | undefined
-            rdnsId: string
-            view: string
-          }
+      event: 'WALLET_IMPRESSION_V2'
+      items: Array<WalletImpressionItem | ConnectorImpressionItem>
     }
 
 type PayConfiguration = {
@@ -1088,12 +1140,16 @@ export type NamespaceTypeMap = {
   cosmos: 'eoa'
   sui: 'eoa'
   stacks: 'eoa'
+  ton: 'eoa'
+  tron: 'eoa'
 }
 
 export type AccountTypeMap = {
   [K in ChainNamespace]: {
     namespace: K
     address: string
+    chainId?: ChainId
+    caipAddress?: CaipAddress
     type: NamespaceTypeMap[K]
     publicKey?: K extends 'bip122' ? string : never
     path?: K extends 'bip122' ? string : never
@@ -1139,6 +1195,18 @@ export type EstimateGasTransactionArgs =
       chainNamespace: 'solana'
     }
 
+export type SolanaTransactionRequest = {
+  instructions: Array<{
+    keys: Array<{
+      pubkey: string
+      isSigner: boolean
+      isWritable: boolean
+    }>
+    programId: string
+    data: string
+  }>
+}
+
 export interface WriteContractArgs {
   tokenAddress: Address
   fromAddress: Address
@@ -1149,18 +1217,11 @@ export interface WriteContractArgs {
   chainNamespace: ChainNamespace
 }
 
-export interface NetworkControllerClient {
-  switchCaipNetwork: (network: CaipNetwork) => Promise<void>
-  getApprovedCaipNetworksData: () => Promise<{
-    approvedCaipNetworkIds: CaipNetworkId[]
-    supportsAllNetworks: boolean
-  }>
-}
+export type WriteSolanaTransactionArgs = SolanaTransactionRequest
 
 export type AdapterNetworkState = {
   supportsAllNetworks: boolean
   isUnsupportedChain?: boolean
-  _client?: NetworkControllerClient
   caipNetwork?: CaipNetwork
   requestedCaipNetworks?: CaipNetwork[]
   approvedCaipNetworkIds?: CaipNetworkId[]
@@ -1170,8 +1231,7 @@ export type AdapterNetworkState = {
 
 export type ChainAdapter = {
   connectionControllerClient?: ConnectionControllerClient
-  networkControllerClient?: NetworkControllerClient
-  accountState?: AccountControllerState
+  accountState?: AccountState
   networkState?: AdapterNetworkState
   namespace?: ChainNamespace
   caipNetworks?: CaipNetwork[]
@@ -1230,6 +1290,7 @@ export type RemoteFeatures = {
   payWithExchange?: boolean
   payments?: boolean
   onramp?: OnRampProvider[] | false
+  headless?: boolean
 }
 
 export type Features = {
@@ -1331,6 +1392,12 @@ export type Features = {
    * @type {boolean}
    */
   reownAuthentication?: boolean
+  /**
+   * @description Enable or disable the AppKit Headless mode to build custom connect user interfaces.
+   * @default false
+   * @type {boolean}
+   */
+  headless?: boolean
 }
 
 export type FeaturesKeys = Exclude<
@@ -1346,18 +1413,20 @@ export type UseAppKitAccountReturn = {
   address: string | undefined
   isConnected: boolean
   embeddedWalletInfo?: {
-    user: AccountControllerState['user']
-    authProvider: AccountControllerState['socialProvider'] | 'email'
+    user: AccountState['user']
+    authProvider: AccountState['socialProvider'] | 'email'
     accountType: PreferredAccountTypes[ChainNamespace] | undefined
     isSmartAccountDeployed: boolean
   }
-  status: AccountControllerState['status']
+  status: AccountState['status']
 }
 
 export type UseAppKitNetworkReturn = {
   caipNetwork: CaipNetwork | undefined
   chainId: number | string | undefined
   caipNetworkId: CaipNetworkId | undefined
+  approvedCaipNetworkIds: CaipNetworkId[] | undefined
+  supportsAllNetworks: boolean
   switchNetwork: (network: AppKitNetwork) => Promise<void>
 }
 
@@ -1386,7 +1455,7 @@ export type FeatureID =
   | 'fund_from_exchange'
   | 'payments'
   | 'reown_authentication'
-
+  | 'headless'
 export interface BaseFeature<T extends FeatureID, C extends string[] | null> {
   id: T
   isEnabled: boolean
@@ -1401,9 +1470,16 @@ export type TypedFeatureConfig =
   | BaseFeature<'reown_branding', null | []>
   | BaseFeature<'multi_wallet', null | []>
   | BaseFeature<'email_capture', EmailCaptureOptions[]>
+  | BaseFeature<'headless', null | []>
 
 export type ApiGetProjectConfigResponse = {
   features: TypedFeatureConfig[]
+}
+
+export type ApiGetUsageResponse = {
+  planLimits: {
+    tier: Tier
+  } & ProjectLimits
 }
 
 export type FeatureConfigMap = {
@@ -1473,6 +1549,33 @@ export type FeatureConfigMap = {
     returnType: boolean
     isLegacy: false
   }
+  headless: {
+    apiFeatureName: 'headless'
+    localFeatureName: 'headless'
+    returnType: boolean
+    isLegacy: false
+  }
 }
 
 export type FeatureKey = keyof FeatureConfigMap
+
+export type Tier = 'none' | 'starter' | 'pro' | 'enteprise'
+
+export type ProjectLimits = {
+  isAboveRpcLimit: boolean
+  isAboveMauLimit: boolean
+}
+
+export type ConnectorItemWithKind = {
+  kind: 'connector'
+  subtype: 'injected' | 'announced' | 'multiChain' | 'external' | 'walletConnect'
+  connector: ConnectorWithProviders
+}
+
+export type WalletItemWithKind = {
+  kind: 'wallet'
+  subtype: 'featured' | 'recommended' | 'custom' | 'recent'
+  wallet: WcWallet
+}
+
+export type ConnectorOrWalletItem = ConnectorItemWithKind | WalletItemWithKind

@@ -17,6 +17,8 @@ import { Ethers5Tests } from './Ethers/Ethers5Tests'
 import { EthersTests } from './Ethers/EthersTests'
 import { ReownAuthenticationTests } from './ReownAuthentication'
 import { SiweData } from './Siwe/SiweData'
+import { TonTests } from './Ton/TonTests'
+import { TronTests } from './Tron/TronTests'
 import { UpaTests } from './UPA/UpaTests'
 
 const embeddedWalletOptions = [...ConstantsUtil.Socials, ConstantsUtil.Email]
@@ -29,6 +31,8 @@ export default function DemoContent({
   const hasNoAdapters = config?.adapters?.length === 0
   const solanaAdapter = config?.adapters?.find(adapter => adapter === 'solana')
   const bitcoinAdapter = config?.adapters?.find(adapter => adapter === 'bitcoin')
+  const tonAdapter = config?.adapters?.find(adapter => adapter === 'ton')
+  const tronAdapter = config?.adapters?.find(adapter => adapter === 'tron')
   const evmAdapter = config?.adapters?.find(
     adapter => adapter === 'wagmi' || adapter === 'ethers' || adapter === 'ethers5'
   )
@@ -48,12 +52,16 @@ export default function DemoContent({
       <AppKitConnections namespace="eip155" title="EVM Connections" />
       <AppKitConnections namespace="solana" title="Solana Connections" />
       <AppKitConnections namespace="bip122" title="Bitcoin Connections" />
+      <AppKitConnections namespace="ton" title="TON Connections" />
+      <AppKitConnections namespace="tron" title="TRON Connections" />
 
       {evmAdapter === 'wagmi' && <WagmiTests />}
       {evmAdapter === 'ethers5' && <Ethers5Tests />}
       {evmAdapter === 'ethers' && <EthersTests />}
       {solanaAdapter ? <SolanaTests /> : null}
       {bitcoinAdapter ? <BitcoinTests /> : null}
+      {tonAdapter ? <TonTests /> : null}
+      {tronAdapter ? <TronTests /> : null}
       {hasNoAdapters ? <UpaTests /> : null}
 
       {isPayEnabled ? <AppKitPay /> : null}

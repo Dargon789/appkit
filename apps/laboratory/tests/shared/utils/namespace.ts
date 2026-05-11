@@ -4,6 +4,10 @@ export function getNamespaceByLibrary(library: string) {
       return 'solana'
     case 'bitcoin':
       return 'bip122'
+    case 'ton':
+      return 'ton'
+    case 'tron':
+      return 'tron'
     default:
       return 'eip155'
   }
@@ -18,6 +22,11 @@ export function getNamespaceByNetworkName(networkName: string) {
     case 'Bitcoin':
     case 'Bitcoin Testnet':
       return 'bip122'
+    case 'TON':
+      return 'ton'
+    case 'TRON':
+    case 'TRON Shasta':
+      return 'tron'
     default:
       return 'eip155'
   }
@@ -29,6 +38,10 @@ export function getTestnetByLibrary(library: string) {
       return 'Solana Devnet'
     case 'bitcoin':
       return 'Bitcoin Testnet'
+    case 'ton':
+      return 'TON Testnet'
+    case 'tron':
+      return 'TRON Shasta'
     case 'wagmi':
     case 'ethers':
     case 'ethers5':
@@ -59,6 +72,10 @@ export function getMainnetByLibrary(library: string) {
       return 'Solana'
     case 'bitcoin':
       return 'Bitcoin'
+    case 'ton':
+      return 'TON'
+    case 'tron':
+      return 'TRON'
     case 'wagmi':
     case 'ethers':
     case 'ethers5':

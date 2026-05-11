@@ -6,6 +6,7 @@ import { html, unsafeStatic } from 'lit/static-html.js'
 import { appStoreSvg } from '../../assets/svg/app-store.js'
 import { appleSvg } from '../../assets/svg/apple.js'
 import { bitcoinSvg } from '../../assets/svg/bitcoin.js'
+import { checkmarkSvg } from '../../assets/svg/checkmark.js'
 import { chromeStoreSvg } from '../../assets/svg/chrome-store.js'
 import { coinsSvg } from '../../assets/svg/coins.js'
 import { cursorSvg } from '../../assets/svg/cursor.js'
@@ -23,6 +24,7 @@ import { reownSvg } from '../../assets/svg/reown-logo.js'
 import { solanaSvg } from '../../assets/svg/solana.js'
 import { telegramSvg } from '../../assets/svg/telegram.js'
 import { tonSvg } from '../../assets/svg/ton.js'
+import { tronSvg } from '../../assets/svg/tron.js'
 import { twitchSvg } from '../../assets/svg/twitch.js'
 import { twitterIconSvg } from '../../assets/svg/twitterIcon.js'
 import {
@@ -53,7 +55,6 @@ const phosphorIconsMap: Record<string, string> = {
   bin: 'ph-trash',
   browser: 'ph-browser',
   card: 'ph-credit-card',
-  checkmark: 'ph-check',
   checkmarkBold: 'ph-check',
   chevronBottom: 'ph-caret-down',
   chevronLeft: 'ph-caret-left',
@@ -123,6 +124,7 @@ const phosphorIconsMap: Record<string, string> = {
   reown: '',
   solana: '',
   ton: '',
+  tron: '',
   telegram: '',
   twitch: '',
   twitterIcon: '',
@@ -131,7 +133,8 @@ const phosphorIconsMap: Record<string, string> = {
   walletConnectBrown: '',
   walletConnectLightBrown: '',
   x: '',
-  infoSeal: ''
+  infoSeal: '',
+  checkmark: ''
 }
 
 // Dynamic imports for Phosphor components
@@ -211,6 +214,7 @@ const svgOptions: Partial<Record<IconType, TemplateResult<2>>> = {
   reown: reownSvg,
   solana: solanaSvg,
   ton: tonSvg,
+  tron: tronSvg,
   telegram: telegramSvg,
   twitch: twitchSvg,
   twitter: xSvg,
@@ -220,7 +224,8 @@ const svgOptions: Partial<Record<IconType, TemplateResult<2>>> = {
   walletConnectBrown: walletConnectBrownSvg,
   walletConnectLightBrown: walletConnectLightBrownSvg,
   x: xSvg,
-  infoSeal: infoSealSvg
+  infoSeal: infoSealSvg,
+  checkmark: checkmarkSvg
 }
 
 // -- Constants ------------------------------------------ //

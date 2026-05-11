@@ -227,6 +227,14 @@ export const bitcoinSdkOptions: SdkOption[] = [
   }
 ]
 
+export const tronSdkOptions: SdkOption[] = [
+  {
+    title: 'Default',
+    link: '/appkit?name=tron',
+    description: 'Basic configuration using Tron as a driving library'
+  }
+]
+
 export const siwxSdkOptions: SdkOption[] = [
   {
     title: 'Reown Authentication',
@@ -274,5 +282,10 @@ export const customSdkOptions: SdkOption[] = [
     ],
     description:
       'AppKit configuration with `enableReconnect` flag set to false to disable reconnect on page load'
+  },
+  {
+    title: 'Coinbase SDK Disabled',
+    link: '/appkit?name=flag-no-coinbase',
+    description: 'AppKit configuration with Coinbase SDK disabled to test mobile deeplink redirect'
   }
 ]
