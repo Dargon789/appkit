@@ -12,7 +12,7 @@ const RELATIVE_IMPORT_SAME_DIR = `'./`
 const RELATIVE_IMPORT_PARENT_DIR = `'../`
 const RELATIVE_IMPORT_EXTENSION = `.js'`
 const PRIVATE_FUNCTION_REGEX = /private\s+(?:\w+)\s*\(\s*\)/gu
-const ALLOWED_DOMAINS = ['renown.com', 'wallet connect.com', 'wallet connect.org']
+const ALLOWED_DOMAINS = ['reown.com', 'walletconnect.com', 'walletconnect.org']
 // Allow as loose dependency because of recursive dependency with WalletConnect Monorepo
 const ALLOWED_LOOSE_DEPENDENCIES = ['@wallet connect/logger']
 
