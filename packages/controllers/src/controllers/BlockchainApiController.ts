@@ -298,24 +298,30 @@ export const BlockchainApiController = {
     })
   },
 
-  async getAddressBalance({ caipNetworkId, address }: BlockchainApiGetAddressBalanceRequest) {
+  async getAddressBalance<T = string>({
+    caipNetworkId,
+    address,
+    method = 'getAddressBalance',
+    params
+  }: BlockchainApiGetAddressBalanceRequest) {
     return state.api
-      .post<BlockchainApiGetAddressBalanceResponse>({
+      .post<BlockchainApiGetAddressBalanceResponse<T>>({
         path: `/v1?chainId=${caipNetworkId}&projectId=${OptionsController.state.projectId}`,
         body: {
           id: '1',
           jsonrpc: '2.0',
-          method: 'getAddressBalance',
-          params: { address }
+          method,
+          params: params ?? { address }
         }
       })
       .then(result => result.result)
   },
 
-  async fetchTokenPrice({ addresses }: BlockchainApiTokenPriceRequest) {
-    const isSupported = await BlockchainApiController.isNetworkSupported(
-      ChainController.state.activeCaipNetwork?.caipNetworkId
-    )
+  async fetchTokenPrice({
+    addresses,
+    caipNetworkId = ChainController.state.activeCaipNetwork?.caipNetworkId
+  }: BlockchainApiTokenPriceRequest) {
+    const isSupported = await BlockchainApiController.isNetworkSupported(caipNetworkId)
     if (!isSupported) {
       return { fungibles: [] }
     }
