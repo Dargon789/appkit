@@ -2,23 +2,33 @@ import type { CaipNetwork, SocialProvider } from '@reown/appkit'
 import type { Wallet } from '@reown/appkit-wallet-button'
 import {
   abstract,
+  adi,
   arbitrum,
   aurora,
   base,
   baseSepolia,
   berachain,
   bitcoin,
+  bitcoinSignet,
   bitcoinTestnet,
   gnosis,
   hedera,
   mainnet,
   mantle,
+  monad,
+  monadTestnet,
   optimism,
   polygon,
+  rootstock,
+  rootstockTestnet,
   sepolia,
   solana,
   solanaDevnet,
   solanaTestnet,
+  ton,
+  tonTestnet,
+  tronMainnet,
+  tronShastaTestnet,
   unichainSepolia,
   zkSync
 } from '@reown/appkit/networks'
@@ -81,7 +91,12 @@ const EvmNetworks = [
   hedera,
   aurora,
   mantle,
-  abstract
+  abstract,
+  monad,
+  monadTestnet,
+  rootstock,
+  rootstockTestnet,
+  adi
 ] as [AppKitNetwork, ...AppKitNetwork[]]
 
 export const solanaNotExist = {
@@ -101,7 +116,14 @@ const SolanaNetworks = [solana, solanaTestnet, solanaDevnet, solanaNotExist] as 
   ...AppKitNetwork[]
 ]
 
-const BitcoinNetworks = [bitcoin, bitcoinTestnet] as [AppKitNetwork, ...AppKitNetwork[]]
+const BitcoinNetworks = [bitcoin, bitcoinTestnet, bitcoinSignet] as [
+  AppKitNetwork,
+  ...AppKitNetwork[]
+]
+
+const TonNetworks = [ton, tonTestnet] as [AppKitNetwork, ...AppKitNetwork[]]
+
+const TronNetworks = [tronMainnet, tronShastaTestnet] as [AppKitNetwork, ...AppKitNetwork[]]
 
 export const ConstantsUtil = {
   SigningSucceededToastTitle: 'Signing Succeeded',
@@ -158,17 +180,23 @@ export const ConstantsUtil = {
   EvmNetworks,
   SolanaNetworks,
   BitcoinNetworks,
-  AllNetworks: [...EvmNetworks, ...SolanaNetworks, ...BitcoinNetworks] as [
-    AppKitNetwork,
-    ...AppKitNetwork[]
-  ],
+  TonNetworks,
+  TronNetworks,
+  AllNetworks: [
+    ...EvmNetworks,
+    ...SolanaNetworks,
+    ...BitcoinNetworks,
+    ...TonNetworks,
+    ...TronNetworks
+  ] as [AppKitNetwork, ...AppKitNetwork[]],
   EvmWalletButtons: [
     'walletConnect',
     'metamask',
     'trust',
     'coinbase',
     'rainbow',
-    'phantom'
+    'phantom',
+    'haha'
   ] as Wallet[],
   SolanaWalletButtons: [
     'walletConnect',

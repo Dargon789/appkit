@@ -1,19 +1,36 @@
-import type { AdapterType, Balance, ChainNamespace, SdkVersion } from '@reown/appkit-common'
-import { ConstantsUtil as CommonConstants } from '@reown/appkit-common'
+import type {
+  AdapterType,
+  Address,
+  Balance,
+  ChainNamespace,
+  ParsedCaipAddress,
+  SdkVersion
+} from '@reown/appkit-common'
+import { ConstantsUtil as CommonConstants, ParseUtil } from '@reown/appkit-common'
 import type { CaipAddress, CaipNetwork } from '@reown/appkit-common'
 
 import { ConstantsUtil } from './ConstantsUtil.js'
 import { StorageUtil } from './StorageUtil.js'
-import type { AccountTypeMap, ChainAdapter, LinkingRecord, NamespaceTypeMap } from './TypeUtil.js'
+import type { AccountTypeMap, ChainAdapter, LinkingRecord } from './TypeUtil.js'
 
 type SDKFramework = 'html' | 'react' | 'vue' | 'cdn' | 'unity'
 export type OpenTarget = '_blank' | '_self' | 'popupWindow' | '_top'
 
 export const CoreHelperUtil = {
+  getWindow(): Window | undefined {
+    if (typeof window === 'undefined') {
+      return undefined
+    }
+
+    return window
+  },
+
   isMobile() {
     if (this.isClient()) {
       return Boolean(
-        window?.matchMedia('(pointer:coarse)')?.matches ||
+        (window?.matchMedia &&
+          typeof window.matchMedia === 'function' &&
+          window.matchMedia('(pointer:coarse)')?.matches) ||
           /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini/u.test(navigator.userAgent)
       )
     }
@@ -79,6 +96,26 @@ export const CoreHelperUtil = {
     }
   },
 
+  isSafeApp() {
+    if (CoreHelperUtil.isClient() && window.self !== window.top) {
+      try {
+        const ancestor = window?.location?.ancestorOrigins?.[0]
+
+        const safeAppUrl = 'https://app.safe.global'
+        if (ancestor) {
+          const ancestorUrl = new URL(ancestor)
+          const safeUrl = new URL(safeAppUrl)
+
+          return ancestorUrl.hostname === safeUrl.hostname
+        }
+      } catch {
+        return false
+      }
+    }
+
+    return false
+  },
+
   getPairingExpiry() {
     return Date.now() + ConstantsUtil.FOUR_MINUTES_MS
   },
@@ -88,7 +125,7 @@ export const CoreHelperUtil = {
   },
 
   getPlainAddress(caipAddress: CaipAddress | undefined) {
-    return caipAddress?.split(':')[2]
+    return caipAddress?.split(':')[2] as Address | undefined
   },
 
   async wait(milliseconds: number) {
@@ -218,7 +255,10 @@ export const CoreHelperUtil = {
       return false
     }
 
-    const isStandaloneDisplayMode = window.matchMedia?.('(display-mode: standalone)')?.matches
+    const isStandaloneDisplayMode =
+      window?.matchMedia && typeof window.matchMedia === 'function'
+        ? window.matchMedia('(display-mode: standalone)')?.matches
+        : false
     const isIOSStandalone = (window?.navigator as unknown as { standalone: boolean })?.standalone
 
     return Boolean(isStandaloneDisplayMode || isIOSStandalone)
@@ -236,37 +276,29 @@ export const CoreHelperUtil = {
     return Promise.race([imagePromise, CoreHelperUtil.wait(2000)])
   },
 
-  formatBalance(balance: string | undefined, symbol: string | undefined) {
+  parseBalance(balance: string | undefined, symbol: string | undefined) {
     let formattedBalance = '0.000'
 
     if (typeof balance === 'string') {
       const number = Number(balance)
-      if (number) {
-        const formattedValue = Math.floor(number * 1000) / 1000
+      if (!isNaN(number)) {
+        const formattedValue = (Math.floor(number * 1000) / 1000).toFixed(3)
         if (formattedValue) {
-          formattedBalance = formattedValue.toString()
+          formattedBalance = formattedValue
         }
       }
     }
+    const [valueString, decimalsString] = formattedBalance.split('.')
 
-    return `${formattedBalance}${symbol ? ` ${symbol}` : ''}`
-  },
+    const value = valueString || '0'
+    const decimals = decimalsString || '000'
 
-  formatBalance2(balance: string | undefined, symbol: string | undefined) {
-    let formattedBalance = undefined
-
-    if (balance === '0') {
-      formattedBalance = '0'
-    } else if (typeof balance === 'string') {
-      const number = Number(balance)
-      if (number) {
-        formattedBalance = number.toString().match(/^-?\d+(?:\.\d{0,3})?/u)?.[0]
-      }
-    }
+    const formattedText = `${value}.${decimals}${symbol ? ` ${symbol}` : ''}`
 
     return {
-      value: formattedBalance ?? '0',
-      rest: formattedBalance === '0' ? '000' : '',
+      formattedText,
+      value,
+      decimals,
       symbol
     }
   },
@@ -371,6 +403,14 @@ export const CoreHelperUtil = {
       case 'solana':
         return /[1-9A-HJ-NP-Za-km-z]{32,44}$/iu.test(address)
 
+      case 'bip122': {
+        const isP2PKH = /^[1][a-km-zA-HJ-NP-Z1-9]{25,34}$/u.test(address)
+        const isP2SH = /^[3][a-km-zA-HJ-NP-Z1-9]{25,34}$/u.test(address)
+        const isBech32 = /^bc1[a-z0-9]{39,87}$/u.test(address)
+        const isBech32m = /^bc1p[a-z0-9]{58}$/u.test(address)
+
+        return isP2PKH || isP2SH || isBech32 || isBech32m
+      }
       default:
         return false
     }
@@ -405,20 +445,22 @@ export const CoreHelperUtil = {
     return `${platform}-${adapterNames}-${version}`
   },
 
-  // eslint-disable-next-line max-params
-  createAccount<N extends ChainNamespace>(
-    namespace: N,
-    address: string,
-    type: NamespaceTypeMap[N],
-    publicKey?: string,
+  createAccount<N extends ChainNamespace>(params: {
+    caipAddress: CaipAddress
+    type: string
+    publicKey?: string
     path?: string
-  ): AccountTypeMap[N] {
+  }): AccountTypeMap[N] {
+    const { chainNamespace, chainId, address } = ParseUtil.parseCaipAddress(params.caipAddress)
+
     return {
-      namespace,
+      namespace: chainNamespace,
       address,
-      type,
-      publicKey,
-      path
+      chainId,
+      caipAddress: params.caipAddress,
+      type: params.type,
+      publicKey: params.publicKey,
+      path: params.path
     } as AccountTypeMap[N]
   },
 
@@ -434,6 +476,26 @@ export const CoreHelperUtil = {
       sections.filter(Boolean).length === 3 &&
       (namespace as string) in CommonConstants.CHAIN_NAME_MAP
     )
+  },
+  getAccount(account?: ParsedCaipAddress | string) {
+    if (!account) {
+      return {
+        address: undefined,
+        chainId: undefined
+      }
+    }
+
+    if (typeof account === 'string') {
+      return {
+        address: account,
+        chainId: undefined
+      }
+    }
+
+    return {
+      address: account.address,
+      chainId: account.chainId
+    }
   },
   isMac() {
     const ua = window?.navigator.userAgent.toLowerCase()
@@ -485,5 +547,20 @@ export const CoreHelperUtil = {
     const newUrl = beforeKeyValue + newKeyValue + afterKeyValue
 
     return newUrl
+  },
+  isNumber(value: unknown): boolean {
+    if (typeof value !== 'number' && typeof value !== 'string') {
+      return false
+    }
+
+    return !isNaN(Number(value))
+  },
+
+  appendPayToUri(wcUri: string, wcPayUrl?: string): string {
+    if (!wcPayUrl) {
+      return wcUri
+    }
+
+    return `${wcUri}&pay=${encodeURIComponent(wcPayUrl)}`
   }
 }

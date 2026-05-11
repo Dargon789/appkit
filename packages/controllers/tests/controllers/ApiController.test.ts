@@ -6,15 +6,15 @@ import {
   ApiController,
   AssetController,
   ChainController,
-  type ChainControllerState,
   type ConnectionControllerClient,
   ConnectorController,
   CoreHelperUtil,
-  type NetworkControllerClient,
   OptionsController,
   type WcWallet
 } from '../../exports/index.js'
+import { mockChainControllerState } from '../../exports/testing.js'
 import { api } from '../../src/controllers/ApiController.js'
+import { CUSTOM_DEEPLINK_WALLETS } from '../../src/utils/MobileWallet.js'
 
 // -- Constants ----------------------------------------------------------------
 const chain = ConstantsUtil.CHAIN.EVM
@@ -89,8 +89,7 @@ beforeAll(() => {
     ],
     [],
     {
-      connectionControllerClient: vi.fn() as unknown as ConnectionControllerClient,
-      networkControllerClient: vi.fn() as unknown as NetworkControllerClient
+      connectionControllerClient: vi.fn() as unknown as ConnectionControllerClient
     }
   )
 })
@@ -98,6 +97,9 @@ beforeAll(() => {
 describe('ApiController', () => {
   beforeEach(() => {
     vi.spyOn(CoreHelperUtil, 'isMobile').mockReturnValue(false)
+    // Reset ConnectorController state to prevent test interference
+    ConnectorController.state.allConnectors = []
+    ConnectorController.state.connectors = []
   })
 
   it('should have valid default state', () => {
@@ -114,7 +116,17 @@ describe('ApiController', () => {
       isAnalyticsEnabled: false,
       excludedWallets: [],
       isFetchingRecommendedWallets: false,
-      promises: {}
+      explorerWallets: [],
+      explorerFilteredWallets: [],
+      promises: {},
+      plan: {
+        tier: 'none',
+        hasExceededUsageLimit: false,
+        limits: {
+          isAboveRpcLimit: false,
+          isAboveMauLimit: false
+        }
+      }
     })
   })
 
@@ -266,8 +278,7 @@ describe('ApiController', () => {
       ],
       reuqestedCaipNetworks,
       {
-        connectionControllerClient: vi.fn() as unknown as ConnectionControllerClient,
-        networkControllerClient: vi.fn() as unknown as NetworkControllerClient
+        connectionControllerClient: vi.fn() as unknown as ConnectionControllerClient
       }
     )
 
@@ -365,6 +376,50 @@ describe('ApiController', () => {
 
     expect(fetchImageSpy).toHaveBeenCalledTimes(2)
     expect(ApiController.state.featured).toEqual(data)
+  })
+
+  it('should sort featured wallets according to the order in featuredWalletIds', async () => {
+    const featuredWalletIds = ['wallet-B', 'wallet-A']
+
+    const data = [
+      {
+        id: 'wallet-A',
+        name: 'Wallet A',
+        image_id: 'image-A'
+      },
+      {
+        id: 'wallet-B',
+        name: 'Wallet B',
+        image_id: 'image-B'
+      }
+    ]
+
+    OptionsController.setFeaturedWalletIds(featuredWalletIds)
+    const fetchSpy = vi.spyOn(api, 'get').mockResolvedValue({ data })
+    const fetchImageSpy = vi.spyOn(ApiController, '_fetchWalletImage').mockResolvedValue()
+
+    await ApiController.fetchFeaturedWallets()
+
+    expect(fetchSpy).toHaveBeenCalledWith({
+      path: '/getWallets',
+      params: {
+        ...ApiController._getSdkProperties(),
+        page: '1',
+        entries: '2',
+        include: 'wallet-B,wallet-A',
+        exclude: ''
+      }
+    })
+
+    expect(fetchImageSpy).toHaveBeenCalledTimes(2)
+
+    expect(ApiController.state.featured).toHaveLength(2)
+    expect(ApiController.state.featured[0]?.id).toBe('wallet-B')
+    expect(ApiController.state.featured[1]?.id).toBe('wallet-A')
+
+    expect(ApiController.state.allFeatured).toHaveLength(2)
+    expect(ApiController.state.allFeatured[0]?.id).toBe('wallet-B')
+    expect(ApiController.state.allFeatured[1]?.id).toBe('wallet-A')
   })
 
   it('should not fetch featured wallets without configured featured wallets', async () => {
@@ -763,9 +818,10 @@ describe('ApiController', () => {
       fetchNetworkImages: false
     })
 
-    expect(result).toHaveLength(2)
+    expect(result).toHaveLength(3)
     expect(result[0]?.status).toBe('fulfilled')
     expect(result[1]?.status).toBe('rejected')
+    expect(result[2]?.status).toBe('fulfilled') // walletRanks
   })
 
   it('should store fetched resources in state.promises', async () => {
@@ -857,6 +913,68 @@ describe('ApiController', () => {
     expect(result).toEqual(mockOrigins)
   })
 
+  it('should throw RATE_LIMITED error for HTTP 429 status', async () => {
+    const mockError = new Error('Rate limited')
+    mockError.cause = new Response('Too Many Requests', { status: 429 })
+    const fetchSpy = vi.spyOn(api, 'get').mockRejectedValueOnce(mockError)
+
+    await expect(ApiController.fetchAllowedOrigins()).rejects.toThrow('RATE_LIMITED')
+    expect(fetchSpy).toHaveBeenCalledWith({
+      path: '/projects/v1/origins',
+      params: ApiController._getSdkProperties()
+    })
+  })
+
+  it('should throw SERVER_ERROR for HTTP 5xx status codes', async () => {
+    const mockError = new Error('Internal Server Error')
+    mockError.cause = new Response('Internal Server Error', { status: 500 })
+    const fetchSpy = vi.spyOn(api, 'get').mockRejectedValueOnce(mockError)
+
+    await expect(ApiController.fetchAllowedOrigins()).rejects.toThrow('SERVER_ERROR')
+    expect(fetchSpy).toHaveBeenCalledWith({
+      path: '/projects/v1/origins',
+      params: ApiController._getSdkProperties()
+    })
+  })
+
+  it('should throw SERVER_ERROR for HTTP 502 status code', async () => {
+    const mockError = new Error('Bad Gateway')
+    mockError.cause = new Response('Bad Gateway', { status: 502 })
+    vi.spyOn(api, 'get').mockRejectedValueOnce(mockError)
+
+    await expect(ApiController.fetchAllowedOrigins()).rejects.toThrow('SERVER_ERROR')
+  })
+
+  it('should return empty array for HTTP 403 status (existing behavior)', async () => {
+    const mockError = new Error('Forbidden')
+    mockError.cause = new Response('Forbidden', { status: 403 })
+    const fetchSpy = vi.spyOn(api, 'get').mockRejectedValueOnce(mockError)
+
+    const result = await ApiController.fetchAllowedOrigins()
+    expect(result).toEqual([])
+    expect(fetchSpy).toHaveBeenCalledWith({
+      path: '/projects/v1/origins',
+      params: ApiController._getSdkProperties()
+    })
+  })
+
+  it('should return empty array for non-HTTP errors (existing behavior)', async () => {
+    const mockError = new Error('Network error')
+    vi.spyOn(api, 'get').mockRejectedValueOnce(mockError)
+
+    const result = await ApiController.fetchAllowedOrigins()
+    expect(result).toEqual([])
+  })
+
+  it('should return empty array for HTTP errors without Response cause', async () => {
+    const mockError = new Error('Some error')
+    mockError.cause = 'not a response object'
+    vi.spyOn(api, 'get').mockRejectedValueOnce(mockError)
+
+    const result = await ApiController.fetchAllowedOrigins()
+    expect(result).toEqual([])
+  })
+
   it('should filter out wallets without mobile_link in mobile environment', () => {
     vi.spyOn(CoreHelperUtil, 'isMobile').mockReturnValue(true)
 
@@ -866,34 +984,75 @@ describe('ApiController', () => {
       { id: '3', name: 'Wallet3', mobile_link: 'link3' }
     ] as WcWallet[]
 
-    const filteredWallets = ApiController._filterWalletsByPlatform(mockWallets)
+    const { filteredWallets } = ApiController._filterWalletsByPlatform(mockWallets)
     expect(filteredWallets).toHaveLength(2)
     expect(filteredWallets.map(w => w.id)).toEqual(['1', '3'])
   })
 
-  it('should filter out wallets without mobile_link in mobile environment but keep custom deeplink wallets', () => {
+  it('should include wallets with webapp_link in mobile environment', () => {
     vi.spyOn(CoreHelperUtil, 'isMobile').mockReturnValue(true)
-    vi.spyOn(ChainController, 'state', 'get').mockReturnValue({
-      activeChain: 'solana'
-    } as ChainControllerState)
+
+    const mockWallets = [
+      { id: '1', name: 'Wallet1', mobile_link: 'link1' },
+      { id: '2', name: 'Wallet2', webapp_link: 'webapp_link2' },
+      { id: '3', name: 'Wallet3' },
+      { id: '4', name: 'Wallet4', mobile_link: 'link4', webapp_link: 'webapp_link4' }
+    ] as WcWallet[]
+
+    const { filteredWallets } = ApiController._filterWalletsByPlatform(mockWallets)
+    expect(filteredWallets).toHaveLength(3)
+    expect(filteredWallets.map(w => w.id)).toEqual(['1', '2', '4'])
+  })
+
+  it('should filter out wallets without mobile_link in mobile environment but keep all custom deeplink wallets', () => {
+    vi.spyOn(CoreHelperUtil, 'isMobile').mockReturnValue(true)
+
     const mockWallets = [
       { id: '1', name: 'Wallet1', mobile_link: 'link1' },
       { id: '2', name: 'Wallet2' },
       { id: '3', name: 'Wallet3', mobile_link: 'link3' },
       {
-        id: 'a797aa35c0fadbfc1a53e7f675162ed5226968b44a19ee3d24385c64d1d3c393',
+        id: CUSTOM_DEEPLINK_WALLETS.COINBASE.id,
         name: 'Coinbase Wallet'
       },
-      { id: '1ca0bdd4747578705b1939af023d120677c64fe6ca76add81fda36e350605e79', name: 'Phantom' }
+      { id: CUSTOM_DEEPLINK_WALLETS.PHANTOM.id, name: 'Phantom' },
+      { id: CUSTOM_DEEPLINK_WALLETS.SOLFLARE.id, name: 'Solflare' },
+      { id: CUSTOM_DEEPLINK_WALLETS.BINANCE.id, name: 'Binance' }
     ] as WcWallet[]
 
-    const filteredWallets = ApiController._filterWalletsByPlatform(mockWallets)
-    expect(filteredWallets).toHaveLength(4)
+    const { filteredWallets } = ApiController._filterWalletsByPlatform(mockWallets)
+    expect(filteredWallets).toHaveLength(6)
     expect(filteredWallets.map(w => w.id)).toEqual([
       '1',
       '3',
-      'a797aa35c0fadbfc1a53e7f675162ed5226968b44a19ee3d24385c64d1d3c393',
-      '1ca0bdd4747578705b1939af023d120677c64fe6ca76add81fda36e350605e79'
+      CUSTOM_DEEPLINK_WALLETS.COINBASE.id,
+      CUSTOM_DEEPLINK_WALLETS.PHANTOM.id,
+      CUSTOM_DEEPLINK_WALLETS.SOLFLARE.id,
+      CUSTOM_DEEPLINK_WALLETS.BINANCE.id
+    ])
+  })
+
+  it('should correctly combine mobile_link, webapp_link, and custom deeplink wallet logic on mobile', () => {
+    vi.spyOn(CoreHelperUtil, 'isMobile').mockReturnValue(true)
+
+    const mockWallets = [
+      { id: '1', name: 'Wallet1', mobile_link: 'link1' },
+      { id: '2', name: 'Wallet2', webapp_link: 'webapp_link2' },
+      { id: '3', name: 'Wallet3' }, // Should be filtered out
+      { id: '4', name: 'Wallet4', mobile_link: 'link4', webapp_link: 'webapp_link4' },
+      { id: CUSTOM_DEEPLINK_WALLETS.COINBASE.id, name: 'Coinbase Wallet' },
+      { id: CUSTOM_DEEPLINK_WALLETS.PHANTOM.id, name: 'Phantom' },
+      { id: '5', name: 'Wallet5' } // Should be filtered out
+    ] as WcWallet[]
+
+    const { filteredWallets } = ApiController._filterWalletsByPlatform(mockWallets)
+    expect(filteredWallets).toHaveLength(5)
+    expect(filteredWallets.map(w => w.id)).toEqual([
+      '1',
+      '2',
+      '4',
+      CUSTOM_DEEPLINK_WALLETS.COINBASE.id,
+      CUSTOM_DEEPLINK_WALLETS.PHANTOM.id
     ])
   })
 
@@ -906,7 +1065,7 @@ describe('ApiController', () => {
       { id: '3', name: 'Wallet3', mobile_link: 'link3' }
     ] as WcWallet[]
 
-    const filteredWallets = ApiController._filterWalletsByPlatform(mockWallets)
+    const { filteredWallets } = ApiController._filterWalletsByPlatform(mockWallets)
     expect(filteredWallets).toEqual(mockWallets)
   })
 
@@ -934,6 +1093,314 @@ describe('ApiController', () => {
       page: 1,
       entries: 2,
       include: ['1', '2']
+    })
+  })
+
+  it('should track mobileFilteredOutWalletsLength correctly in mobile environment when using fetchWalletsByPage', async () => {
+    vi.spyOn(CoreHelperUtil, 'isMobile').mockReturnValue(true)
+
+    // Reset state to start fresh
+    ApiController.state.mobileFilteredOutWalletsLength = undefined
+    ApiController.state.wallets = []
+    ApiController.state.recommended = []
+
+    const mockWalletsPage1 = [
+      { id: '1', name: 'Wallet1', mobile_link: 'link1', chains: ['eip155:1'] },
+      { id: '2', name: 'Wallet2', chains: ['eip155:1'] }, // No mobile_link - will be filtered
+      { id: '3', name: 'Wallet3', chains: ['eip155:1'] } // No mobile_link - will be filtered
+    ] as WcWallet[]
+
+    const mockWalletsPage2 = [
+      { id: '4', name: 'Wallet4', mobile_link: 'link4', chains: ['eip155:1'] },
+      { id: '5', name: 'Wallet5', chains: ['eip155:1'] }, // No mobile_link - will be filtered
+      { id: '6', name: 'Wallet6', mobile_link: 'link6', chains: ['eip155:1'] }
+    ] as WcWallet[]
+
+    const fetchSpy = vi
+      .spyOn(api, 'get')
+      .mockResolvedValueOnce({ data: mockWalletsPage1, count: 6 })
+      .mockResolvedValueOnce({ data: mockWalletsPage2, count: 6 })
+
+    // First page - should filter out 2 wallets
+    await ApiController.fetchWalletsByPage({ page: 1 })
+    expect(ApiController.state.mobileFilteredOutWalletsLength).toBe(2) // 2 wallets filtered out
+
+    // Second page - should filter out 1 more wallet and accumulate
+    await ApiController.fetchWalletsByPage({ page: 2 })
+    expect(ApiController.state.mobileFilteredOutWalletsLength).toBe(3) // 2 + 1 = 3 total filtered
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2)
+  })
+
+  it('should not increment mobileFilteredOutWalletsLength in non-mobile environment', async () => {
+    vi.spyOn(CoreHelperUtil, 'isMobile').mockReturnValue(false)
+
+    // Reset state
+    ApiController.state.mobileFilteredOutWalletsLength = undefined
+    ApiController.state.wallets = []
+    ApiController.state.recommended = []
+
+    const mockWallets = [
+      { id: '1', name: 'Wallet1', chains: ['eip155:1'] }, // No mobile_link but should not be filtered
+      { id: '2', name: 'Wallet2', chains: ['eip155:1'] } // No mobile_link but should not be filtered
+    ] as WcWallet[]
+
+    vi.spyOn(api, 'get').mockResolvedValueOnce({ data: mockWallets, count: 2 })
+
+    await ApiController.fetchWalletsByPage({ page: 1 })
+    expect(ApiController.state.mobileFilteredOutWalletsLength).toBe(0) // No wallets filtered
+  })
+
+  it('should handle custom deeplink wallets correctly in mobile filtering count', async () => {
+    vi.spyOn(CoreHelperUtil, 'isMobile').mockReturnValue(true)
+    mockChainControllerState({
+      activeChain: 'solana'
+    })
+
+    // Reset state
+    ApiController.state.mobileFilteredOutWalletsLength = undefined
+
+    ApiController.state.wallets = []
+    ApiController.state.recommended = []
+
+    const mockWallets = [
+      { id: '1', name: 'Wallet1', mobile_link: 'link1', chains: ['solana:1'] },
+      { id: '2', name: 'Wallet2', chains: ['solana:1'] }, // No mobile_link - will be filtered
+      { id: CUSTOM_DEEPLINK_WALLETS.PHANTOM.id, name: 'Phantom', chains: ['solana:1'] }, // Custom deeplink - should not be filtered
+      { id: '4', name: 'Wallet4', chains: ['solana:1'] } // No mobile_link - will be filtered
+    ] as WcWallet[]
+
+    vi.spyOn(api, 'get').mockResolvedValueOnce({ data: mockWallets, count: 4 })
+
+    await ApiController.fetchWalletsByPage({ page: 1 })
+
+    // Should keep: Wallet1 (has mobile_link), Phantom (custom deeplink)
+    // Should filter: Wallet2, Wallet4 (no mobile_link, no custom deeplink)
+    expect(ApiController.state.mobileFilteredOutWalletsLength).toBe(2)
+  })
+
+  it('should not accumulate mobileFilteredOutWalletsLength when calling fetchWallets directly', async () => {
+    vi.spyOn(CoreHelperUtil, 'isMobile').mockReturnValue(true)
+
+    // Reset state
+    ApiController.state.mobileFilteredOutWalletsLength = undefined
+
+    const mockWallets = [
+      { id: '1', name: 'Wallet1', chains: ['eip155:1'] }, // No mobile_link - will be filtered
+      { id: '2', name: 'Wallet2', chains: ['eip155:1'] } // No mobile_link - will be filtered
+    ] as WcWallet[]
+
+    vi.spyOn(api, 'get').mockResolvedValueOnce({ data: mockWallets, count: 2 })
+
+    // Call fetchWallets directly (not through fetchWalletsByPage)
+    const result = await ApiController.fetchWallets({ page: 1, entries: 2 })
+
+    // fetchWallets should return the filtered data and mobileFilteredOutWalletsLength
+    expect(result.data).toHaveLength(0) // No wallets with mobile_link
+    expect(result.mobileFilteredOutWalletsLength).toBe(2) // 2 wallets were filtered
+
+    // But state should not be updated since this wasn't called from fetchWalletsByPage
+    expect(ApiController.state.mobileFilteredOutWalletsLength).toBeUndefined()
+  })
+
+  describe('prefetchWalletRanks', () => {
+    beforeEach(() => {
+      vi.clearAllMocks()
+      ApiController.state.explorerWallets = []
+      ApiController.state.explorerFilteredWallets = []
+    })
+
+    it('should fetch wallets using rdns and names for eip155 chains', async () => {
+      const fetchWalletsSpy = vi.spyOn(ApiController, 'fetchWallets')
+
+      vi.spyOn(ChainController, 'state', 'get').mockReturnValue({
+        ...ChainController.state,
+        activeChain: 'eip155'
+      })
+
+      const connectorsWithRdns = [
+        {
+          id: 'announced1',
+          name: 'Announced Wallet',
+          info: { rdns: 'com.announced.wallet' },
+          type: 'ANNOUNCED',
+          chain: 'eip155'
+        },
+        {
+          id: 'announced2',
+          name: 'Another Wallet',
+          info: { rdns: 'com.another.wallet' },
+          type: 'ANNOUNCED',
+          chain: 'eip155'
+        }
+      ]
+
+      ConnectorController.state.allConnectors = []
+      ConnectorController.state.connectors = []
+      ConnectorController.setConnectors(connectorsWithRdns as any)
+
+      fetchWalletsSpy.mockResolvedValue({ data: [], count: 0, mobileFilteredOutWalletsLength: 0 })
+
+      await ApiController.prefetchWalletRanks()
+
+      expect(fetchWalletsSpy).toHaveBeenCalledWith({
+        page: 1,
+        entries: 20,
+        badge: 'certified',
+        names: 'Announced Wallet,Another Wallet',
+        rdns: 'com.announced.wallet,com.another.wallet'
+      })
+    })
+
+    it('should fetch wallets using names for non-eip155 chains', async () => {
+      const fetchWalletsSpy = vi.spyOn(ApiController, 'fetchWallets')
+
+      vi.spyOn(ChainController, 'state', 'get').mockReturnValue({
+        ...ChainController.state,
+        activeChain: 'solana'
+      })
+
+      const connectorsWithNames = [
+        {
+          id: 'wallet1',
+          name: 'Solana Wallet',
+          type: 'INJECTED',
+          chain: 'solana'
+        },
+        {
+          id: 'wallet2',
+          name: 'Another Solana Wallet',
+          type: 'INJECTED',
+          chain: 'solana'
+        }
+      ]
+
+      ConnectorController.state.allConnectors = []
+      ConnectorController.state.connectors = connectorsWithNames as any
+
+      fetchWalletsSpy.mockResolvedValue({ data: [], count: 0, mobileFilteredOutWalletsLength: 0 })
+
+      await ApiController.prefetchWalletRanks()
+
+      expect(fetchWalletsSpy).toHaveBeenCalledWith({
+        page: 1,
+        entries: 20,
+        badge: 'certified',
+        names: 'Solana Wallet,Another Solana Wallet'
+      })
+    })
+
+    it('should handle empty rdns gracefully by filtering them out', async () => {
+      const fetchWalletsSpy = vi.spyOn(ApiController, 'fetchWallets')
+
+      vi.spyOn(ChainController, 'state', 'get').mockReturnValue({
+        ...ChainController.state,
+        activeChain: 'eip155'
+      })
+
+      const connectorsWithEmptyRdns = [
+        {
+          id: 'wallet1',
+          name: 'Wallet Without RDNS',
+          type: 'INJECTED',
+          chain: 'eip155'
+        },
+        {
+          id: 'wallet2',
+          name: 'Another Wallet',
+          info: { rdns: 'com.valid.wallet' },
+          type: 'INJECTED',
+          chain: 'eip155'
+        }
+      ]
+
+      ConnectorController.state.allConnectors = []
+      ConnectorController.state.connectors = []
+      ConnectorController.setConnectors(connectorsWithEmptyRdns as any)
+
+      fetchWalletsSpy.mockResolvedValue({ data: [], count: 0, mobileFilteredOutWalletsLength: 0 })
+
+      await ApiController.prefetchWalletRanks()
+
+      expect(fetchWalletsSpy).toHaveBeenCalledWith({
+        page: 1,
+        entries: 20,
+        badge: 'certified',
+        names: 'Wallet Without RDNS,Another Wallet',
+        rdns: 'com.valid.wallet'
+      })
+    })
+
+    it('should handle multi-chain connectors by extracting rdns from sub-connectors', async () => {
+      const fetchWalletsSpy = vi.spyOn(ApiController, 'fetchWallets')
+
+      vi.spyOn(ChainController, 'state', 'get').mockReturnValue({
+        ...ChainController.state,
+        activeChain: 'eip155'
+      })
+
+      const multiChainConnector = {
+        id: 'multichain1',
+        name: 'Multi Chain Wallet',
+        type: 'MULTI_CHAIN',
+        chain: 'eip155',
+        connectors: [
+          { id: 'sub1', name: 'Sub Wallet 1', info: { rdns: 'com.sub1.wallet' } },
+          { id: 'sub2', name: 'Sub Wallet 2', info: { rdns: 'com.sub2.wallet' } }
+        ]
+      }
+
+      ConnectorController.state.allConnectors = []
+      ConnectorController.state.connectors = [multiChainConnector as any]
+
+      fetchWalletsSpy.mockResolvedValue({ data: [], count: 0, mobileFilteredOutWalletsLength: 0 })
+
+      await ApiController.prefetchWalletRanks()
+
+      expect(fetchWalletsSpy).toHaveBeenCalledWith({
+        page: 1,
+        entries: 20,
+        badge: 'certified',
+        names: 'Multi Chain Wallet',
+        rdns: 'com.sub1.wallet,com.sub2.wallet'
+      })
+    })
+
+    it('should not fetch wallets when no connectors are available', async () => {
+      const fetchWalletsSpy = vi.spyOn(ApiController, 'fetchWallets')
+
+      ConnectorController.setConnectors([])
+
+      await ApiController.prefetchWalletRanks()
+
+      expect(fetchWalletsSpy).not.toHaveBeenCalled()
+    })
+
+    it('should update explorerWallets and explorerFilteredWallets state', async () => {
+      const mockWallets = [
+        { id: 'wallet1', name: 'Wallet 1', chains: ['eip155:1'] },
+        { id: 'wallet2', name: 'Wallet 2', chains: ['solana:1'] }
+      ] as WcWallet[]
+
+      const fetchWalletsSpy = vi.spyOn(ApiController, 'fetchWallets')
+      fetchWalletsSpy.mockResolvedValue({
+        data: mockWallets,
+        count: 2,
+        mobileFilteredOutWalletsLength: 0
+      })
+
+      vi.spyOn(ChainController, 'getRequestedCaipNetworkIds').mockReturnValue(['eip155:1'])
+
+      ConnectorController.state.allConnectors = []
+      ConnectorController.state.connectors = []
+      ConnectorController.setConnectors([
+        { id: 'test', name: 'Test Wallet', type: 'INJECTED', chain: 'eip155' }
+      ] as any)
+
+      await ApiController.prefetchWalletRanks()
+
+      expect(ApiController.state.explorerWallets).toEqual(mockWallets)
+      expect(ApiController.state.explorerFilteredWallets).toEqual([mockWallets[0]])
     })
   })
 })

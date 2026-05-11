@@ -2,8 +2,10 @@ import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
+import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
 import {
   ApiController,
+  ConnectionController,
   ConnectorController,
   CoreHelperUtil,
   EventsController,
@@ -71,18 +73,23 @@ export class W3mAllWalletsWidget extends LitElement {
       tagLabel = `${count}+`
     }
 
+    const hasWcConnection = ConnectionController.hasAnyConnection(
+      CommonConstantsUtil.CONNECTOR_ID.WALLET_CONNECT
+    )
+
     return html`
       <wui-list-wallet
-        name="All Wallets"
-        walletIcon="allWallets"
+        name="Search Wallet"
+        walletIcon="search"
         showAllWallets
         @click=${this.onAllWallets.bind(this)}
         tagLabel=${tagLabel}
-        tagVariant="shade"
+        tagVariant="info"
         data-testid="all-wallets"
         tabIdx=${ifDefined(this.tabIdx)}
         .loading=${this.isFetchingRecommendedWallets}
-        loadingSpinnerColor=${this.isFetchingRecommendedWallets ? 'fg-300' : 'accent-100'}
+        ?disabled=${hasWcConnection}
+        size="sm"
       ></wui-list-wallet>
     `
   }
@@ -90,7 +97,7 @@ export class W3mAllWalletsWidget extends LitElement {
   // -- Private ------------------------------------------- //
   private onAllWallets() {
     EventsController.sendEvent({ type: 'track', event: 'CLICK_ALL_WALLETS' })
-    RouterController.push('AllWallets')
+    RouterController.push('AllWallets', { redirectView: RouterController.state.data?.redirectView })
   }
 }
 

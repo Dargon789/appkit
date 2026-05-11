@@ -3,15 +3,17 @@ import type { MockInstance } from 'vitest'
 
 import type { CaipNetwork } from '@reown/appkit-common'
 import {
-  AccountController,
   type AccountType,
+  ChainController,
   type Connector,
   ConnectorController,
   type ConnectorType,
+  EventsController,
+  ProviderController,
   StorageUtil
 } from '@reown/appkit-controllers'
 import { ConstantsUtil as UtilConstantsUtil } from '@reown/appkit-utils'
-import { ProviderUtil } from '@reown/appkit-utils'
+import type { W3mFrameProvider } from '@reown/appkit-wallet'
 
 import { AppKit } from '../../src/client/appkit.js'
 import { mockEvmAdapter, mockSolanaAdapter } from '../mocks/Adapter.js'
@@ -29,6 +31,23 @@ const MOCKED_CONNECTORS = [
   } as unknown as Connector
 ]
 
+const mockFrameProvider = {
+  getUsername: () => 'mock-username',
+  getEmail: () => 'mock-email',
+  getLoginEmailUsed: () => true,
+  onRpcRequest: vi.fn(),
+  onRpcSuccess: vi.fn(),
+  onRpcError: vi.fn(),
+  onNotConnected: vi.fn(),
+  onConnect: vi.fn(),
+  onSocialConnected: vi.fn(),
+  onSetPreferredAccount: vi.fn(),
+  isConnected: () => true,
+  syncDappData: vi.fn(),
+  syncTheme: vi.fn(),
+  getSmartAccountEnabledNetworks: vi.fn()
+} as unknown as W3mFrameProvider
+
 describe('syncExistingConnection', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -38,7 +57,7 @@ describe('syncExistingConnection', () => {
   })
 
   it('should set status to "connecting" and sync the connection when a connector and namespace are present', async () => {
-    const setStatus = vi.spyOn(AccountController, 'setStatus')
+    const setStatus = vi.spyOn(ChainController, 'setAccountProp')
     vi.spyOn(ConnectorController, 'getConnectorId').mockReturnValue('evm-connector')
     vi.spyOn(ConnectorController, 'getConnectors').mockReturnValue(MOCKED_CONNECTORS)
 
@@ -49,16 +68,16 @@ describe('syncExistingConnection', () => {
     })
     await appKit['syncExistingConnection']()
 
-    expect(setStatus).toHaveBeenCalledWith('connecting', 'eip155')
-    expect(setStatus).toHaveBeenCalledWith('connected', 'eip155')
+    expect(setStatus).toHaveBeenCalledWith('status', 'connecting', 'eip155')
+    expect(setStatus).toHaveBeenCalledWith('status', 'connected', 'eip155')
 
     vi.spyOn(ConnectorController, 'getConnectorId').mockReturnValue(undefined)
     vi.spyOn(ConnectorController, 'getConnectors').mockReturnValue([])
 
     await appKit['syncExistingConnection']()
 
-    expect(setStatus).toHaveBeenCalledWith('connecting', 'eip155')
-    expect(setStatus).toHaveBeenCalledWith('disconnected', 'eip155')
+    expect(setStatus).toHaveBeenCalledWith('status', 'connecting', 'eip155')
+    expect(setStatus).toHaveBeenCalledWith('status', 'disconnected', 'eip155')
 
     vi.spyOn(StorageUtil, 'getConnectedConnectorId').mockClear()
     vi.spyOn(StorageUtil, 'getConnectionStatus').mockClear()
@@ -72,8 +91,6 @@ describe('syncExistingConnection', () => {
 
     expect(mockEvmAdapter.syncConnection).toHaveBeenCalled()
     expect(mockSolanaAdapter.syncConnection).toHaveBeenCalled()
-    expect(mockEvmAdapter.getAccounts).toHaveBeenCalled()
-    expect(mockSolanaAdapter.getAccounts).toHaveBeenCalled()
   })
 })
 
@@ -96,7 +113,7 @@ describe('syncConnectedWalletInfo', () => {
     UtilConstantsUtil.CONNECTOR_TYPE_ANNOUNCED,
     UtilConstantsUtil.CONNECTOR_TYPE_INJECTED
   ] as ConnectorType[])('should sync the connected wallet info for type $s', async type => {
-    vi.spyOn(ProviderUtil, 'getProviderId').mockReturnValue(type)
+    vi.spyOn(ProviderController, 'getProviderId').mockReturnValue(type)
 
     vi.spyOn(appKit, 'getConnectors').mockReturnValue([
       {
@@ -120,11 +137,11 @@ describe('syncConnectedWalletInfo', () => {
   })
 
   it(`should sync connected wallet info for ${UtilConstantsUtil.CONNECTOR_TYPE_WALLET_CONNECT}`, async () => {
-    vi.spyOn(ProviderUtil, 'getProviderId').mockReturnValue(
+    vi.spyOn(ProviderController, 'getProviderId').mockReturnValue(
       UtilConstantsUtil.CONNECTOR_TYPE_WALLET_CONNECT as ConnectorType
     )
 
-    vi.spyOn(ProviderUtil, 'getProvider').mockReturnValue({
+    vi.spyOn(ProviderController, 'getProvider').mockReturnValue({
       session: {
         peer: {
           metadata: {
@@ -148,14 +165,11 @@ describe('syncConnectedWalletInfo', () => {
   })
 
   it(`should sync connected wallet info for ${UtilConstantsUtil.CONNECTOR_TYPE_W3M_AUTH} as email`, async () => {
-    vi.spyOn(ProviderUtil, 'getProviderId').mockReturnValueOnce(
+    vi.spyOn(ProviderController, 'getProviderId').mockReturnValueOnce(
       UtilConstantsUtil.CONNECTOR_TYPE_AUTH as ConnectorType
     )
 
-    appKit['authProvider'] = {
-      getUsername: () => 'mock-username',
-      getEmail: () => 'mock-email'
-    } as any
+    appKit['authProvider'] = mockFrameProvider
 
     appKit['syncConnectedWalletInfo']('eip155')
 
@@ -170,14 +184,14 @@ describe('syncConnectedWalletInfo', () => {
   })
 
   it(`should sync connected wallet info for ${UtilConstantsUtil.CONNECTOR_TYPE_W3M_AUTH} as social`, async () => {
-    vi.spyOn(ProviderUtil, 'getProviderId').mockReturnValueOnce(
+    vi.spyOn(ProviderController, 'getProviderId').mockReturnValueOnce(
       UtilConstantsUtil.CONNECTOR_TYPE_AUTH as ConnectorType
     )
 
     appKit['authProvider'] = {
-      getUsername: () => 'mock-username',
+      ...mockFrameProvider,
       getEmail: () => null
-    } as any
+    } as unknown as W3mFrameProvider
 
     vi.spyOn(StorageUtil, 'getConnectedSocialProvider').mockReturnValueOnce('mock-social')
 
@@ -194,7 +208,9 @@ describe('syncConnectedWalletInfo', () => {
   })
 
   it('should not sync connected wallet info if connector is not found', async () => {
-    vi.spyOn(ProviderUtil, 'getProviderId').mockReturnValue('mock-provider-id' as ConnectorType)
+    vi.spyOn(ProviderController, 'getProviderId').mockReturnValue(
+      'mock-provider-id' as ConnectorType
+    )
     appKit['syncConnectedWalletInfo']('eip155')
 
     expect(setConnectedWalletInfoSpy).not.toHaveBeenCalled()
@@ -213,7 +229,7 @@ describe('syncConnectedWalletInfo', () => {
       syncConnectedWalletInfoSpy = vi.spyOn(appKit as any, 'syncConnectedWalletInfo')
     })
 
-    it('should call syncConnectedWalletInfo when using connectExternal', async () => {
+    it('should call following methods when connected with connectExternal', async () => {
       vi.spyOn(mockEvmAdapter, 'connect').mockResolvedValue({
         address: '0x123',
         chainId: '1',
@@ -224,21 +240,23 @@ describe('syncConnectedWalletInfo', () => {
       vi.spyOn(mockEvmAdapter, 'getAccounts').mockResolvedValue({
         accounts: [{ namespace: 'eip155', address: '0x123', type: 'eoa' }]
       })
-    })
-    it('should call adapter.getAccounts() when using connectExternal and AccountController.state.allAccounts is undefined', async () => {
-      vi.spyOn(mockEvmAdapter, 'connect').mockResolvedValue({
-        address: '0x123',
-        chainId: '1',
-        provider: {} as any,
-        id: 'test-connector',
-        type: 'INJECTED'
+      vi.spyOn(EventsController, 'sendEvent').mockImplementation(() => {})
+      vi.spyOn(ConnectorController, 'state', 'get').mockReturnValue({
+        ...ConnectorController.state,
+        allConnectors: [
+          {
+            id: 'test-connector',
+            name: 'Test Connector',
+            chain: 'eip155',
+            type: 'INJECTED',
+            explorerWallet: { order: 60, id: 'test-wallet', name: 'Test Wallet' }
+          }
+        ]
       })
-      vi.spyOn(mockEvmAdapter, 'getAccounts').mockResolvedValue({
-        accounts: [{ namespace: 'eip155', address: '0x123', type: 'eoa' }]
-      })
-
-      //@ts-ignore
-      AccountController.state.allAccounts = undefined
+      const removeDisconnectedConnectorIdSpy = vi.spyOn(
+        StorageUtil,
+        'removeDisconnectedConnectorId'
+      )
 
       await (appKit as any).connectionControllerClient.connectExternal({
         id: 'test-connector',
@@ -248,58 +266,13 @@ describe('syncConnectedWalletInfo', () => {
         chain: 'eip155'
       })
 
-      expect(AccountController.state.allAccounts).toHaveLength(1)
-      expect(AccountController.state.allAccounts[0]).toMatchObject({
-        address: '0x123',
-        type: 'eoa',
-        namespace: 'eip155'
-      })
-      //@ts-expect-error
-      expect(mockEvmAdapter.getAccounts.mock.calls).toHaveLength(1)
-      expect(mockEvmAdapter.getAccounts).toHaveBeenCalledWith({
-        namespace: 'eip155',
-        id: 'test-connector'
-      })
+      expect(syncConnectedWalletInfoSpy).toHaveBeenCalledWith('eip155')
+      expect(syncConnectedWalletInfoSpy).toHaveBeenCalledWith('eip155')
+      expect(removeDisconnectedConnectorIdSpy).toHaveBeenCalledWith('test-connector', 'eip155')
       expect(syncConnectedWalletInfoSpy).toHaveBeenCalledWith('eip155')
     })
 
-    it('should call adapter.getAccounts() when using connectExternal and AccountController.state.allAccounts is empty', async () => {
-      vi.spyOn(mockEvmAdapter, 'connect').mockResolvedValue({
-        address: '0x123',
-        chainId: '1',
-        provider: {} as any,
-        id: 'test-connector',
-        type: 'INJECTED'
-      })
-      vi.spyOn(mockEvmAdapter, 'getAccounts').mockResolvedValue({
-        accounts: [{ namespace: 'eip155', address: '0x123', type: 'eoa' }]
-      })
-
-      AccountController.state.allAccounts = []
-
-      await (appKit as any).connectionControllerClient.connectExternal({
-        id: 'test-connector',
-        info: { name: 'Test Connector' },
-        type: 'INJECTED',
-        provider: {} as any,
-        chain: 'eip155'
-      })
-      expect(AccountController.state.allAccounts).toHaveLength(1)
-      expect(AccountController.state.allAccounts[0]).toMatchObject({
-        address: '0x123',
-        type: 'eoa',
-        namespace: 'eip155'
-      })
-      //@ts-expect-error
-      expect(mockEvmAdapter.getAccounts.mock.calls).toHaveLength(1)
-      expect(mockEvmAdapter.getAccounts).toHaveBeenCalledWith({
-        namespace: 'eip155',
-        id: 'test-connector'
-      })
-      expect(syncConnectedWalletInfoSpy).toHaveBeenCalledWith('eip155')
-    })
-
-    it('should not call adapter.getAccounts() when using connectExternal and AccountController.state.allAccounts has accounts', async () => {
+    it('should not call adapter.getAccounts() when using connectExternal and accountState.allAccounts has accounts', async () => {
       vi.spyOn(mockEvmAdapter, 'connect').mockResolvedValue({
         address: '0x123',
         chainId: '1',
@@ -314,8 +287,6 @@ describe('syncConnectedWalletInfo', () => {
         accounts: allAccounts
       })
 
-      AccountController.state.allAccounts = allAccounts
-
       await (appKit as any).connectionControllerClient.connectExternal({
         id: 'test-connector',
         info: { name: 'Test Connector' },
@@ -324,31 +295,8 @@ describe('syncConnectedWalletInfo', () => {
         chain: 'eip155'
       })
 
-      expect(AccountController.state.allAccounts).toHaveLength(allAccounts.length)
       //@ts-expect-error
       expect(mockEvmAdapter.getAccounts.mock.calls).toHaveLength(0)
-      expect(syncConnectedWalletInfoSpy).toHaveBeenCalledWith('eip155')
-    })
-
-    it('should call syncConnectedWalletInfo when using reconnectExternal', async () => {
-      vi.spyOn(appKit as any, 'getAdapter').mockReturnValue({
-        ...mockEvmAdapter,
-        reconnect: vi.fn().mockResolvedValue({
-          address: '0x123',
-          chainId: '1',
-          provider: {} as any,
-          id: 'test-connector',
-          type: 'INJECTED'
-        })
-      })
-
-      await (appKit as any).connectionControllerClient.reconnectExternal({
-        id: 'test-connector',
-        info: { name: 'Test Connector' },
-        type: 'INJECTED',
-        provider: {} as any
-      })
-
       expect(syncConnectedWalletInfoSpy).toHaveBeenCalledWith('eip155')
     })
 
@@ -366,7 +314,7 @@ describe('syncConnectedWalletInfo', () => {
   describe('syncAdapterConnection', () => {
     it('should successfully sync adapter connection and account', async () => {
       const appKit = new AppKit(mockOptions)
-      vi.spyOn(appKit as any, 'getAdapter').mockReturnValue({
+      vi.spyOn(appKit as any, 'getAdapter').mockReturnValueOnce({
         syncConnection: vi.fn().mockResolvedValue({
           address: '0x123',
           chainId: '1',
@@ -386,13 +334,11 @@ describe('syncConnectedWalletInfo', () => {
       } as unknown as CaipNetwork)
 
       const setStatus = vi.spyOn(appKit, 'setStatus')
-      const setAllAccounts = vi.spyOn(appKit, 'setAllAccounts')
       const syncAccount = vi.spyOn(appKit as any, 'syncAccount')
 
       await appKit['syncAdapterConnection']('eip155')
 
       expect(setStatus).toHaveBeenCalledWith('connected', 'eip155')
-      expect(setAllAccounts).toHaveBeenCalledWith([{ address: '0x123', type: 'eoa' }], 'eip155')
       expect(syncAccount).toHaveBeenCalledWith({
         address: '0x123',
         chainId: '1',
@@ -402,9 +348,40 @@ describe('syncConnectedWalletInfo', () => {
       expect(getCaipNetwork).toHaveBeenCalledWith('eip155')
     })
 
+    it('should emit CONNECT_SUCCESS event on reconnection', async () => {
+      const appKit = new AppKit(mockOptions)
+      vi.spyOn(appKit as any, 'getAdapter').mockReturnValueOnce({
+        syncConnection: vi.fn().mockResolvedValue({
+          address: '0xabc',
+          chainId: '1',
+          provider: {}
+        })
+      })
+      vi.spyOn(ConnectorController, 'getConnectorId').mockReturnValue('test-connector')
+      vi.spyOn(ConnectorController, 'getConnectors').mockReturnValue([
+        { id: 'test-connector', info: { name: 'Test Connector' } } as unknown as Connector
+      ])
+      vi.spyOn(appKit, 'getCaipNetwork').mockReturnValue({
+        id: '1',
+        rpcUrls: { default: { http: ['https://test.com'] } }
+      } as unknown as CaipNetwork)
+
+      const sendEventSpy = vi.spyOn(EventsController, 'sendEvent')
+
+      await appKit['syncAdapterConnection']('eip155')
+
+      expect(sendEventSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'track',
+          event: 'CONNECT_SUCCESS',
+          properties: expect.objectContaining({ reconnect: true })
+        })
+      )
+    })
+
     it('should handle missing caipNetwork', async () => {
       const appKit = new AppKit(mockOptions)
-      vi.spyOn(appKit as any, 'getAdapter').mockReturnValue({
+      vi.spyOn(appKit as any, 'getAdapter').mockReturnValueOnce({
         syncConnection: vi.fn()
       })
       vi.spyOn(ConnectorController, 'getConnectorId').mockReturnValue('test-connector')
@@ -437,6 +414,29 @@ describe('syncConnectedWalletInfo', () => {
           chain: 'eip155'
         })
       ).rejects.toThrow('Connection declined')
+    })
+  })
+
+  describe('setupAuthConnectorListeners', () => {
+    it('should call onSocialConnected with the user', () => {
+      const userMock = {
+        email: 'test@test.com',
+        username: 'test',
+        smartAccountDeployed: true,
+        accounts: ['0x123']
+      }
+
+      const cbSpy = vi.fn()
+
+      vi.spyOn(mockFrameProvider, 'onSocialConnected').mockImplementation(() => {
+        cbSpy(userMock)
+      })
+
+      const appKit = new AppKit(mockOptions)
+
+      appKit['setupAuthConnectorListeners'](mockFrameProvider)
+
+      expect(cbSpy).toHaveBeenCalledWith(userMock)
     })
   })
 })

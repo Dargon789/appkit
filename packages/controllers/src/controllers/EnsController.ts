@@ -1,11 +1,12 @@
 import { proxy, subscribe as sub } from 'valtio/vanilla'
 import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 
+import { type Address, type Hex } from '@reown/appkit-common'
+
 import { EnsUtil } from '../utils/EnsUtil.js'
 import { StorageUtil } from '../utils/StorageUtil.js'
 import type { BlockchainApiEnsError } from '../utils/TypeUtil.js'
 import { withErrorBoundary } from '../utils/withErrorBoundary.js'
-import { AccountController } from './AccountController.js'
 import { BlockchainApiController } from './BlockchainApiController.js'
 import { ChainController } from './ChainController.js'
 import { ConnectionController } from './ConnectionController.js'
@@ -69,11 +70,7 @@ const controller = {
       state.loading = true
       state.suggestions = []
       const response = await BlockchainApiController.getEnsNameSuggestions(value)
-      state.suggestions =
-        response.suggestions.map(suggestion => ({
-          ...suggestion,
-          name: suggestion.name
-        })) || []
+      state.suggestions = response.suggestions || []
 
       return state.suggestions
     } catch (e) {
@@ -112,12 +109,13 @@ const controller = {
 
   async registerName(name: ReownName) {
     const network = ChainController.state.activeCaipNetwork
+    const address = ChainController.getAccountData(network?.chainNamespace)?.address
+    const emailConnector = ConnectorController.getAuthConnector()
+
     if (!network) {
       throw new Error('Network not found')
     }
 
-    const address = AccountController.state.address
-    const emailConnector = ConnectorController.getAuthConnector()
     if (!address || !emailConnector) {
       throw new Error('Address or auth connector not found')
     }
@@ -133,15 +131,13 @@ const controller = {
       })
 
       RouterController.pushTransactionStack({
-        view: 'RegisterAccountNameSuccess',
-        goBack: false,
-        replace: true,
         onCancel() {
-          state.loading = false
+          RouterController.replace('RegisterAccountName')
         }
       })
 
       const signature = await ConnectionController.signMessage(message)
+      state.loading = false
       const networkId = network.id
 
       if (!networkId) {
@@ -151,12 +147,25 @@ const controller = {
       const coinType = EnsUtil.convertEVMChainIdToCoinType(Number(networkId))
       await BlockchainApiController.registerEnsName({
         coinType,
-        address: address as `0x${string}`,
-        signature: signature as `0x${string}`,
+        address: address as Address,
+        signature: signature as Hex,
         message
       })
 
-      AccountController.setProfileName(name, network.chainNamespace)
+      ChainController.setAccountProp('profileName', name, network.chainNamespace)
+      StorageUtil.updateEnsCache({
+        address,
+        ens: [
+          {
+            name,
+            registered_at: new Date().toISOString(),
+            updated_at: undefined,
+            addresses: {},
+            attributes: []
+          }
+        ],
+        timestamp: Date.now()
+      })
       RouterController.replace('RegisterAccountNameSuccess')
     } catch (e) {
       const errorMessage = EnsController.parseEnsApiError(e, `Error registering name ${name}`)

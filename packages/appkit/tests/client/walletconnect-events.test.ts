@@ -1,6 +1,13 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
-import { ChainController, ConnectionController } from '@reown/appkit-controllers'
+import { ConstantsUtil } from '@reown/appkit-common'
+import {
+  ChainController,
+  ConnectionController,
+  CoreHelperUtil,
+  EventsController,
+  StorageUtil
+} from '@reown/appkit-controllers'
 
 import { AppKit } from '../../src/client/appkit.js'
 import { mainnet, sepolia } from '../mocks/Networks.js'
@@ -8,6 +15,7 @@ import { mockOptions } from '../mocks/Options.js'
 import { mockUniversalProvider } from '../mocks/Providers.js'
 import {
   mockBlockchainApiController,
+  mockRemoteFeatures,
   mockStorageUtil,
   mockWindowAndDocument
 } from '../test-utils.js'
@@ -17,15 +25,17 @@ describe('WalletConnect Events', () => {
     mockWindowAndDocument()
     mockStorageUtil()
     mockBlockchainApiController()
+    mockRemoteFeatures()
   })
 
   describe('chainChanged', () => {
-    it('should call setUnsupportedNetwork', () => {
+    it('should call setUnsupportedNetwork', async () => {
       const appkit = new AppKit({
         ...mockOptions,
         adapters: [],
         universalProvider: mockUniversalProvider as any
       })
+      await appkit.ready()
       const setUnsupportedNetworkSpy = vi.spyOn(appkit as any, 'setUnsupportedNetwork')
       const chainChangedCallback = mockUniversalProvider.on.mock.calls.find(
         ([event]) => event === 'chainChanged'
@@ -40,12 +50,13 @@ describe('WalletConnect Events', () => {
       expect(setUnsupportedNetworkSpy).toHaveBeenCalledWith('unknown_chain_id')
     })
 
-    it('should call setCaipNetwork', () => {
-      new AppKit({
+    it('should call setCaipNetwork', async () => {
+      const appkit = new AppKit({
         ...mockOptions,
         adapters: [],
         universalProvider: mockUniversalProvider as any
       })
+      await appkit.ready()
       const setActiveCaipNetwork = vi.spyOn(ChainController, 'setActiveCaipNetwork')
 
       const chainChangedCallback = mockUniversalProvider.on.mock.calls.find(
@@ -88,16 +99,21 @@ describe('WalletConnect Events', () => {
 
   describe('connect', () => {
     it('should call finalizeWcConnection once connected', async () => {
+      vi.spyOn(CoreHelperUtil, 'getAccount').mockReturnValueOnce({
+        address: '0x123',
+        chainId: '1'
+      })
       const finalizeWcConnectionSpy = vi
         .spyOn(ConnectionController, 'finalizeWcConnection')
         .mockReturnValueOnce()
       mockUniversalProvider.on.mockClear()
 
-      new AppKit({
+      const appkit = new AppKit({
         ...mockOptions,
         adapters: [],
         universalProvider: mockUniversalProvider as any
       })
+      await appkit.ready()
 
       const connectCallback = mockUniversalProvider.on.mock.calls.find(
         ([event]) => event === 'connect'
@@ -109,7 +125,86 @@ describe('WalletConnect Events', () => {
 
       connectCallback()
 
-      expect(finalizeWcConnectionSpy).toHaveBeenCalledOnce()
+      expect(finalizeWcConnectionSpy).toHaveBeenCalledWith('0x123')
+    })
+
+    it('should call StorageUtil.removeDisconnectedConnectorId for all namespaces after onConnect', async () => {
+      vi.spyOn(CoreHelperUtil, 'getAccount').mockReturnValueOnce({
+        address: '0x123',
+        chainId: '1'
+      })
+
+      vi.spyOn(ConnectionController, 'finalizeWcConnection').mockReturnValueOnce()
+
+      const removeDisconnectedConnectorIdSpy = vi
+        .spyOn(StorageUtil, 'removeDisconnectedConnectorId')
+        .mockImplementation(() => {})
+
+      mockUniversalProvider.on.mockClear()
+
+      const appkit = new AppKit({
+        ...mockOptions,
+        universalProvider: mockUniversalProvider as any
+      })
+
+      await appkit.ready()
+
+      const connectCallback = mockUniversalProvider.on.mock.calls.find(
+        ([event]) => event === 'connect'
+      )?.[1]
+
+      if (!connectCallback) {
+        throw new Error('connect callback not found')
+      }
+
+      connectCallback()
+
+      expect(removeDisconnectedConnectorIdSpy).toHaveBeenCalledWith(
+        ConstantsUtil.CONNECTOR_ID.WALLET_CONNECT,
+        'eip155'
+      )
+      expect(removeDisconnectedConnectorIdSpy).toHaveBeenCalledWith(
+        ConstantsUtil.CONNECTOR_ID.WALLET_CONNECT,
+        'solana'
+      )
+      expect(removeDisconnectedConnectorIdSpy).toHaveBeenCalledTimes(2)
+    })
+  })
+
+  describe('finalizeWcConnection', () => {
+    it('should not send CONNECT_SUCCESS event when called without address', () => {
+      const sendEventSpy = vi.spyOn(EventsController, 'sendEvent')
+
+      // Call finalizeWcConnection without address
+      ConnectionController.finalizeWcConnection()
+
+      // Verify that EventsController.sendEvent was not called with CONNECT_SUCCESS
+      const connectSuccessCalls = sendEventSpy.mock.calls.filter(
+        ([event]) => event?.event === 'CONNECT_SUCCESS'
+      )
+      expect(connectSuccessCalls).toHaveLength(0)
+
+      sendEventSpy.mockRestore()
+    })
+
+    it('should send CONNECT_SUCCESS event when called with address', () => {
+      const sendEventSpy = vi.spyOn(EventsController, 'sendEvent')
+
+      // Call finalizeWcConnection with address
+      ConnectionController.finalizeWcConnection('0x123')
+
+      // Verify that EventsController.sendEvent was called with CONNECT_SUCCESS
+      const connectSuccessCalls = sendEventSpy.mock.calls.filter(
+        ([event]) => event?.event === 'CONNECT_SUCCESS'
+      )
+      expect(connectSuccessCalls).toHaveLength(1)
+      expect(connectSuccessCalls[0]![0]).toMatchObject({
+        type: 'track',
+        event: 'CONNECT_SUCCESS',
+        address: '0x123'
+      })
+
+      sendEventSpy.mockRestore()
     })
   })
 })

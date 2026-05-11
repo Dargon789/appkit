@@ -14,7 +14,6 @@ export const mockProvider = {
   off: vi.fn(),
   on: vi.fn(),
   onConnect: vi.fn(callback => callback(mockUser)),
-  onGetSmartAccountEnabledNetworks: vi.fn(),
   onRpcError: vi.fn(),
   onRpcRequest: vi.fn(),
   onSetPreferredAccount: vi.fn(),
@@ -32,7 +31,6 @@ export const mockAuthProvider = {
   getUsername: vi.fn().mockReturnValue('test'),
   isConnected: vi.fn().mockResolvedValue({ isConnected: false }),
   onConnect: vi.fn(callback => callback(mockUser)),
-  onGetSmartAccountEnabledNetworks: vi.fn(),
   onIsConnected: vi.fn(),
   onNotConnected: vi.fn(),
   onRpcError: vi.fn(),
@@ -44,7 +42,11 @@ export const mockAuthProvider = {
   syncTheme: vi.fn()
 }
 
-export const mockUniversalProvider: Mocked<Pick<UniversalProvider, 'on' | 'off'>> = {
+export const mockUniversalProvider: Mocked<
+  Pick<UniversalProvider, 'on' | 'off' | 'disconnect' | 'connect'>
+> = {
   off: vi.fn(),
-  on: vi.fn()
+  on: vi.fn(),
+  disconnect: vi.fn().mockResolvedValue(undefined),
+  connect: vi.fn().mockResolvedValue(undefined)
 }

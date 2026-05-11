@@ -4,6 +4,7 @@ import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 import type { CaipNetworkId, CustomRpcUrl } from '@reown/appkit-common'
 
 import { ConstantsUtil } from '../utils/ConstantsUtil.js'
+import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'
 import { OptionsUtil } from '../utils/OptionsUtil.js'
 import type { SIWXConfig } from '../utils/SIWXUtil.js'
 import type {
@@ -13,6 +14,7 @@ import type {
   Metadata,
   PreferredAccountTypes,
   ProjectId,
+  RemoteFeatures,
   SdkVersion,
   SocialProvider,
   Tokens,
@@ -95,22 +97,33 @@ export interface OptionsControllerStatePublic {
    */
   enableWallets?: boolean
   /**
-   * Enable or disable the EIP6963 feature in your AppKit.
+   * Enable or disable the EIP6963 feature.
    * @default false
    */
   enableEIP6963?: boolean
   /**
-   * Enable or disable the Coinbase wallet in your AppKit.
+   * Enable or disable the Coinbase wallet.
    * @default true
    */
   enableCoinbase?: boolean
   /**
-   * Enable or disable the Injected wallet in your AppKit.
+   * Enable or disable the Base Account connector (for gasless transactions via CDP Paymaster).
+   * @default true
+   */
+  enableBaseAccount?: boolean
+  /**
+   * Enable or disable the Injected wallet.
    * @default true
    */
   enableInjected?: boolean
   /**
-   * Enable or disable the WalletConnect QR code in your AppKit.
+   * Enable or disable automatic reconnection on initialization.
+   * @default true
+   */
+  enableReconnect?: boolean
+  /**
+   * @deprecated This flag is deprecated and will be removed in a future major release.
+   * Enable or disable the WalletConnect QR code.
    * @default true
    */
   enableWalletConnect?: boolean
@@ -130,7 +143,7 @@ export interface OptionsControllerStatePublic {
    */
   experimental_preferUniversalLinks?: boolean
   /**
-   * Enable or disable debug mode in your AppKit. This is useful if you want to see UI alerts when debugging.
+   * Enable or disable debug mode. This is useful if you want to see UI alerts when debugging.
    * @default true
    */
   debug?: boolean
@@ -141,8 +154,7 @@ export interface OptionsControllerStatePublic {
    */
   features?: Features
   /**
-   * @experimental - This feature is not production ready.
-   * Enable Sign In With X (SIWX) feature in your AppKit.
+   * Enable Sign In With X (SIWX) feature.
    * @default undefined
    */
   siwx?: SIWXConfig
@@ -158,7 +170,7 @@ export interface OptionsControllerStatePublic {
   allowUnsupportedChain?: boolean
   /**
    * Default account types for each namespace.
-   * @default "{ bip122: 'payment', eip155: 'smartAccount', polkadot: 'eoa', solana: 'eoa' }"
+   * @default "{ bip122: 'payment', eip155: 'smartAccount', polkadot: 'eoa', solana: 'eoa', ton: 'eoa', tron: 'eoa' }"
    */
   defaultAccountTypes: PreferredAccountTypes
   /**
@@ -188,6 +200,13 @@ export interface OptionsControllerStatePublic {
    * @default true
    */
   enableNetworkSwitch?: boolean
+  /**
+   * Render the modal as full height on mobile web browsers.
+   * @default false
+   */
+  enableMobileFullScreen?: boolean
+
+  coinbasePreference?: 'all' | 'smartWalletOnly' | 'eoaOnly'
 }
 
 export interface OptionsControllerStateInternal {
@@ -195,21 +214,24 @@ export interface OptionsControllerStateInternal {
   sdkVersion: SdkVersion
   isSiweEnabled?: boolean
   isUniversalProvider?: boolean
-  hasMultipleAddresses?: boolean
+  remoteFeatures?: RemoteFeatures
 }
 
 type StateKey = keyof OptionsControllerStatePublic | keyof OptionsControllerStateInternal
-type OptionsControllerState = OptionsControllerStatePublic & OptionsControllerStateInternal
+export type OptionsControllerState = OptionsControllerStatePublic & OptionsControllerStateInternal
 
 // -- State --------------------------------------------- //
-const state = proxy<OptionsControllerState & OptionsControllerStateInternal>({
+const state = proxy<OptionsControllerState>({
   features: ConstantsUtil.DEFAULT_FEATURES,
   projectId: '',
   sdkType: 'appkit',
   sdkVersion: 'html-wagmi-undefined',
   defaultAccountTypes: ConstantsUtil.DEFAULT_ACCOUNT_TYPES,
   enableNetworkSwitch: true,
-  experimental_preferUniversalLinks: false
+  experimental_preferUniversalLinks: false,
+  remoteFeatures: {},
+  enableMobileFullScreen: false,
+  coinbasePreference: 'all'
 })
 
 // -- Controller ---------------------------------------- //
@@ -224,6 +246,26 @@ export const OptionsController = {
     Object.assign(state, options)
   },
 
+  setRemoteFeatures(remoteFeatures: OptionsControllerState['remoteFeatures']) {
+    if (!remoteFeatures) {
+      return
+    }
+
+    const newRemoteFeatures = { ...state.remoteFeatures, ...remoteFeatures }
+    state.remoteFeatures = newRemoteFeatures
+
+    if (state.remoteFeatures?.socials) {
+      state.remoteFeatures.socials = OptionsUtil.filterSocialsByPlatform(
+        state.remoteFeatures.socials
+      )
+    }
+
+    if (state.features?.pay) {
+      state.remoteFeatures.email = false
+      state.remoteFeatures.socials = false
+    }
+  },
+
   setFeatures(features: OptionsControllerState['features'] | undefined) {
     if (!features) {
       return
@@ -236,8 +278,9 @@ export const OptionsController = {
     const newFeatures = { ...state.features, ...features }
     state.features = newFeatures
 
-    if (state.features.socials) {
-      state.features.socials = OptionsUtil.filterSocialsByPlatform(state.features.socials)
+    if (state.features?.pay && state.remoteFeatures) {
+      state.remoteFeatures.email = false
+      state.remoteFeatures.socials = false
     }
   },
 
@@ -305,12 +348,16 @@ export const OptionsController = {
     state.enableEIP6963 = enableEIP6963
   },
 
-  setDebug(debug: OptionsControllerState['debug']) {
-    state.debug = debug
+  setEnableCoinbase(enableCoinbase: OptionsControllerState['enableCoinbase']) {
+    state.enableCoinbase = enableCoinbase
   },
 
-  setEnableWalletConnect(enableWalletConnect: OptionsControllerState['enableWalletConnect']) {
-    state.enableWalletConnect = enableWalletConnect
+  setEnableBaseAccount(enableBaseAccount: OptionsControllerState['enableBaseAccount']) {
+    state.enableBaseAccount = enableBaseAccount
+  },
+
+  setDebug(debug: OptionsControllerState['debug']) {
+    state.debug = debug
   },
 
   setEnableWalletGuide(enableWalletGuide: OptionsControllerState['enableWalletGuide']) {
@@ -331,11 +378,19 @@ export const OptionsController = {
     state.experimental_preferUniversalLinks = preferUniversalLinks
   },
 
-  setHasMultipleAddresses(hasMultipleAddresses: OptionsControllerState['hasMultipleAddresses']) {
-    state.hasMultipleAddresses = hasMultipleAddresses
-  },
-
   setSIWX(siwx: OptionsControllerState['siwx']) {
+    if (siwx) {
+      for (const [key, isVal] of Object.entries(ConstantsUtil.SIWX_DEFAULTS) as [
+        keyof typeof ConstantsUtil.SIWX_DEFAULTS,
+        (typeof ConstantsUtil.SIWX_DEFAULTS)[keyof typeof ConstantsUtil.SIWX_DEFAULTS]
+      ][]) {
+        /*
+         * Only writes when siwx[key] is null or undefined
+         * (use ||= if you only want to check “falsy”, not recommended here)
+         */
+        siwx[key] ??= isVal
+      }
+    }
     state.siwx = siwx
   },
 
@@ -354,8 +409,8 @@ export const OptionsController = {
   },
 
   setSocialsOrder(socialsOrder: SocialProvider[]) {
-    state.features = {
-      ...state.features,
+    state.remoteFeatures = {
+      ...state.remoteFeatures,
       socials: socialsOrder
     }
   },
@@ -381,6 +436,20 @@ export const OptionsController = {
 
   setEnableNetworkSwitch(enableNetworkSwitch: OptionsControllerState['enableNetworkSwitch']) {
     state.enableNetworkSwitch = enableNetworkSwitch
+  },
+
+  setEnableMobileFullScreen(
+    enableMobileFullScreen: OptionsControllerState['enableMobileFullScreen']
+  ) {
+    state.enableMobileFullScreen = CoreHelperUtil.isMobile() && enableMobileFullScreen
+  },
+
+  setEnableReconnect(enableReconnect: OptionsControllerState['enableReconnect']) {
+    state.enableReconnect = enableReconnect
+  },
+
+  setCoinbasePreference(coinbasePreference: OptionsControllerState['coinbasePreference']) {
+    state.coinbasePreference = coinbasePreference
   },
 
   setDefaultAccountTypes(

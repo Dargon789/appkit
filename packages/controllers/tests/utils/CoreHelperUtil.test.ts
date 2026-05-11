@@ -6,15 +6,66 @@ import { CoreHelperUtil } from '../../src/utils/CoreHelperUtil.js'
 // -- Tests --------------------------------------------------------------------
 describe('CoreHelperUtil', () => {
   it('should return format balance as expected', () => {
-    expect(CoreHelperUtil.formatBalance(undefined, undefined)).toBe('0.000')
-    expect(CoreHelperUtil.formatBalance('0', undefined)).toBe('0.000')
-    expect(CoreHelperUtil.formatBalance('123.456789', 'ETH')).toBe('123.456 ETH')
-    expect(CoreHelperUtil.formatBalance('123.456789', undefined)).toBe('123.456')
-    expect(CoreHelperUtil.formatBalance('0.000456789', 'BTC')).toBe('0.000 BTC')
-    expect(CoreHelperUtil.formatBalance('123456789.123456789', 'USD')).toBe('123456789.123 USD')
-    expect(CoreHelperUtil.formatBalance('abc', 'USD')).toBe('0.000 USD')
-    expect(CoreHelperUtil.formatBalance('', 'USD')).toBe('0.000 USD')
-    expect(CoreHelperUtil.formatBalance('0', 'ETH')).toBe('0.000 ETH')
+    expect(CoreHelperUtil.parseBalance(undefined, undefined)).toEqual({
+      value: '0',
+      decimals: '000',
+      symbol: undefined,
+      formattedText: '0.000'
+    })
+    expect(CoreHelperUtil.parseBalance('3', undefined)).toEqual({
+      value: '3',
+      decimals: '000',
+      symbol: undefined,
+      formattedText: '3.000'
+    })
+    expect(CoreHelperUtil.parseBalance('0', undefined)).toEqual({
+      value: '0',
+      decimals: '000',
+      symbol: undefined,
+      formattedText: '0.000'
+    })
+    expect(CoreHelperUtil.parseBalance('123.456789', 'ETH')).toEqual({
+      value: '123',
+      decimals: '456',
+      symbol: 'ETH',
+      formattedText: '123.456 ETH'
+    })
+    expect(CoreHelperUtil.parseBalance('123.456789', undefined)).toEqual({
+      value: '123',
+      decimals: '456',
+      symbol: undefined,
+      formattedText: '123.456'
+    })
+    expect(CoreHelperUtil.parseBalance('0.000456789', 'BTC')).toEqual({
+      value: '0',
+      decimals: '000',
+      symbol: 'BTC',
+      formattedText: '0.000 BTC'
+    })
+    expect(CoreHelperUtil.parseBalance('123456789.123456789', 'USD')).toEqual({
+      value: '123456789',
+      decimals: '123',
+      symbol: 'USD',
+      formattedText: '123456789.123 USD'
+    })
+    expect(CoreHelperUtil.parseBalance('abc', 'USD')).toEqual({
+      value: '0',
+      decimals: '000',
+      symbol: 'USD',
+      formattedText: '0.000 USD'
+    })
+    expect(CoreHelperUtil.parseBalance('', 'USD')).toEqual({
+      value: '0',
+      decimals: '000',
+      symbol: 'USD',
+      formattedText: '0.000 USD'
+    })
+    expect(CoreHelperUtil.parseBalance('0', 'ETH')).toEqual({
+      value: '0',
+      decimals: '000',
+      symbol: 'ETH',
+      formattedText: '0.000 ETH'
+    })
   })
 
   it.each([
@@ -137,6 +188,33 @@ describe('CoreHelperUtil', () => {
         redirect: `${appUrl}/wc?uri=${encodeURIComponent(wcUri)}`,
         href: `${appUrl}/`
       })
+    })
+  })
+
+  describe('appendPayToUri', () => {
+    const wcUri = 'wc:abc123@2?relay-protocol=irn&symKey=xyz'
+
+    it('should return original URI when wcPayUrl is undefined', () => {
+      expect(CoreHelperUtil.appendPayToUri(wcUri, undefined)).toBe(wcUri)
+    })
+
+    it('should return original URI when wcPayUrl is empty string', () => {
+      expect(CoreHelperUtil.appendPayToUri(wcUri, '')).toBe(wcUri)
+    })
+
+    it('should append encoded pay param when wcPayUrl is provided', () => {
+      const wcPayUrl = 'https://pay.walletconnect.com/?pid=pay_123'
+      const result = CoreHelperUtil.appendPayToUri(wcUri, wcPayUrl)
+
+      expect(result).toBe(`${wcUri}&pay=${encodeURIComponent(wcPayUrl)}`)
+    })
+
+    it('should properly encode special characters in wcPayUrl', () => {
+      const wcPayUrl = 'https://pay.example.com/?id=123&amount=100&currency=USD'
+      const result = CoreHelperUtil.appendPayToUri(wcUri, wcPayUrl)
+
+      expect(result).toBe(`${wcUri}&pay=${encodeURIComponent(wcPayUrl)}`)
+      expect(result).toContain('&pay=https%3A%2F%2Fpay.example.com')
     })
   })
 })

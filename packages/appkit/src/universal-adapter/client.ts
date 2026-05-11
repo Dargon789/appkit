@@ -2,27 +2,31 @@ import type UniversalProvider from '@walletconnect/universal-provider'
 import bs58 from 'bs58'
 import { toHex } from 'viem'
 
-import { type ChainNamespace, ConstantsUtil } from '@reown/appkit-common'
+import { type CaipAddress, type ChainNamespace, ConstantsUtil } from '@reown/appkit-common'
 import {
-  AccountController,
   ChainController,
   ConstantsUtil as CoreConstantsUtil,
   CoreHelperUtil
 } from '@reown/appkit-controllers'
+import { AdapterBlueprint, WalletConnectConnector } from '@reown/appkit-controllers'
 
-import { AdapterBlueprint } from '../adapters/ChainAdapterBlueprint.js'
-import { WalletConnectConnector } from '../connectors/WalletConnectConnector.js'
 import { WcConstantsUtil } from '../utils/ConstantsUtil.js'
 
 export class UniversalAdapter extends AdapterBlueprint {
-  public override setUniversalProvider(universalProvider: UniversalProvider): void {
+  public override async setUniversalProvider(universalProvider: UniversalProvider): Promise<void> {
+    if (!this.namespace) {
+      throw new Error('UniversalAdapter:setUniversalProvider - namespace is required')
+    }
+
     this.addConnector(
       new WalletConnectConnector({
         provider: universalProvider,
         caipNetworks: this.getCaipNetworks(),
-        namespace: this.namespace as ChainNamespace
+        namespace: this.namespace
       })
     )
+
+    return Promise.resolve()
   }
 
   public async connect(
@@ -41,9 +45,22 @@ export class UniversalAdapter extends AdapterBlueprint {
     try {
       const connector = this.getWalletConnectConnector()
       await connector.disconnect()
+      this.emit('disconnect')
     } catch (error) {
       console.warn('UniversalAdapter:disconnect - error', error)
     }
+
+    return { connections: [] }
+  }
+
+  public override syncConnections() {
+    return Promise.resolve()
+  }
+
+  public async writeSolanaTransaction(): Promise<AdapterBlueprint.WriteSolanaTransactionResult> {
+    return Promise.resolve({
+      hash: ''
+    })
   }
 
   public async getAccounts({
@@ -52,17 +69,16 @@ export class UniversalAdapter extends AdapterBlueprint {
     namespace: ChainNamespace
   }): Promise<AdapterBlueprint.GetAccountsResult> {
     const provider = this.provider as UniversalProvider
-    const addresses = (provider?.session?.namespaces?.[namespace]?.accounts
-      ?.map(account => {
-        const [, , address] = account.split(':')
-
-        return address
-      })
-      .filter((address, index, self) => self.indexOf(address) === index) || []) as string[]
+    const caipAccounts = (provider?.session?.namespaces?.[namespace]?.accounts || []).filter(
+      (account, index, self) => self.indexOf(account) === index
+    ) as CaipAddress[]
 
     return Promise.resolve({
-      accounts: addresses.map(address =>
-        CoreHelperUtil.createAccount(namespace, address, namespace === 'bip122' ? 'payment' : 'eoa')
+      accounts: caipAccounts.map(caipAddress =>
+        CoreHelperUtil.createAccount({
+          caipAddress,
+          type: namespace === 'bip122' ? 'payment' : 'eoa'
+        })
       )
     })
   }
@@ -77,6 +93,7 @@ export class UniversalAdapter extends AdapterBlueprint {
     const isBalanceSupported =
       params.caipNetwork &&
       CoreConstantsUtil.BALANCE_SUPPORTED_CHAINS.includes(params.caipNetwork?.chainNamespace)
+
     if (!isBalanceSupported || params.caipNetwork?.testnet) {
       return {
         balance: '0.00',
@@ -84,17 +101,19 @@ export class UniversalAdapter extends AdapterBlueprint {
       }
     }
 
+    const accountData = ChainController.getAccountData()
+
     if (
-      AccountController.state.balanceLoading &&
+      accountData?.balanceLoading &&
       params.chainId === ChainController.state.activeCaipNetwork?.id
     ) {
       return {
-        balance: AccountController.state.balance || '0.00',
-        symbol: AccountController.state.balanceSymbol || ''
+        balance: accountData?.balance || '0.00',
+        symbol: accountData?.balanceSymbol || ''
       }
     }
 
-    const balances = await AccountController.fetchTokenBalance()
+    const balances = await ChainController.fetchTokenBalance()
     const balance = balances.find(
       b =>
         b.chainId === `${params.caipNetwork?.chainNamespace}:${params.chainId}` &&
@@ -170,6 +189,10 @@ export class UniversalAdapter extends AdapterBlueprint {
     return Promise.resolve({
       hash: ''
     })
+  }
+
+  public override emitFirstAvailableConnection(): void {
+    return undefined
   }
 
   public parseUnits(): AdapterBlueprint.ParseUnitsResult {

@@ -2,6 +2,7 @@ import { onUnmounted, reactive, ref } from 'vue'
 
 import type { ChainNamespace } from '@reown/appkit-common'
 import { type ConnectorType, type Event } from '@reown/appkit-controllers'
+import { ProviderController } from '@reown/appkit-controllers'
 import type {
   AppKitAccountButton,
   AppKitButton,
@@ -12,7 +13,6 @@ import type {
   W3mConnectButton,
   W3mNetworkButton
 } from '@reown/appkit-scaffold-ui'
-import { ProviderUtil } from '@reown/appkit-utils'
 
 import type {
   AppKitBaseClient as AppKit,
@@ -63,10 +63,10 @@ export function getAppKit(appKit: AppKit) {
 export * from '@reown/appkit-controllers/vue'
 
 export function useAppKitProvider<T>(chainNamespace: ChainNamespace): UseAppKitReturnType<T> {
-  const walletProvider = ref(ProviderUtil.state.providers[chainNamespace] as T | undefined)
-  const walletProviderType = ref(ProviderUtil.state.providerIds[chainNamespace])
+  const walletProvider = ref(ProviderController.state.providers[chainNamespace] as T | undefined)
+  const walletProviderType = ref(ProviderController.state.providerIds[chainNamespace])
 
-  const unsubscribe = ProviderUtil.subscribe(newState => {
+  const unsubscribe = ProviderController.subscribe(newState => {
     walletProvider.value = newState.providers[chainNamespace]
     walletProviderType.value = newState.providerIds[chainNamespace]
   })
@@ -124,7 +124,7 @@ export function useAppKit() {
   }
 
   async function open<View extends Views>(options?: OpenOptions<View>) {
-    await modal?.open(options)
+    return modal?.open(options)
   }
 
   async function close() {
@@ -137,16 +137,16 @@ export function useAppKit() {
   })
 }
 
-export function useWalletInfo() {
+export function useWalletInfo(namespace?: ChainNamespace) {
   if (!modal) {
     throw new Error('Please call "createAppKit" before using "useAppKit" composable')
   }
 
-  const walletInfo = ref(modal.getWalletInfo())
+  const walletInfo = ref(modal.getWalletInfo(namespace))
 
   const unsubscribe = modal.subscribeWalletInfo(newValue => {
     walletInfo.value = newValue
-  })
+  }, namespace)
 
   onUnmounted(() => {
     unsubscribe?.()
@@ -161,7 +161,9 @@ export function useAppKitState() {
   }
 
   const initial = modal.getState()
+  const initialRemoteFeatures = modal.getRemoteFeatures()
   const open = ref(initial.open)
+  const remoteFeatures = ref(initialRemoteFeatures)
   const selectedNetworkId = ref(initial.selectedNetworkId)
 
   const unsubscribe = modal?.subscribeState(next => {
@@ -173,7 +175,7 @@ export function useAppKitState() {
     unsubscribe?.()
   })
 
-  return reactive({ open, selectedNetworkId })
+  return reactive({ open, remoteFeatures, selectedNetworkId })
 }
 
 export function useAppKitEvents(): AppKitEvent {
