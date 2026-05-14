@@ -143,7 +143,7 @@
     "@tronweb3/tronwallet-adapter-okxwallet": "1.0.7",
     "@tronweb3/tronwallet-adapter-tronlink": "1.1.13",
     "@tronweb3/tronwallet-adapter-trust": "1.0.2",
-    "@wagmi/connectors": "5.11.2",
+    "@wagmi/connectors": "7.0.0",
     "@wagmi/core": "2.22.1",
     "@wallet-standard/app": "1.1.0",
     "@walletconnect/sign-client": "2.23.7",
