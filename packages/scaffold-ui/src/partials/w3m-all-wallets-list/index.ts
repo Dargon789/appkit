@@ -54,6 +54,9 @@ export class W3mAllWalletsList extends LitElement {
   }
 
   public override firstUpdated() {
+    if (this.mobileFullScreen) {
+      this.setAttribute('data-mobile-fullscreen', 'true')
+    }
     this.initialFetch()
     this.createPaginationObserver()
   }

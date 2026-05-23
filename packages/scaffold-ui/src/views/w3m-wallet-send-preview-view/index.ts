@@ -78,7 +78,7 @@ export class W3mWalletSendPreviewView extends LitElement {
           </wui-flex>
           <wui-preview-item
             text="${this.sendTokenAmount
-              ? UiHelperUtil.roundNumber(this.sendTokenAmount, 6, 5)
+              ? UiHelperUtil.roundNumber(Number(this.sendTokenAmount), 6, 5)
               : 'unknown'} ${this.token?.symbol}"
             .imageSrc=${this.token?.iconUrl}
           ></wui-preview-item>
@@ -144,7 +144,7 @@ export class W3mWalletSendPreviewView extends LitElement {
   private sendValueTemplate() {
     if (!this.params && this.token && this.sendTokenAmount) {
       const price = this.token.price
-      const totalValue = price * this.sendTokenAmount
+      const totalValue = price * Number(this.sendTokenAmount)
 
       return html`<wui-text variant="md-regular" color="primary"
         >$${totalValue.toFixed(2)}</wui-text

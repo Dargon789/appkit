@@ -333,6 +333,10 @@ export const OptionsController = {
     state.enableEIP6963 = enableEIP6963
   },
 
+  setEnableInjected(enableInjected: OptionsControllerState['enableInjected']) {
+    state.enableInjected = enableInjected
+  },
+
   setEnableCoinbase(enableCoinbase: OptionsControllerState['enableCoinbase']) {
     state.enableCoinbase = enableCoinbase
   },

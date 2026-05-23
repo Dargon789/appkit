@@ -364,7 +364,7 @@ describe('ApiController', () => {
         page: '1',
         entries: '2',
         include: '12341,12342',
-        exclude: ''
+        exclude: undefined
       }
     })
 
@@ -401,7 +401,7 @@ describe('ApiController', () => {
         page: '1',
         entries: '2',
         include: 'wallet-B,wallet-A',
-        exclude: ''
+        exclude: undefined
       }
     })
 
@@ -496,8 +496,8 @@ describe('ApiController', () => {
         chains: 'eip155:1,eip155:4,eip155:42',
         page: '1',
         entries: '4',
-        include: '',
-        exclude: ''
+        include: undefined,
+        exclude: undefined
       }
     })
     expect(fetchImageSpy).not.toHaveBeenCalled()
@@ -583,10 +583,9 @@ describe('ApiController', () => {
       params: {
         ...ApiController._getSdkProperties(),
         page: '1',
-        badge_type: undefined,
         entries: String(excludeWalletIds.length),
         include: excludeWalletIds.join(','),
-        exclude: ''
+        exclude: undefined
       }
     })
 
