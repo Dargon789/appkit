@@ -219,7 +219,7 @@ export const WalletUtil = {
     }
 
     /*
-     * If AppKit doesn't have any adapters, we need to convert CustomWallet to  WcWallet so they can be shown in the all wallets list
+     * If AppKit doesn't have any adapters, we need to convert CustomWallet to WcWallet so they can be shown in the all wallets list
      */
 
     if (customWallets && customWallets.length > 0 && ChainController.state.noAdapters) {
