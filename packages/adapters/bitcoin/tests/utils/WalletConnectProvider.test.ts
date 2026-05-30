@@ -196,6 +196,10 @@ describe('LeatherConnector', () => {
   describe('getAccountAddresses', () => {
     beforeEach(() => {
       universalProvider.session = mockUniversalProvider.mockSession()
+      vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
+        caipAddress: `${bitcoin.caipNetworkId}:address`,
+        address: 'address'
+      } as unknown as AccountState)
     })
 
     it('should get the account addresses and parse response', async () => {
@@ -207,7 +211,7 @@ describe('LeatherConnector', () => {
       expect(requestSpy).toHaveBeenCalledWith(
         {
           method: 'getAccountAddresses',
-          params: undefined
+          params: { account: 'address' }
         },
         bitcoin.caipNetworkId
       )

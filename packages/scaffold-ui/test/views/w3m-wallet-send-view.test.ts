@@ -87,7 +87,7 @@ describe('W3mWalletSendView', () => {
     )
 
     SendController.setToken(mockToken)
-    SendController.setTokenAmount(50)
+    SendController.setTokenAmount('50')
     SendController.setNetworkBalanceInUsd('100')
 
     await element.updateComplete
@@ -104,7 +104,7 @@ describe('W3mWalletSendView', () => {
     )
 
     SendController.setToken(mockToken)
-    SendController.setTokenAmount(150)
+    SendController.setTokenAmount('150')
     SendController.setReceiverAddress('0x456')
     await element.updateComplete
     await element.render()
@@ -120,7 +120,7 @@ describe('W3mWalletSendView', () => {
     )
 
     SendController.setToken(mockToken)
-    SendController.setTokenAmount(50)
+    SendController.setTokenAmount('50')
     SendController.setNetworkBalanceInUsd('100')
 
     SendController.setReceiverAddress('invalid-address')
@@ -149,7 +149,7 @@ describe('W3mWalletSendView', () => {
     )
 
     SendController.setToken(mockToken)
-    SendController.setTokenAmount(50)
+    SendController.setTokenAmount('50')
     SendController.setNetworkBalanceInUsd('100')
 
     const addressInput = element.shadowRoot?.querySelector('w3m-input-address') as HTMLElement
@@ -172,7 +172,7 @@ describe('W3mWalletSendView', () => {
     )
 
     SendController.setToken(mockToken)
-    SendController.setTokenAmount(50)
+    SendController.setTokenAmount('50')
     SendController.setNetworkBalanceInUsd('100')
 
     const addressInput = element.shadowRoot?.querySelector('w3m-input-address') as HTMLElement
@@ -195,7 +195,7 @@ describe('W3mWalletSendView', () => {
     )
 
     SendController.setToken(mockToken)
-    SendController.setTokenAmount(50)
+    SendController.setTokenAmount('50')
     SendController.setReceiverAddress('0x123456789abcdef123456789abcdef123456789a')
     await element.updateComplete
     await element.render()
@@ -212,7 +212,7 @@ describe('W3mWalletSendView', () => {
     )
 
     SendController.setToken(mockToken)
-    SendController.setTokenAmount(50)
+    SendController.setTokenAmount('50')
     SendController.setReceiverAddress('0x123456789abcdef123456789abcdef123456789a')
     await element.updateComplete
     await element.render()
