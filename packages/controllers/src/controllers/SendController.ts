@@ -7,7 +7,9 @@ import {
   type CaipAddress,
   type ChainNamespace,
   ConstantsUtil as CommonConstantsUtil,
-  NumberUtil
+  ErrorUtil,
+  NumberUtil,
+  UserRejectedRequestError
 } from '@reown/appkit-common'
 import { ContractUtil } from '@reown/appkit-common'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet/utils'
@@ -21,7 +23,6 @@ import { ConstantsUtil } from '../utils/ConstantsUtil.js'
 import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'
 import { SwapApiUtil } from '../utils/SwapApiUtil.js'
 import { withErrorBoundary } from '../utils/withErrorBoundary.js'
-import { AccountController } from './AccountController.js'
 import { ChainController } from './ChainController.js'
 import { ConnectionController } from './ConnectionController.js'
 import { EventsController } from './EventsController.js'
@@ -32,7 +33,7 @@ import { SnackController } from './SnackController.js'
 
 export interface TxParams {
   receiverAddress: string
-  sendTokenAmount: number
+  sendTokenAmount: string
   decimals: string
 }
 export interface SendInputArguments {
@@ -46,14 +47,14 @@ export interface SendInputArguments {
 export interface ContractWriteParams {
   receiverAddress: string
   tokenAddress: string
-  sendTokenAmount: number
+  sendTokenAmount: string
   decimals: string
 }
 export interface SendControllerState {
   tokenBalances: Balance[]
   token?: Balance
   hash?: string
-  sendTokenAmount?: number
+  sendTokenAmount?: string
   receiverAddress?: string
   receiverProfileName?: string
   receiverProfileImageUrl?: string
@@ -114,6 +115,18 @@ const controller = {
     state.loading = loading
   },
 
+  getSdkEventProperties(error: unknown) {
+    return {
+      message: CoreHelperUtil.parseError(error),
+      isSmartAccount:
+        getPreferredAccountType(ChainController.state.activeChain) ===
+        W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT,
+      token: state.token?.symbol || '',
+      amount: Number(state.sendTokenAmount ?? '0'),
+      network: ChainController.state.activeCaipNetwork?.caipNetworkId || ''
+    }
+  },
+
   async sendToken() {
     try {
       SendController.setLoading(true)
@@ -129,6 +142,12 @@ const controller = {
         default:
           throw new Error('Unsupported chain')
       }
+    } catch (err) {
+      if (ErrorUtil.isUserRejectedRequestError(err)) {
+        throw new UserRejectedRequestError(err)
+      }
+
+      throw err
     } finally {
       SendController.setLoading(false)
     }
@@ -158,7 +177,7 @@ const controller = {
         properties: {
           isSmartAccount: activeAccountType === W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT,
           token: SendController.state.token.address,
-          amount: SendController.state.sendTokenAmount,
+          amount: Number(SendController.state.sendTokenAmount),
           network: ChainController.state.activeCaipNetwork?.caipNetworkId || ''
         }
       })
@@ -179,7 +198,7 @@ const controller = {
         properties: {
           isSmartAccount: activeAccountType === W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT,
           token: SendController.state.token.symbol || '',
-          amount: SendController.state.sendTokenAmount,
+          amount: Number(SendController.state.sendTokenAmount),
           network: ChainController.state.activeCaipNetwork?.caipNetworkId || ''
         }
       })
@@ -201,7 +220,8 @@ const controller = {
     const chainId = ChainController.state.activeCaipNetwork?.caipNetworkId
     const chain = ChainController.state.activeCaipNetwork?.chainNamespace
     const caipAddress =
-      AccountController.getCaipAddress(namespace) ?? ChainController.state.activeCaipAddress
+      ChainController.getAccountData(namespace)?.caipAddress ??
+      ChainController.state.activeCaipAddress
     const address = caipAddress ? CoreHelperUtil.getPlainAddress(caipAddress) : undefined
     if (
       state.lastRetry &&
@@ -260,7 +280,7 @@ const controller = {
     RouterController.pushTransactionStack({})
 
     const to = params.receiverAddress as Address
-    const address = AccountController.state.address as Address
+    const address = ChainController.getAccountData()?.address as Address
     const value = ConnectionController.parseUnits(
       params.sendTokenAmount.toString(),
       Number(params.decimals)
@@ -282,7 +302,7 @@ const controller = {
         isSmartAccount:
           getPreferredAccountType('eip155') === W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT,
         token: SendController.state.token?.symbol || '',
-        amount: params.sendTokenAmount,
+        amount: Number(params.sendTokenAmount),
         network: ChainController.state.activeCaipNetwork?.caipNetworkId || '',
         hash: hash || ''
       }
@@ -306,12 +326,8 @@ const controller = {
       Number(params.decimals)
     )
 
-    if (
-      AccountController.state.address &&
-      params.sendTokenAmount &&
-      params.receiverAddress &&
-      params.tokenAddress
-    ) {
+    const address = ChainController.getAccountData()?.address
+    if (address && params.sendTokenAmount && params.receiverAddress && params.tokenAddress) {
       const tokenAddress = CoreHelperUtil.getPlainAddress(params.tokenAddress as CaipAddress)
 
       if (!tokenAddress) {
@@ -319,7 +335,7 @@ const controller = {
       }
 
       const hash = await ConnectionController.writeContract({
-        fromAddress: AccountController.state.address as Address,
+        fromAddress: address as Address,
         tokenAddress,
         args: [params.receiverAddress as Address, amount ?? BigInt(0)],
         method: 'transfer',
@@ -334,7 +350,7 @@ const controller = {
           isSmartAccount:
             getPreferredAccountType('eip155') === W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT,
           token: SendController.state.token?.symbol || '',
-          amount: params.sendTokenAmount,
+          amount: Number(params.sendTokenAmount),
           network: ChainController.state.activeCaipNetwork?.caipNetworkId || '',
           hash: hash || ''
         }
@@ -376,7 +392,7 @@ const controller = {
       chainNamespace: 'solana',
       tokenMint,
       to: SendController.state.receiverAddress,
-      value: SendController.state.sendTokenAmount
+      value: Number(SendController.state.sendTokenAmount)
     })
 
     if (hash) {
@@ -384,6 +400,19 @@ const controller = {
     }
 
     ConnectionController._getClient()?.updateBalance('solana')
+
+    EventsController.sendEvent({
+      type: 'track',
+      event: 'SEND_SUCCESS',
+      properties: {
+        isSmartAccount: false,
+        token: SendController.state.token?.symbol || '',
+        amount: Number(SendController.state.sendTokenAmount),
+        network: ChainController.state.activeCaipNetwork?.caipNetworkId || '',
+        hash: hash || ''
+      }
+    })
+
     SendController.resetSend()
   },
 
