@@ -158,7 +158,7 @@ export class TronWalletConnectConnector
     return signedTx.txID || unsignedTx.txID
   }
 
-  async switchNetwork(_chainId: string): Promise<void> {
+  switchNetwork(_chainId: string): Promise<void> {
     return Promise.reject(new Error('switchNetwork is not supported by TronWalletConnectConnector'))
   }
 
