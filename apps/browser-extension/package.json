@@ -58,7 +58,7 @@
     "react-dom": "19.1.2",
     "stream-browserify": "3.0.0",
     "tweetnacl": "1.0.3",
-    "uuid": "10.0.0",
+    "uuid": "14.0.0",
     "viem": "2.45.0",
     "vm-browserify": "1.1.2",
     "wagmi": "2.19.5",
@@ -77,6 +77,6 @@
     "ts-loader": "9.5.1",
     "typescript": "5.9.2",
     "webpack-cli": "5.1.4",
-    "webpack-dev-server": "5.2.1"
+    "webpack-dev-server": "5.2.4"
   }
 }
