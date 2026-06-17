@@ -277,9 +277,8 @@ export const ApiController = {
       path: '/getWallets',
       params: {
         ...ApiController._getSdkProperties(),
-        ...params,
-        page: String(params.page),
-        entries: String(params.entries),
+        page: String(params.page ?? 1),
+        entries: String(params.entries ?? 40),
         include: params.include?.join(',') || undefined,
         exclude: exclude.join(',') || undefined,
         include_pay_only: params.include_pay_only ? 'true' : undefined
