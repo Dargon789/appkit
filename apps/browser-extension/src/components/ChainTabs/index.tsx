@@ -51,7 +51,7 @@ function Tab({ onTabClick }: { onTabClick: (tab: ChainNamespace) => void }) {
           })}
         >
           {icons[index]}
-          {ConstantsUtil.CHAIN_NAME_MAP[tab].replaceAll('EVM Networks', 'Ethereum')}
+          {(ConstantsUtil.CHAIN_NAME_MAP[tab] || tab).replaceAll('EVM Networks', 'Ethereum')}
         </button>
       ))}
     </div>
