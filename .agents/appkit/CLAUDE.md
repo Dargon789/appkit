@@ -272,11 +272,11 @@ NEXT_PUBLIC_PROJECT_ID=b56e18d47c72ab683b10814fe9495694 # localhost testing only
 ## Running Examples
 always use pnpm if available
 
-```bash
-cd react/react-wagmi  # or any example
-pnpm install
-pnpm  dev
-```
++```bash
++cd react/react-wagmi  # or any example
++pnpm install
++pnpm dev
++```
 
 ## Resources
 
