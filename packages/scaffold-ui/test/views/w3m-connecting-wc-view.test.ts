@@ -231,3 +231,49 @@ describe('W3mConnectingWcView - Handle chain switch error when enableNetworkSwit
     expect(mockShowUnsupportedChainUI).toHaveBeenCalled()
   })
 })
+
+describe('W3mConnectingWcView - Handle chain switch error when enableNetworkSwitch is disabled', () => {
+  test('should show unsupported chain UI when chain switch error occurs with enableNetworkSwitch disabled', async () => {
+    const mockShowUnsupportedChainUI = vi.fn()
+    const mockSetActiveCaipNetwork = vi.fn()
+    const mockConnectWalletConnect = vi
+      .fn()
+      .mockRejectedValue(new Error('An error occurred when attempting to switch chain'))
+
+    vi.spyOn(ChainController, 'showUnsupportedChainUI').mockImplementation(
+      mockShowUnsupportedChainUI
+    )
+    vi.spyOn(ChainController, 'setActiveCaipNetwork').mockImplementation(mockSetActiveCaipNetwork)
+    vi.spyOn(ConnectionController, 'connectWalletConnect').mockImplementation(
+      mockConnectWalletConnect
+    )
+
+    vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
+      ...OptionsController.state,
+      enableNetworkSwitch: false
+    })
+
+    vi.spyOn(ChainController, 'state', 'get').mockReturnValue({
+      ...ChainController.state,
+      activeChain: 'eip155',
+      activeCaipNetwork: { id: '1' } as CaipNetwork
+    })
+
+    const mockGetUnsupportedNetwork = vi.fn().mockReturnValue({
+      id: '1',
+      name: 'Unsupported Network'
+    })
+    vi.spyOn(CaipNetworksUtil, 'getUnsupportedNetwork').mockImplementation(
+      mockGetUnsupportedNetwork
+    )
+
+    await fixture(html`<w3m-connecting-wc-view></w3m-connecting-wc-view>`)
+
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    expect(mockConnectWalletConnect).toHaveBeenCalled()
+    expect(mockGetUnsupportedNetwork).toHaveBeenCalledWith('eip155:1')
+    expect(mockSetActiveCaipNetwork).toHaveBeenCalled()
+    expect(mockShowUnsupportedChainUI).toHaveBeenCalled()
+  })
+})

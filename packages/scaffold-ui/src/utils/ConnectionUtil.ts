@@ -1,7 +1,9 @@
 import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
 import type { Connection } from '@reown/appkit-common'
 import type { SocialProvider } from '@reown/appkit-controllers'
-import { ConnectorController, ConnectorUtil, StorageUtil } from '@reown/appkit-controllers'
+import { ConnectorController, StorageUtil } from '@reown/appkit-controllers'
+
+import { ConnectorUtil } from './ConnectorUtil.js'
 
 export const ConnectionUtil = {
   getAuthData(connection: Connection) {

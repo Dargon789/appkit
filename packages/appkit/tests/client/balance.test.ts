@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { NetworkUtil } from '@reown/appkit-common'
-import { ChainController } from '@reown/appkit-controllers'
+import { AccountController } from '@reown/appkit-controllers'
 
 import { AppKit } from '../../src/client/appkit.js'
 import { mockEvmAdapter } from '../mocks/Adapter.js'
@@ -24,7 +24,7 @@ describe('Balance sync', () => {
 
   it.sequential('should not sync balance if theres no matching caipNetwork', async () => {
     const getNetworksByNamespaceSpy = vi.spyOn(NetworkUtil, 'getNetworksByNamespace')
-    const setBalanceSpy = vi.spyOn(ChainController, 'setAccountProp')
+    const setBalanceSpy = vi.spyOn(AccountController, 'setBalance')
 
     const appKit = new AppKit(mockOptions)
 
@@ -36,16 +36,12 @@ describe('Balance sync', () => {
 
     expect(getNetworksByNamespaceSpy).toHaveBeenCalled()
     expect(mockEvmAdapter.getBalance).not.toHaveBeenCalled()
-    expect(setBalanceSpy).not.toHaveBeenCalledWith(
-      'balance',
-      expect.any(String),
-      expect.any(String)
-    )
+    expect(setBalanceSpy).not.toHaveBeenCalled()
   })
 
   it.sequential('should fetch native balance on testnet', async () => {
     const getNetworksByNamespaceSpy = vi.spyOn(NetworkUtil, 'getNetworksByNamespace')
-    const setAccountPropSpy = vi.spyOn(ChainController, 'setAccountProp')
+    const setBalanceSpy = vi.spyOn(AccountController, 'setBalance')
     const mockAccount = {
       address: '0x123',
       chainId: sepolia.id,
@@ -57,12 +53,12 @@ describe('Balance sync', () => {
 
     expect(getNetworksByNamespaceSpy).toHaveBeenCalled()
     expect(mockEvmAdapter.getBalance).toHaveBeenCalled()
-    expect(setAccountPropSpy).toHaveBeenCalledWith('balance', '1.00', sepolia.chainNamespace)
+    expect(setBalanceSpy).toHaveBeenCalledWith('1.00', 'ETH', sepolia.chainNamespace)
   })
 
   it.sequential('should set the correct native token balance', async () => {
     const getNetworksByNamespaceSpy = vi.spyOn(NetworkUtil, 'getNetworksByNamespace')
-    const setAccountPropSpy = vi.spyOn(ChainController, 'setAccountProp')
+    const setBalanceSpy = vi.spyOn(AccountController, 'setBalance')
 
     const appKit = new AppKit(mockOptions)
     await appKit.ready()
@@ -75,6 +71,6 @@ describe('Balance sync', () => {
 
     expect(getNetworksByNamespaceSpy).toHaveBeenCalled()
     expect(mockEvmAdapter.getBalance).toHaveBeenCalled()
-    expect(setAccountPropSpy).toHaveBeenCalledWith('balance', '1.00', 'eip155')
+    expect(setBalanceSpy).toHaveBeenCalledWith('1.00', 'ETH', 'eip155')
   })
 })

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { type CaipNetwork, type ChainNamespace, ConstantsUtil } from '@reown/appkit-common'
 import {
-  type AccountState,
+  AccountController,
   ChainController,
   CoreHelperUtil,
   ModalController,
@@ -41,10 +41,10 @@ describe('W3mAccountButton', () => {
       allowUnsupportedChain: true
     })
 
-    vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-      ...ChainController.getAccountData(),
+    vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
+      ...AccountController.state,
       profileName: 'test'
-    } as unknown as AccountState)
+    })
 
     const button = (await fixture(
       html`<w3m-account-button></w3m-account-button>`
@@ -79,9 +79,9 @@ describe('W3mAccountButton', () => {
       vi.spyOn(ChainController.state, 'activeChain', 'get').mockReturnValue('eip155')
       vi.spyOn(ChainController, 'checkIfSupportedNetwork').mockReturnValue(true)
       vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-        ...ChainController.getAccountData(),
+        ...AccountController.state,
         caipAddress: mockCaipAddress
-      } as unknown as AccountState)
+      })
 
       vi.spyOn(ModalController, 'open')
 
@@ -101,9 +101,9 @@ describe('W3mAccountButton', () => {
         allowUnsupportedChain: true
       })
       vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-        ...ChainController.getAccountData(),
+        ...AccountController.state,
         caipAddress: mockCaipAddress
-      } as unknown as AccountState)
+      })
 
       vi.spyOn(ModalController, 'open')
 
@@ -122,9 +122,9 @@ describe('W3mAccountButton', () => {
         allowUnsupportedChain: false
       })
       vi.spyOn(ChainController, 'getAccountData').mockReturnValueOnce({
-        ...ChainController.getAccountData(),
+        ...AccountController.state,
         caipAddress: mockCaipAddress
-      } as unknown as AccountState)
+      })
       vi.spyOn(ChainController, 'checkIfSupportedNetwork').mockReturnValueOnce(false)
 
       vi.spyOn(ModalController, 'open')
@@ -139,10 +139,10 @@ describe('W3mAccountButton', () => {
 
     it('should show loading state if balance value is not a string', async () => {
       vi.spyOn(ChainController.state, 'activeChain', 'get').mockReturnValue('eip155')
-      vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-        ...ChainController.getAccountData(),
+      vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
+        ...AccountController.state,
         balance: undefined
-      } as unknown as AccountState)
+      })
 
       const button = await fixture(html`<w3m-account-button></w3m-account-button>`)
 
@@ -157,9 +157,9 @@ describe('W3mAccountButton', () => {
     it('should not show loading state if balance value is a string', async () => {
       vi.spyOn(ChainController.state, 'activeChain', 'get').mockReturnValue('eip155')
       vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-        ...ChainController.getAccountData(),
+        ...AccountController.state,
         balance: '0.00'
-      } as unknown as AccountState)
+      })
 
       const button = await fixture(html`<w3m-account-button></w3m-account-button>`)
 
@@ -176,9 +176,9 @@ describe('W3mAccountButton', () => {
       vi.spyOn(ChainController.state, 'activeChain', 'get').mockReturnValue(namespace)
       vi.spyOn(ChainController, 'checkIfSupportedNetwork').mockReturnValue(true)
       vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-        ...ChainController.getAccountData(),
+        ...AccountController.state,
         caipAddress: mockCaipAddress
-      } as unknown as AccountState)
+      })
 
       vi.spyOn(ModalController, 'open')
 
@@ -201,14 +201,12 @@ describe('W3mAccountButton', () => {
             ConstantsUtil.CHAIN.SOLANA,
             {
               accountState: {
-                ...ChainController.getAccountData(),
+                ...AccountController.state,
                 caipAddress: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:FyTsuBMn',
                 balance: '2.00',
                 balanceSymbol: 'SOL',
                 profileName: 'test',
-                profileImage: 'https://example.com/image.png',
-                currentTab: 0,
-                addressLabels: new Map()
+                profileImage: 'https://example.com/image.png'
               }
             }
           ]

@@ -1,12 +1,13 @@
 import { getAddress } from 'viem'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ChainController, OptionsController } from '@reown/appkit-controllers'
+import { ChainController } from '@reown/appkit-controllers'
 import { mainnet } from '@reown/appkit/networks'
 
 import { walletConnect } from '../connectors/WalletConnectConnector'
 import {
   mockAddress,
+  mockAppKit,
   mockCaipAddress,
   mockCaipNetworks,
   mockExtendedCaipNetworks,
@@ -40,14 +41,12 @@ describe('WalletConnectConnector', () => {
   let connectorInstance: any
 
   beforeEach(() => {
-    vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
-      ...OptionsController.state
-    })
-
-    const createConnector = walletConnect({
-      isNewChainsStale: false,
-      universalProvider: mockProvider as any
-    })
+    const createConnector = walletConnect(
+      {
+        isNewChainsStale: false
+      } as any,
+      mockAppKit
+    )
 
     connectorInstance = createConnector({
       chains: mockCaipNetworks,
@@ -55,8 +54,7 @@ describe('WalletConnectConnector', () => {
       // @ts-expect-error - mocking Wagmi's storage
       storage: mockStorage,
       // @ts-expect-error - mocking Wagmi's emitter
-      emitter: mockEmitter,
-      universalProvider: mockProvider
+      emitter: mockEmitter
     })
     vi.spyOn(ChainController, 'getCaipNetworks').mockReturnValue(mockExtendedCaipNetworks)
   })

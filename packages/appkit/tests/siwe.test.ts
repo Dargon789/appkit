@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AppKit, type CaipNetwork } from '@reown/appkit'
 import {
+  AccountController,
   ChainController,
   ConnectionController,
   CoreHelperUtil,
@@ -11,17 +12,12 @@ import {
   SIWXUtil
 } from '@reown/appkit-controllers'
 import { type AppKitSIWEClient, createSIWEConfig } from '@reown/appkit-siwe'
-import { CaipNetworksUtil } from '@reown/appkit-utils'
 import * as networks from '@reown/appkit/networks'
 
 import { mockUniversalAdapter } from './mocks/Adapter'
 import mockProvider from './mocks/UniversalProvider'
 import { mockWindowAndDocument } from './test-utils'
 
-const extendedMainnet = CaipNetworksUtil.extendCaipNetwork(networks.mainnet, {
-  projectId: 'mock-project-id',
-  customNetworkImageUrls: {}
-})
 describe('SIWE mapped to SIWX', () => {
   let siweConfig: AppKitSIWEClient
   let appkit: AppKit
@@ -75,11 +71,15 @@ describe('SIWE mapped to SIWX', () => {
     })
 
     // Wait for the appkit to be ready
-    await appkit.ready()
+    await new Promise(resolve => setTimeout(resolve, 100))
 
     // Set CAIP address to represent connected state
     appkit.setCaipAddress('eip155:1:mock-address', 'eip155')
-    appkit.setCaipNetwork(extendedMainnet)
+    appkit.setCaipNetwork({
+      ...networks.mainnet,
+      caipNetworkId: 'eip155:1',
+      chainNamespace: 'eip155'
+    })
   })
 
   it('should fulfill siwx', () => {
@@ -157,7 +157,7 @@ describe('SIWE mapped to SIWX', () => {
     it('should universalProviderAuthenticate', async () => {
       const getNonceSpy = vi.spyOn(siweConfig.methods, 'getNonce')
       const verifyMessageSpy = vi.spyOn(siweConfig.methods, 'verifyMessage')
-      const setAccountPropSpy = vi.spyOn(ChainController, 'setAccountProp')
+      const setConnectedWalletInfoSpy = vi.spyOn(AccountController, 'setConnectedWalletInfo')
       const setLastConnectedSIWECaipNetworkSpy = vi.spyOn(
         ChainController,
         'setLastConnectedSIWECaipNetwork'
@@ -212,7 +212,9 @@ describe('SIWE mapped to SIWX', () => {
         signature: 'mock-signature'
       })
       expect(setLastConnectedSIWECaipNetworkSpy).toHaveBeenCalledWith({
-        ...extendedMainnet
+        ...networks.mainnet,
+        caipNetworkId: 'eip155:1',
+        chainNamespace: 'eip155'
       })
       expect(authenticateSpy).toHaveBeenCalledWith({
         chainId: 'eip155:1',
@@ -229,8 +231,7 @@ describe('SIWE mapped to SIWX', () => {
         uri: 'mock-uri',
         version: '1'
       })
-      expect(setAccountPropSpy).toHaveBeenCalledWith(
-        'connectedWalletInfo',
+      expect(setConnectedWalletInfoSpy).toHaveBeenCalledWith(
         {
           icons: ['mock-icon'],
           name: 'mock-name',

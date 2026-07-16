@@ -8,7 +8,6 @@ export default css`
   button {
     padding: ${({ spacing }) => spacing[3]};
     display: flex;
-    gap: ${({ spacing }) => spacing[3]};
     justify-content: space-between;
     width: 100%;
     border-radius: ${({ borderRadius }) => borderRadius[4]};
@@ -39,9 +38,5 @@ export default css`
 
   wui-image {
     border-radius: ${({ borderRadius }) => borderRadius[16]};
-  }
-
-  .token-name-container {
-    flex: 1;
   }
 `

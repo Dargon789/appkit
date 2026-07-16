@@ -1,5 +1,6 @@
 import { type CaipNetwork, ConstantsUtil } from '@reown/appkit-common'
 
+import { AccountController } from '../controllers/AccountController.js'
 import { ChainController } from '../controllers/ChainController.js'
 import { ConnectorController } from '../controllers/ConnectorController.js'
 import { RouterController } from '../controllers/RouterController.js'
@@ -20,7 +21,6 @@ export const NetworkUtil = {
     ignoreSwitchConfirmation?: boolean
   }) {
     const currentNetwork = ChainController.state.activeCaipNetwork
-    const currentNamespace = ChainController.state.activeChain
     const routerData = RouterController.state.data
     const isSameNetwork = network.id === currentNetwork?.id
 
@@ -28,15 +28,12 @@ export const NetworkUtil = {
       return
     }
 
-    const isCurrentNamespaceConnected = Boolean(
-      ChainController.getAccountData(currentNamespace)?.address
+    const isCurrentNamespaceConnected = AccountController.getCaipAddress(
+      ChainController.state.activeChain
     )
-    const isNextNamespaceConnected = Boolean(
-      ChainController.getAccountData(network.chainNamespace)?.address
-    )
-
-    const isDifferentNamespace = network.chainNamespace !== currentNamespace
-    const connectorId = ConnectorController.getConnectorId(currentNamespace)
+    const isDifferentNamespace = network.chainNamespace !== ChainController.state.activeChain
+    const isNextNamespaceConnected = AccountController.getCaipAddress(network.chainNamespace)
+    const connectorId = ConnectorController.getConnectorId(ChainController.state.activeChain)
 
     /**
      * If the network is supported by the auth connector, we don't need to show switch active chain view.
@@ -52,7 +49,6 @@ export const NetworkUtil = {
      * 2. If user connected with auth connector and the next network is supported by the auth connector,
      * we should switch to the network without confirmation screen.
      */
-
     if (ignoreSwitchConfirmation || (isConnectedWithAuth && isSupportedForAuthConnector)) {
       RouterController.push('SwitchNetwork', { ...routerData, network })
     } else if (

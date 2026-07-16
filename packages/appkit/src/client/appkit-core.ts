@@ -1,14 +1,14 @@
 import { type ChainNamespace } from '@reown/appkit-common'
 import type { ChainAdapter } from '@reown/appkit-controllers'
 import {
-  ChainController,
+  AccountController,
   ConnectionController,
   ConnectorController,
   CoreHelperUtil,
   OptionsController
 } from '@reown/appkit-controllers'
-import type { AdapterBlueprint } from '@reown/appkit-controllers'
 
+import type { AdapterBlueprint } from '../adapters/ChainAdapterBlueprint.js'
 import {
   AppKitBaseClient,
   type OpenOptions as BaseOpenOptions,
@@ -20,6 +20,9 @@ declare global {
     ethereum?: Record<string, unknown>
   }
 }
+
+// -- Export Controllers -------------------------------------------------------
+export { AccountController }
 
 // -- Types --------------------------------------------------------------------
 export type OpenOptions<View extends Views> = Omit<BaseOpenOptions<View>, 'namespace'>
@@ -51,8 +54,7 @@ export class AppKit extends AppKitBaseClient {
     await super.close()
 
     if (this.options.manualWCControl) {
-      const address = ChainController.getAccountData(this.activeChainNamespace)?.address
-      ConnectionController.finalizeWcConnection(address)
+      ConnectionController.finalizeWcConnection(AccountController.state.address as string)
     }
   }
 

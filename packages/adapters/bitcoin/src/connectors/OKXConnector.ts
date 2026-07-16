@@ -1,11 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/require-await */
-import {
-  type CaipNetwork,
-  ConstantsUtil as CommonConstantsUtil,
-  ConstantsUtil,
-  PresetsUtil
-} from '@reown/appkit-common'
-import { ChainController, CoreHelperUtil, type RequestArguments } from '@reown/appkit-controllers'
+import { type CaipNetwork, ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
+import { CoreHelperUtil, type RequestArguments } from '@reown/appkit-controllers'
+import { PresetsUtil } from '@reown/appkit-utils'
 import type { BitcoinConnector } from '@reown/appkit-utils/bitcoin'
 import { bitcoin, bitcoinTestnet } from '@reown/appkit/networks'
 
@@ -33,25 +29,26 @@ export class OKXConnector extends ProviderEventEmitter implements BitcoinConnect
 
   private wallet: OKXConnector.Wallet
   private readonly requestedChains: CaipNetwork[] = []
+  private readonly getActiveNetwork: () => CaipNetwork | undefined
 
   constructor({
     wallet,
     requestedChains,
+    getActiveNetwork,
     imageUrl,
     requestedCaipNetworkId
   }: OKXConnector.ConstructorParams) {
     super()
     this.wallet = wallet
     this.requestedChains = requestedChains
+    this.getActiveNetwork = getActiveNetwork
     this.imageUrl = imageUrl
     this.requestedCaipNetworkId = requestedCaipNetworkId
   }
 
   public get chains() {
     return this.requestedChains.filter(
-      chain =>
-        chain.caipNetworkId ===
-        ChainController.getActiveCaipNetwork(ConstantsUtil.CHAIN.BITCOIN)?.caipNetworkId
+      chain => chain.caipNetworkId === this.getActiveNetwork()?.caipNetworkId
     )
   }
 
@@ -90,7 +87,7 @@ export class OKXConnector extends ProviderEventEmitter implements BitcoinConnect
   }
 
   public async sendTransfer(params: BitcoinConnector.SendTransferParams): Promise<string> {
-    const network = ChainController.getActiveCaipNetwork(ConstantsUtil.CHAIN.BITCOIN)
+    const network = this.getActiveNetwork()
 
     if (!network) {
       throw new Error('No active network available')
@@ -149,6 +146,7 @@ export class OKXConnector extends ProviderEventEmitter implements BitcoinConnect
   public async switchNetwork(_caipNetworkId: CaipNetwork['caipNetworkId']): Promise<void> {
     const connector = OKXConnector.getWallet({
       requestedChains: this.requestedChains,
+      getActiveNetwork: this.getActiveNetwork,
       requestedCaipNetworkId: _caipNetworkId
     })
 
@@ -225,6 +223,7 @@ export namespace OKXConnector {
   export type ConstructorParams = {
     wallet: Wallet
     requestedChains: CaipNetwork[]
+    getActiveNetwork: () => CaipNetwork | undefined
     imageUrl: string
     requestedCaipNetworkId?: CaipNetwork['caipNetworkId']
   }

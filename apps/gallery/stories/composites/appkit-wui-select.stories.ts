@@ -11,9 +11,6 @@ type Component = Meta<WuiSelect>
 
 export default {
   title: 'Composites/appkit-wui-select',
-  parameters: {
-    chromatic: { disableSnapshot: true }
-  },
   args: {
     imageSrc: 'https://picsum.photos/200/300',
     text: 'Text',

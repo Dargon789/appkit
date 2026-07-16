@@ -201,8 +201,10 @@ function AvailableTestContent() {
       calls: [testTransaction],
       capabilities: {
         paymasterService: {
-          url: paymasterServiceUrl,
-          context
+          1: {
+            url: paymasterServiceUrl,
+            context
+          }
         }
       }
     })

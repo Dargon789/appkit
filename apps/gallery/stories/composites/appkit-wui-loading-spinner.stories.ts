@@ -11,9 +11,6 @@ type Component = Meta<WuiLoadingSpinner>
 
 export default {
   title: 'Composites/appkit-wui-loading-spinner',
-  parameters: {
-    chromatic: { disableSnapshot: true }
-  },
   args: {
     color: 'accent-primary',
     size: 'lg'
