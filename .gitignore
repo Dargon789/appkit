@@ -18,5 +18,8 @@ tsconfig.tsbuildinfo
 .cache-synpress
 .parcel-cache
 .coverage
+.cursor
 .envrc*
 **/test-results.json
+.vercel
+.env*.local

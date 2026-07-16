@@ -1,7 +1,7 @@
 import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { CaipNetwork } from '@reown/appkit-common'
-import { ChainController, CoreHelperUtil } from '@reown/appkit-controllers'
+import { CoreHelperUtil } from '@reown/appkit-controllers'
 import { bitcoin, bitcoinTestnet } from '@reown/appkit/networks'
 
 import { OKXConnector } from '../../src/connectors/OKXConnector'
@@ -26,14 +26,15 @@ describe('OKXConnector', () => {
   let wallet: ReturnType<typeof mockOKXWallet>
   let requestedChains: CaipNetwork[]
   let connector: OKXConnector
+  let getActiveNetwork: Mock<() => CaipNetwork | undefined>
   let imageUrl: string
 
   beforeEach(() => {
     imageUrl = 'mock_image_url'
     requestedChains = [bitcoin, bitcoinTestnet]
-    vi.spyOn(ChainController, 'getActiveCaipNetwork').mockReturnValue(bitcoin)
+    getActiveNetwork = vi.fn(() => bitcoin)
     wallet = mockOKXWallet()
-    connector = new OKXConnector({ wallet, requestedChains, imageUrl })
+    connector = new OKXConnector({ wallet, requestedChains, getActiveNetwork, imageUrl })
   })
 
   it('should validate metadata', () => {
@@ -72,12 +73,11 @@ describe('OKXConnector', () => {
     })
 
     it('should connect with testnet', async () => {
-      vi.spyOn(ChainController, 'getActiveCaipNetwork').mockReturnValue(bitcoinTestnet)
-
       const testnetWallet = mockOKXWallet()
       const testnetConnector = new OKXConnector({
         wallet: testnetWallet,
         requestedChains: [bitcoin, bitcoinTestnet],
+        getActiveNetwork: vi.fn(() => bitcoinTestnet),
         imageUrl: 'mock_image_url',
         requestedCaipNetworkId: bitcoinTestnet.caipNetworkId
       })
@@ -159,7 +159,7 @@ describe('OKXConnector', () => {
     })
 
     it('should throw an error if the network is unavailable', async () => {
-      vi.spyOn(ChainController, 'getActiveCaipNetwork').mockReturnValue(undefined)
+      getActiveNetwork.mockReturnValueOnce(undefined)
 
       await expect(
         connector.sendTransfer({ amount: '1500', recipient: 'mock_to_address' })
@@ -187,7 +187,7 @@ describe('OKXConnector', () => {
     })
 
     it('should sign a PSBT with broadcast', async () => {
-      vi.spyOn(ChainController, 'getActiveCaipNetwork').mockReturnValue(bitcoinTestnet)
+      getActiveNetwork.mockReturnValueOnce(bitcoinTestnet)
 
       const result = await connector.signPSBT({
         psbt: Buffer.from('mock_psbt').toString('base64'),
@@ -284,25 +284,25 @@ describe('OKXConnector', () => {
 
   describe('getWallet', () => {
     it('should return undefined if there is no wallet', () => {
-      expect(OKXConnector.getWallet({ requestedChains: [] })).toBeUndefined()
+      expect(OKXConnector.getWallet({ getActiveNetwork, requestedChains: [] })).toBeUndefined()
     })
 
     it('should return the Connector if there is a wallet', () => {
       ;(window as any).okxwallet = { bitcoin: wallet }
-      const connector = OKXConnector.getWallet({ requestedChains })
+      const connector = OKXConnector.getWallet({ getActiveNetwork, requestedChains })
       expect(connector).toBeInstanceOf(OKXConnector)
     })
 
     it('should get image url', () => {
       ;(window as any).okxwallet = { bitcoin: wallet, cardano: { icon: 'mock_image' } }
-      const connector = OKXConnector.getWallet({ requestedChains })
+      const connector = OKXConnector.getWallet({ getActiveNetwork, requestedChains })
       expect(connector?.imageUrl).toBe('mock_image')
     })
 
     it('should return undefined if window is undefined (server-side)', () => {
       vi.spyOn(CoreHelperUtil, 'isClient').mockReturnValue(false)
 
-      expect(OKXConnector.getWallet({ requestedChains })).toBeUndefined()
+      expect(OKXConnector.getWallet({ getActiveNetwork, requestedChains })).toBeUndefined()
     })
   })
 
@@ -320,6 +320,7 @@ describe('OKXConnector', () => {
       const testnetConnector = new OKXConnector({
         wallet: testnetWallet,
         requestedChains,
+        getActiveNetwork,
         imageUrl: 'mock_image'
       })
 

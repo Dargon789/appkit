@@ -3,13 +3,12 @@ import { state } from 'lit/decorators.js'
 
 import { type ChainNamespace, ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
 import {
+  AccountController,
   ChainController,
   ConnectorController,
-  ConnectorUtil,
   ConstantsUtil as CoreConstantsUtil,
   CoreHelperUtil,
   EventsController,
-  ExchangeController,
   ModalController,
   OptionsController,
   RouterController,
@@ -26,8 +25,10 @@ import '@reown/appkit-ui/wui-tooltip'
 import '@reown/appkit-ui/wui-wallet-switch'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet/utils'
 
+import { ConnectorUtil } from '../../utils/ConnectorUtil.js'
 import { HelpersUtil } from '../../utils/HelpersUtil.js'
 import '../w3m-account-activity-widget/index.js'
+import '../w3m-account-nfts-widget/index.js'
 import '../w3m-account-tokens-widget/index.js'
 import '../w3m-tooltip-trigger/index.js'
 import '../w3m-tooltip/index.js'
@@ -43,15 +44,15 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
   private unsubscribe: (() => void)[] = []
 
   // -- State & Properties -------------------------------- //
+  @state() private address = AccountController.state.address
+
+  @state() private profileName = AccountController.state.profileName
+
   @state() private network = ChainController.state.activeCaipNetwork
 
-  @state() private profileName = ChainController.getAccountData()?.profileName
+  @state() private currentTab = AccountController.state.currentTab
 
-  @state() private address = ChainController.getAccountData()?.address
-
-  @state() private currentTab = ChainController.getAccountData()?.currentTab
-
-  @state() private tokenBalance = ChainController.getAccountData()?.tokenBalance
+  @state() private tokenBalance = AccountController.state.tokenBalance
 
   @state() private features = OptionsController.state.features
 
@@ -61,12 +62,12 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
 
   @state() private remoteFeatures = OptionsController.state.remoteFeatures
 
-  public override firstUpdated() {
-    ChainController.fetchTokenBalance()
+  public constructor() {
+    super()
     this.unsubscribe.push(
       ...[
-        ChainController.subscribeChainProp('accountState', val => {
-          if (val?.address) {
+        AccountController.subscribe(val => {
+          if (val.address) {
             this.address = val.address
             this.profileName = val.profileName
             this.currentTab = val.currentTab
@@ -76,7 +77,6 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
           }
         })
       ],
-
       ConnectorController.subscribeKey('activeConnectorIds', newActiveConnectorIds => {
         this.activeConnectorIds = newActiveConnectorIds
       }),
@@ -93,10 +93,14 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
     clearInterval(this.watchTokenBalance)
   }
 
+  public override firstUpdated() {
+    AccountController.fetchTokenBalance()
+  }
+
   // -- Render -------------------------------------------- //
   public override render() {
     if (!this.address) {
-      throw new Error('w3m-account-features-widget: No account provided')
+      throw new Error('w3m-account-view: No account provided')
     }
 
     if (!this.namespace) {
@@ -186,10 +190,13 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
     const isOnrampSupported = CoreConstantsUtil.ONRAMP_SUPPORTED_CHAIN_NAMESPACES.includes(
       this.namespace
     )
+    const isPayWithExchangeSupported =
+      CoreConstantsUtil.PAY_WITH_EXCHANGE_SUPPORTED_CHAIN_NAMESPACES.includes(this.namespace)
 
     const isReceiveEnabled = this.features?.receive
     const isOnrampEnabled = this.remoteFeatures?.onramp && isOnrampSupported
-    const isPayWithExchangeEnabled = ExchangeController.isPayWithExchangeEnabled()
+    const isPayWithExchangeEnabled =
+      this.remoteFeatures?.payWithExchange && isPayWithExchangeSupported
 
     if (!isOnrampEnabled && !isReceiveEnabled && !isPayWithExchangeEnabled) {
       return null
@@ -259,7 +266,7 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
 
   private watchSwapValues() {
     this.watchTokenBalance = setInterval(
-      () => ChainController.fetchTokenBalance(error => this.onTokenBalanceError(error)),
+      () => AccountController.fetchTokenBalance(error => this.onTokenBalanceError(error)),
       10_000
     )
   }
@@ -279,6 +286,9 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
       return html`<w3m-account-tokens-widget></w3m-account-tokens-widget>`
     }
     if (this.currentTab === 1) {
+      return html`<w3m-account-nfts-widget></w3m-account-nfts-widget>`
+    }
+    if (this.currentTab === 2) {
       return html`<w3m-account-activity-widget></w3m-account-activity-widget>`
     }
 
@@ -311,7 +321,7 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
   }
 
   private onTabChange(index: number) {
-    ChainController.setAccountProp('currentTab', index, this.namespace)
+    AccountController.setCurrentTab(index)
   }
 
   private onFundWalletClick() {

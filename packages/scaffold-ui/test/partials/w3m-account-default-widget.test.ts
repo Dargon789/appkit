@@ -4,7 +4,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { html } from 'lit'
 
 import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
-import { type AccountState, ChainController, OptionsController } from '@reown/appkit-controllers'
+import { AccountController, ChainController, OptionsController } from '@reown/appkit-controllers'
 
 import { W3mAccountDefaultWidget } from '../../src/partials/w3m-account-default-widget'
 import { HelpersUtil } from '../utils/HelpersUtil'
@@ -26,10 +26,10 @@ describe('W3mAccountDefaultWidget', () => {
 
   describe('activity button visibility', () => {
     beforeEach(() => {
-      vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-        ...ChainController.getAccountData(),
+      vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
+        ...AccountController.state,
         caipAddress: 'eip155:1:0x123'
-      } as unknown as AccountState)
+      })
     })
 
     it('should not show activity button for solana namespace', async () => {
@@ -84,10 +84,10 @@ describe('W3mAccountDefaultWidget', () => {
 
   describe('wallet features visibility', () => {
     beforeEach(() => {
-      vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-        ...ChainController.getAccountData(),
+      vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
+        ...AccountController.state,
         caipAddress: 'eip155:1:0x123'
-      } as unknown as AccountState)
+      })
     })
 
     describe('evm wallet features', () => {
@@ -333,10 +333,10 @@ describe('W3mAccountDefaultWidget', () => {
           ...ChainController.state,
           activeChain: CommonConstantsUtil.CHAIN.BITCOIN
         })
-        vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-          ...ChainController.getAccountData(),
+        vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
+          ...AccountController.state,
           caipAddress: 'bip122:1:bc1qa1234567890'
-        } as unknown as AccountState)
+        })
       })
 
       it('should not have any features enabled', async () => {

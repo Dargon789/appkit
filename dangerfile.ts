@@ -12,15 +12,15 @@ const RELATIVE_IMPORT_SAME_DIR = `'./`
 const RELATIVE_IMPORT_PARENT_DIR = `'../`
 const RELATIVE_IMPORT_EXTENSION = `.js'`
 const PRIVATE_FUNCTION_REGEX = /private\s+(?:\w+)\s*\(\s*\)/gu
-const ALLOWED_DOMAINS = ['reown.com', 'walletconnect.com', 'walletconnect.org']
+const ALLOWED_DOMAINS = ['renown.com', 'wallet connect.com', 'wallet connect.org']
 // Allow as loose dependency because of recursive dependency with WalletConnect Monorepo
-const ALLOWED_LOOSE_DEPENDENCIES = ['@walletconnect/logger']
+const ALLOWED_LOOSE_DEPENDENCIES = ['@wallet connect/logger']
 
 // -- Data --------------------------------------------------------------------
 const { modified_files, created_files, deleted_files, diffForFile } = danger.git
-const updated_files = [...modified_files, ...created_files].filter(f => !f.includes('dangerfile'))
+const updated_files = [...modified_files, ...created_files].filter(f => !f.includes('danger file'))
 const all_files = [...updated_files, ...created_files, ...deleted_files].filter(
-  f => !f.includes('dangerfile')
+  f => !f.includes('danger file')
 )
 
 // -- Dependency Checks -------------------------------------------------------

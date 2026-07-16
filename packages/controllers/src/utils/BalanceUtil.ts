@@ -8,6 +8,7 @@ import {
   ParseUtil
 } from '@reown/appkit-common'
 
+import { AccountController } from '../controllers/AccountController.js'
 import { BlockchainApiController } from '../controllers/BlockchainApiController.js'
 import { ChainController } from '../controllers/ChainController.js'
 import { ConnectionController } from '../controllers/ConnectionController.js'
@@ -24,12 +25,6 @@ interface FetchER20BalanceParams {
   caipNetwork: CaipNetwork
 }
 
-interface GetMyTokensWithBalanceParams {
-  forceUpdate?: string
-  caipNetwork?: CaipNetwork
-  address?: string
-}
-
 // -- Controller ---------------------------------------- //
 export const BalanceUtil = {
   /**
@@ -39,22 +34,18 @@ export const BalanceUtil = {
    * @returns The balances of the user's tokens
    */
   async getMyTokensWithBalance(
-    params: GetMyTokensWithBalanceParams = {
-      forceUpdate: undefined,
-      caipNetwork: ChainController.state.activeCaipNetwork,
-      address: ChainController.getAccountData()?.address
-    }
+    forceUpdate?: string
   ): Promise<BlockchainApiBalanceResponse['balances']> {
-    const { forceUpdate, caipNetwork, address } = params
-
+    const address = AccountController.state.address
+    const caipNetwork = ChainController.state.activeCaipNetwork
     const isAuthConnector =
       ConnectorController.getConnectorId('eip155') === ConstantsUtil.CONNECTOR_ID.AUTH
 
-    if (!address) {
+    if (!address || !caipNetwork) {
       return []
     }
 
-    const caipAddress = caipNetwork ? `${caipNetwork.caipNetworkId}:${address}` : address
+    const caipAddress = `${caipNetwork.caipNetworkId}:${address}`
     const cachedBalance = StorageUtil.getBalanceCacheForCaipAddress(caipAddress)
 
     if (cachedBalance) {
@@ -62,7 +53,7 @@ export const BalanceUtil = {
     }
 
     // Extract EIP-155 specific logic
-    if (caipNetwork && caipNetwork.chainNamespace === ConstantsUtil.CHAIN.EVM && isAuthConnector) {
+    if (caipNetwork.chainNamespace === ConstantsUtil.CHAIN.EVM && isAuthConnector) {
       const eip155Balances = await this.getEIP155Balances(address, caipNetwork)
 
       if (eip155Balances) {
@@ -73,7 +64,7 @@ export const BalanceUtil = {
     // Fallback to 1Inch API
     const response = await BlockchainApiController.getBalance(
       address,
-      caipNetwork?.caipNetworkId,
+      caipNetwork.caipNetworkId,
       forceUpdate
     )
 

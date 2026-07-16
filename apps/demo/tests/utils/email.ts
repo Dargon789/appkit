@@ -50,23 +50,9 @@ export class Email {
   }
 
   async getEmailBody(email: string, messageId: string): Promise<string> {
-    let checks = 0
-    /* eslint-disable no-await-in-loop */
-    while (checks < MAX_EMAIL_CHECK) {
-      try {
-        const result = await this.mailsac.messages.getBodyPlainText(email, messageId)
+    const result = await this.mailsac.messages.getBodyPlainText(email, messageId)
 
-        return String(result.data)
-      } catch (error) {
-        if (checks < MAX_EMAIL_CHECK - 1) {
-          await this.timeout(EMAIL_CHECK_INTERVAL)
-          checks += 1
-        } else {
-          throw error
-        }
-      }
-    }
-    throw new Error(`Could not retrieve email body for message ${messageId}`)
+    return String(result.data)
   }
 
   isApproveEmail(body: string): boolean {

@@ -1,4 +1,5 @@
 import { GoogleTagManager } from '@next/third-parties/google'
+import { Analytics } from '@vercel/analytics/next'
 import type { Metadata } from 'next'
 import { ThemeProvider } from 'next-themes'
 import Script from 'next/script'
@@ -75,6 +76,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <ContextProvider>{children}</ContextProvider>
           </AppKitProvider>
         </ThemeProvider>
+        <Analytics />
         <GoogleTagManager gtmId="G-38H3M597C1" />
         <Script src={googleTagManagerSource} strategy="afterInteractive" />
         <Script id="google-tag-manager" strategy="afterInteractive">

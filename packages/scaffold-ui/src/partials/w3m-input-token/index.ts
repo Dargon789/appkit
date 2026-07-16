@@ -23,11 +23,7 @@ export class W3mInputToken extends LitElement {
 
   @property({ type: Boolean }) public readOnly = false
 
-  @property({ type: String }) public sendTokenAmount?: string
-
-  @property({ type: Boolean }) public isInsufficientBalance = false
-
-  @property({ type: String }) public gasPrice?: string
+  @property({ type: Number }) public sendTokenAmount?: number
 
   // -- Render -------------------------------------------- //
   public override render() {
@@ -42,8 +38,7 @@ export class W3mInputToken extends LitElement {
         <wui-input-amount
           @inputChange=${this.onInputChange.bind(this)}
           ?disabled=${isDisabled}
-          .value=${this.sendTokenAmount ?? ''}
-          ?error=${Boolean(this.isInsufficientBalance)}
+          .value=${this.sendTokenAmount ? String(this.sendTokenAmount) : ''}
         ></wui-input-amount>
         ${this.buttonTemplate()}
       </wui-flex>
@@ -79,7 +74,7 @@ export class W3mInputToken extends LitElement {
   private sendValueTemplate() {
     if (!this.readOnly && this.token && this.sendTokenAmount) {
       const price = this.token.price
-      const totalValue = price * Number(this.sendTokenAmount)
+      const totalValue = price * this.sendTokenAmount
 
       return html`<wui-text class="totalValue" variant="sm-regular" color="secondary"
         >${totalValue
@@ -93,6 +88,12 @@ export class W3mInputToken extends LitElement {
 
   private maxAmountTemplate() {
     if (this.token) {
+      if (this.sendTokenAmount && this.sendTokenAmount > Number(this.token.quantity.numeric)) {
+        return html` <wui-text variant="sm-regular" color="error">
+          ${UiHelperUtil.roundNumber(Number(this.token.quantity.numeric), 6, 5)}
+        </wui-text>`
+      }
+
       return html` <wui-text variant="sm-regular" color="secondary">
         ${UiHelperUtil.roundNumber(Number(this.token.quantity.numeric), 6, 5)}
       </wui-text>`
@@ -103,6 +104,10 @@ export class W3mInputToken extends LitElement {
 
   private actionTemplate() {
     if (this.token) {
+      if (this.sendTokenAmount && this.sendTokenAmount > Number(this.token.quantity.numeric)) {
+        return html`<wui-link @click=${this.onBuyClick.bind(this)}>Buy</wui-link>`
+      }
+
       return html`<wui-link @click=${this.onMaxClick.bind(this)}>Max</wui-link>`
     }
 
@@ -123,34 +128,19 @@ export class W3mInputToken extends LitElement {
   }
 
   private onInputChange(event: InputEvent) {
-    SendController.setTokenAmount(String(event.detail))
+    SendController.setTokenAmount(event.detail)
   }
 
   private onMaxClick() {
     if (this.token) {
-      const decimals = Number(this.token.quantity.decimals)
       const maxValue = NumberUtil.bigNumber(this.token.quantity.numeric)
 
-      /*
-       * For native tokens (no contract address), subtract estimated gas so the
-       * transaction doesn't consume the entire balance leaving nothing for fees.
-       */
-      if (!this.token.address && this.gasPrice) {
-        /*
-         * 65000 covers EOA recipients (21000) and common contract recipients
-         * such as multisigs and exchange deposit addresses (~25000–50000).
-         */
-        const ETH_TRANSFER_GAS_LIMIT = 65000n
-        const gasCostWei = ETH_TRANSFER_GAS_LIMIT * BigInt(this.gasPrice)
-        const gasCost = NumberUtil.bigNumber(gasCostWei.toString()).div(
-          NumberUtil.bigNumber(10).pow(decimals)
-        )
-        const maxAfterGas = maxValue.minus(gasCost)
-        SendController.setTokenAmount(maxAfterGas.gt(0) ? maxAfterGas.toFixed(decimals, 0) : '0')
-      } else {
-        SendController.setTokenAmount(maxValue.toFixed(decimals, 0))
-      }
+      SendController.setTokenAmount(Number(maxValue.toFixed(20)))
     }
+  }
+
+  private onBuyClick() {
+    RouterController.push('OnRampProviders')
   }
 }
 
