@@ -5,6 +5,9 @@
 # This workflow helps with housekeeping the caches.
 # See https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#force-deleting-cache-entries
 name: Post-merge Cache Cleanup
+permissions:
+  contents: read
+  actions: write
 on:
   pull_request:
     types:
