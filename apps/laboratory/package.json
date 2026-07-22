@@ -150,7 +150,7 @@
     "@walletconnect/types": "2.23.7",
     "@walletconnect/universal-provider": "2.23.7",
     "@walletconnect/utils": "2.23.7",
-    "axios": "1.12.2",
+    "axios": "1.18.0",
     "bitcoinjs-lib": "7.0.0-rc.0",
     "bs58": "6.0.0",
     "date-fns": "4.1.0",
@@ -166,7 +166,7 @@
     "rpc-websockets": "7.11.0",
     "valtio": "2.1.7",
     "viem": "2.45.0",
-    "wagmi": "2.19.5",
+    "wagmi": "3.0.0",
     "webauthn-p256": "0.0.2"
   },
   "devDependencies": {
