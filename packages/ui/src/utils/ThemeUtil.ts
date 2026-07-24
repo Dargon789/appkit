@@ -48,9 +48,7 @@ export function initializeTheming(themeVariables?: ThemeVariables, themeMode: Th
   createAppKitTheme(themeVariables, themeMode)
   setColorTheme(themeMode)
 
-  const hasCustomFont =
-    themeVariables?.['--apkt-font-family'] || themeVariables?.['--w3m-font-family']
-  if (!hasCustomFont) {
+  if (!themeVariables?.['--w3m-font-family']) {
     for (const [key, url] of Object.entries(fonts)) {
       const link = document.createElement('link')
       link.rel = 'preload'
@@ -86,9 +84,8 @@ export function setThemeVariables(_themeVariables?: ThemeVariables) {
     themeTag.textContent = createRootStyles(_themeVariables).core.cssText
     darkModeTag.textContent = createRootStyles(_themeVariables).dark.cssText
     lightModeTag.textContent = createRootStyles(_themeVariables).light.cssText
-    const fontFamily =
-      _themeVariables?.['--apkt-font-family'] || _themeVariables?.['--w3m-font-family']
-    if (fontFamily) {
+    if (_themeVariables?.['--w3m-font-family']) {
+      const fontFamily = _themeVariables['--w3m-font-family']
       themeTag.textContent = themeTag.textContent?.replace(
         'font-family: KHTeka',
         `font-family: ${fontFamily}`
@@ -111,9 +108,7 @@ export function setThemeVariables(_themeVariables?: ThemeVariables) {
 }
 
 export function createRootStyles(_themeVariables?: ThemeVariables) {
-  const hasCustomFontFamily = Boolean(
-    _themeVariables?.['--apkt-font-family'] || _themeVariables?.['--w3m-font-family']
-  )
+  const hasCustomFontFamily = Boolean(_themeVariables?.['--w3m-font-family'])
 
   return {
     core: css`

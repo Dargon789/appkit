@@ -1,5 +1,6 @@
 import type { CaipNetworkId } from '@reown/appkit-common'
 
+import { AccountController } from '../controllers/AccountController.js'
 import { BlockchainApiController } from '../controllers/BlockchainApiController.js'
 import { ChainController } from '../controllers/ChainController.js'
 import { ConnectionController } from '../controllers/ConnectionController.js'
@@ -109,7 +110,7 @@ export const SwapApiUtil = {
       address: ChainController.getAccountData()?.address
     })
 
-    ChainController.setAccountProp('tokenBalance', balances, ChainController.state.activeChain)
+    AccountController.setTokenBalance(balances, ChainController.state.activeChain)
 
     return this.mapBalancesToSwapTokens(balances)
   },

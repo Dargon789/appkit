@@ -7,12 +7,8 @@ import {
   ApiController,
   type ApiControllerState,
   type BadgeType,
-  ChainController,
-  ConnectionController,
   ConnectorController,
   type ConnectorWithProviders,
-  CoreHelperUtil,
-  OptionsController,
   RouterController,
   type WcWallet
 } from '@reown/appkit-controllers'
@@ -69,17 +65,7 @@ describe('W3mAllWalletsSearch', () => {
       wallets: [],
       isAnalyticsEnabled: false,
       excludedWallets: [],
-      isFetchingRecommendedWallets: false,
-      explorerWallets: [],
-      explorerFilteredWallets: [],
-      plan: {
-        tier: 'starter',
-        hasExceededUsageLimit: false,
-        limits: {
-          isAboveRpcLimit: false,
-          isAboveMauLimit: false
-        }
-      }
+      isFetchingRecommendedWallets: false
     }
     vi.spyOn(ApiController, 'state', 'get').mockReturnValue(mockState)
     vi.spyOn(ApiController, 'searchWallet').mockResolvedValue()
@@ -109,17 +95,7 @@ describe('W3mAllWalletsSearch', () => {
       wallets: mockWallets,
       isAnalyticsEnabled: false,
       excludedWallets: [],
-      isFetchingRecommendedWallets: false,
-      explorerWallets: [],
-      explorerFilteredWallets: [],
-      plan: {
-        tier: 'starter',
-        hasExceededUsageLimit: false,
-        limits: {
-          isAboveRpcLimit: false,
-          isAboveMauLimit: false
-        }
-      }
+      isFetchingRecommendedWallets: false
     }
     vi.spyOn(ApiController, 'state', 'get').mockReturnValue(mockState)
     vi.spyOn(ApiController, 'searchWallet').mockResolvedValue()
@@ -158,10 +134,6 @@ describe('W3mAllWalletsSearch', () => {
       provider: {} as any,
       chain: 'eip155'
     }
-    vi.spyOn(ChainController, 'state', 'get').mockReturnValue({
-      ...ChainController.state,
-      activeChain: 'eip155'
-    })
     vi.spyOn(ConnectorController, 'getConnector').mockReturnValue(mockConnector)
     const routerPushSpy = vi.spyOn(RouterController, 'push')
 
@@ -172,7 +144,7 @@ describe('W3mAllWalletsSearch', () => {
 
     expect(ConnectorController.getConnector).toHaveBeenCalledWith({
       id: mockExternalWallet.id,
-      namespace: 'eip155'
+      rdns: mockExternalWallet.rdns
     })
     expect(routerPushSpy).toHaveBeenCalledWith('ConnectingExternal', {
       connector: mockConnector,
@@ -189,7 +161,7 @@ describe('W3mAllWalletsSearch', () => {
 
     expect(ConnectorController.getConnector).toHaveBeenCalledWith({
       id: mockWallet.id,
-      namespace: 'eip155'
+      rdns: mockWallet.rdns
     })
     expect(routerPushSpy).toHaveBeenCalledWith('ConnectingWalletConnect', { wallet: mockWallet })
   })
@@ -205,79 +177,5 @@ describe('W3mAllWalletsSearch', () => {
       search: '',
       badge: 'recent'
     })
-  })
-
-  it('should set the correct properties and values mobileFullScreen is true', async () => {
-    OptionsController.state.enableMobileFullScreen = true
-
-    const el = (await fixture(
-      html`<w3m-all-wallets-search></w3m-all-wallets-search>`
-    )) as W3mAllWalletsSearch
-    await elementUpdated(el)
-
-    expect(el.getAttribute('data-mobile-fullscreen')).toBe('true')
-  })
-
-  it('should set the correct properties and values mobileFullScreen is false', async () => {
-    OptionsController.state.enableMobileFullScreen = false
-
-    const el = (await fixture(
-      html`<w3m-all-wallets-search></w3m-all-wallets-search>`
-    )) as W3mAllWalletsSearch
-    await elementUpdated(el)
-
-    expect(el.getAttribute('data-mobile-fullscreen')).toBeNull()
-  })
-
-  it('should filter search results by WC support on mobile', async () => {
-    const mockSearchResults: WcWallet[] = [
-      { id: '1', name: 'Mobile Wallet', supports_wc: true },
-      { id: '2', name: 'Desktop Only Wallet', supports_wc: false },
-      { id: '3', name: 'Universal Wallet', supports_wc: true }
-    ]
-
-    vi.spyOn(ApiController, 'state', 'get').mockReturnValue({
-      ...ApiController.state,
-      search: mockSearchResults
-    })
-    vi.spyOn(CoreHelperUtil, 'isMobile').mockReturnValue(true)
-    vi.spyOn(ConnectorController.state, 'connectors', 'get').mockReturnValue([])
-
-    // @ts-expect-error - Accessing private property for testing
-    element.query = 'wallet'
-    await elementUpdated(element)
-
-    const walletItems = element.shadowRoot?.querySelectorAll('[data-testid^="wallet-search-item"]')
-    expect(walletItems?.length).toBe(2)
-  })
-
-  it('should show all search results on desktop with Appkit', async () => {
-    const mockSearchResults: WcWallet[] = [
-      { id: '1', name: 'Mobile Wallet', supports_wc: true },
-      { id: '2', name: 'Desktop Only Wallet', supports_wc: false },
-      { id: '3', name: 'Universal Wallet', supports_wc: true }
-    ]
-
-    vi.spyOn(ApiController, 'state', 'get').mockReturnValue({
-      ...ApiController.state,
-      search: mockSearchResults
-    })
-    vi.spyOn(CoreHelperUtil, 'isMobile').mockReturnValue(false)
-    vi.spyOn(OptionsController, 'state', 'get').mockReturnValue({
-      ...OptionsController.state,
-      manualWCControl: false
-    })
-    vi.spyOn(ConnectionController, 'state', 'get').mockReturnValue({
-      ...ConnectionController.state,
-      wcBasic: false
-    })
-    vi.spyOn(ConnectorController.state, 'connectors', 'get').mockReturnValue([])
-
-    // @ts-expect-error - Accessing private property for testing
-    element.query = 'wallet'
-    await elementUpdated(element)
-
-    const walletItems = element.shadowRoot?.querySelectorAll('[data-testid^="wallet-search-item"]')
-    expect(walletItems?.length).toBe(3)
   })
 })

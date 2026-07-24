@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ConstantsUtil } from '@reown/appkit-common'
 import {
+  AccountController,
   ChainController,
   type ChainControllerState,
   ModalController,
@@ -116,6 +117,7 @@ describe('W3mButton', () => {
           ConstantsUtil.CHAIN.SOLANA,
           {
             accountState: {
+              ...AccountController.state,
               caipAddress:
                 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:FyTsuBMnCAHKYaBUJ5rkd79rzdPu5VSpMwYh3hPhEuAn'
             }
@@ -125,6 +127,7 @@ describe('W3mButton', () => {
           ConstantsUtil.CHAIN.EVM,
           {
             accountState: {
+              ...AccountController.state,
               caipAddress: 'eip155:1:0xf5B035287c1465F29C7e08FbB5c3b8a4975Bf831'
             }
           }
@@ -135,6 +138,7 @@ describe('W3mButton', () => {
     let element: W3mButton = await fixture(html`<appkit-button namespace="eip155"></appkit-button>`)
     let w3mAccountButton = HelpersUtil.querySelect(element, 'appkit-account-button')
     let wuiAccountButton = w3mAccountButton.shadowRoot?.querySelector('wui-account-button')
+    console.log(wuiAccountButton)
 
     await element.updateComplete
 

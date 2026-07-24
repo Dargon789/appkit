@@ -40,7 +40,7 @@ export const QrCodeUtil = {
     size,
     logoSize,
     padding = 8,
-    dotColor = 'var(--apkt-colors-black)'
+    dotColor = 'var(--apkt-tokens-theme-textInvert)'
   }: {
     uri: string
     size: number
@@ -67,7 +67,7 @@ export const QrCodeUtil = {
         dots.push(
           svg`
             <rect
-              fill=${i === 2 ? 'var(--apkt-colors-black)' : 'var(--apkt-colors-white)'}
+              fill=${i === 2 ? 'var(--apkt-tokens-theme-textInvert)' : 'var(--apkt-tokens-theme-textPrimary)'}
               width=${i === 0 ? dotSize - strokeWidth : dotSize}
               rx= ${i === 0 ? (dotSize - strokeWidth) * borderRadius : dotSize * borderRadius}
               ry= ${i === 0 ? (dotSize - strokeWidth) * borderRadius : dotSize * borderRadius}

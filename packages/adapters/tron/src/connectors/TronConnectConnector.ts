@@ -178,7 +178,7 @@ export class TronConnectConnector implements TronConnector {
       )
     }
 
-    return ''
+    throw new Error('RPC URL not found')
   }
 
   private setupAdapterListeners() {

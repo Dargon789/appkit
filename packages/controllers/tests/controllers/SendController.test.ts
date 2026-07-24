@@ -3,21 +3,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { type Balance } from '@reown/appkit-common'
 
 import {
-  type AccountState,
-  ChainController,
+  AccountController,
   ConnectionController,
   CoreHelperUtil,
-  EventsController,
   RouterController,
   SendController,
   type SendControllerState,
   SnackController
 } from '../../exports/index.js'
-import {
-  extendedMainnet,
-  mockChainControllerState,
-  solanaCaipNetwork
-} from '../../exports/testing.js'
+import { extendedMainnet, mockChainControllerState } from '../../exports/testing.js'
 import { BalanceUtil } from '../../src/utils/BalanceUtil.js'
 
 // -- Setup --------------------------------------------------------------------
@@ -34,7 +28,7 @@ const token = {
   },
   iconUrl: 'https://token-icons.s3.amazonaws.com/0x4200000000000000000000000000000000000042.png'
 }
-const sendTokenAmount = '0.1'
+const sendTokenAmount = 0.1
 const receiverAddress = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
 const receiverProfileName = 'john.eth'
 const receiverProfileImageUrl = 'https://ipfs.com/0x123.png'
@@ -174,9 +168,9 @@ describe('SendController', () => {
       expect(SendController.state.loading).toBe(false)
     })
 
-    it('should use ChainController.getAccountData before falling back to activeCaipAddress', async () => {
+    it('should use AccountController.getCaipAddress before falling back to activeCaipAddress', async () => {
       const mockNamespace = 'eip155'
-      const mockCaipAddressFromAccount = 'eip155:1:0xChainController'
+      const mockCaipAddressFromAccount = 'eip155:1:0xAccountController'
       const mockActiveCaipAddress = 'eip155:1:0xChainController'
 
       mockChainControllerState({
@@ -185,9 +179,9 @@ describe('SendController', () => {
         activeCaipAddress: mockActiveCaipAddress
       })
 
-      const getCaipAddressSpy = vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-        caipAddress: mockCaipAddressFromAccount
-      } as unknown as AccountState)
+      const getCaipAddressSpy = vi
+        .spyOn(AccountController, 'getCaipAddress')
+        .mockReturnValue(mockCaipAddressFromAccount)
 
       vi.spyOn(BalanceUtil, 'getMyTokensWithBalance').mockResolvedValue([])
 
@@ -196,7 +190,7 @@ describe('SendController', () => {
       expect(getCaipAddressSpy).toHaveBeenCalledWith(mockNamespace)
     })
 
-    it('should fallback to activeCaipAddress when ChainController.getAccountData returns undefined', async () => {
+    it('should fallback to activeCaipAddress when AccountController.getCaipAddress returns undefined', async () => {
       const mockNamespace = 'eip155'
       const mockActiveCaipAddress = 'eip155:1:0xFallback'
 
@@ -207,7 +201,7 @@ describe('SendController', () => {
       })
 
       const getCaipAddressSpy = vi
-        .spyOn(ChainController, 'getAccountData')
+        .spyOn(AccountController, 'getCaipAddress')
         .mockReturnValue(undefined)
 
       const getPlainAddressSpy = vi.spyOn(CoreHelperUtil, 'getPlainAddress')
@@ -231,14 +225,10 @@ describe('SendController', () => {
       } as any)
       vi.spyOn(CoreHelperUtil, 'isCaipAddress').mockReturnValue(false)
       vi.spyOn(SendController, 'resetSend').mockImplementation(() => {})
-      vi.spyOn(EventsController, 'sendEvent').mockImplementation(() => {})
-      mockChainControllerState({
-        activeCaipNetwork: extendedMainnet
-      })
     })
 
     it('should call sendTransaction without tokenMint', async () => {
-      SendController.setTokenAmount('0.1')
+      SendController.setTokenAmount(0.1)
       SendController.setReceiverAddress('9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM')
 
       await SendController.sendSolanaToken()
@@ -273,7 +263,7 @@ describe('SendController', () => {
       }
 
       SendController.setToken(solanaToken as SendControllerState['token'])
-      SendController.setTokenAmount('50')
+      SendController.setTokenAmount(50)
       SendController.setReceiverAddress('9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM')
 
       await SendController.sendSolanaToken()
@@ -289,43 +279,6 @@ describe('SendController', () => {
       })
       expect(ConnectionController._getClient()?.updateBalance).toHaveBeenCalledWith('solana')
       expect(SendController.resetSend).toHaveBeenCalled()
-    })
-
-    it('should trigger SEND_SUCCESS event after successful transaction', async () => {
-      mockChainControllerState({
-        activeCaipNetwork: solanaCaipNetwork
-      })
-
-      const solanaToken = {
-        name: 'SOL',
-        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:11111111111111111111111111111111',
-        symbol: 'SOL',
-        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        value: 100,
-        price: 1,
-        quantity: {
-          decimals: '9',
-          numeric: '100000000'
-        }
-      }
-
-      SendController.setToken(solanaToken as SendControllerState['token'])
-      SendController.setTokenAmount('50')
-      SendController.setReceiverAddress('9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM')
-
-      await SendController.sendSolanaToken()
-
-      expect(EventsController.sendEvent).toHaveBeenCalledWith({
-        type: 'track',
-        event: 'SEND_SUCCESS',
-        properties: {
-          isSmartAccount: false,
-          token: 'SOL',
-          amount: 50,
-          network: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          hash: ''
-        }
-      })
     })
   })
 

@@ -3,12 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { html } from 'lit'
 
-import {
-  type AccountState,
-  ChainController,
-  OptionsController,
-  RouterController
-} from '@reown/appkit-controllers'
+import { AccountController, OptionsController, RouterController } from '@reown/appkit-controllers'
 
 import { W3mAccountTokensWidget } from '../../src/partials/w3m-account-tokens-widget'
 import { HelpersUtil } from '../utils/HelpersUtil'
@@ -76,10 +71,10 @@ describe('W3mAccountTokensWidget', () => {
   })
 
   it('it should display token balances if tokens exist', async () => {
-    vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
-      ...ChainController.getAccountData(),
+    vi.spyOn(AccountController, 'state', 'get').mockReturnValue({
+      ...AccountController.state,
       tokenBalance: [BALANCE, BALANCE]
-    } as unknown as AccountState)
+    })
 
     const accountTokensWidget: W3mAccountTokensWidget = await fixture(
       html`<w3m-account-tokens-widget></w3m-account-tokens-widget>`
