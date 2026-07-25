@@ -22,4 +22,4 @@
 '@reown/appkit-wallet-button': patch
 ---
 
-Enaple Solana in AppKit Pay
+Enable Solana in AppKit Pay
