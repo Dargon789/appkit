@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@vitest/coverage-v8": "2.1.9",
-    "vitest": "2.1.9"
+    "vitest": "3.2.6"
   },
   "author": "Reown (https://discord.gg/reown)",
   "license": "SEE LICENSE IN LICENSE.md",
