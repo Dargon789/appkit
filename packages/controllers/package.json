@@ -65,11 +65,11 @@
     "@reown/appkit-wallet": "workspace:*",
     "@walletconnect/universal-provider": "2.23.7",
     "valtio": "2.1.7",
-    "viem": ">=2.45.0"
+    "viem": "^2.50.3"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "2.1.9",
-    "vitest": "3.1.3",
+    "vitest": "3.2.6",
     "vue": "3.5.13",
     "@types/react": "19.1.15",
     "@types/react-dom": "19.1.9",
