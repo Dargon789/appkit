@@ -165,7 +165,7 @@ export class TronWalletConnectConnector
     return signedTx.txID || unsignedTx.txID
   }
 
-  async switchNetwork(): Promise<void> {
+  async switchNetwork(_chainId: string): Promise<void> {
     return Promise.resolve()
   }
 
