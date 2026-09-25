@@ -11,61 +11,20 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "cache": true,
-      "inputs": [
-        "src/**",
-        "app/**",
-        "public/**",
-        "index.*",
-        "tsconfig.json",
-        "tsconfig.*.json",
-        "package.json",
-        "next.config.*",
-        "vite.config.*"
-      ],
-      "outputs": ["dist/**", "lib/**", ".next/**", "!.next/cache/**"]
+      "cache": false,
+      "outputs": ["dist/**"]
     },
     "typecheck": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": [
-        "src/**",
-        "app/**",
-        "index.*",
-        "tsconfig.json",
-        "tsconfig.*.json",
-        "package.json",
-        "next.config.*",
-        "vite.config.*"
-      ]
+      "cache": false
     },
     "test": {
       "cache": false
     },
     "lint": {
-      "cache": true,
-      "inputs": [
-        "src/**",
-        "app/**",
-        "index.*",
-        "*.js",
-        "*.ts",
-        "*.tsx",
-        "*.mjs",
-        "tsconfig.json",
-        "tsconfig.*.json",
-        "package.json",
-        ".eslintrc.json",
-        "next.config.*",
-        "vite.config.*",
-        "../../.eslintrc.json",
-        "../../.prettierrc.json",
-        "../../.prettierignore"
-      ]
+      "cache": false
     },
     "dev": {
-      "cache": false,
-      "persistent": true
+      "cache": false
     }
   }
 }
