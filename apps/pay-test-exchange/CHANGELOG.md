@@ -1,5 +1,94 @@
 # pay-test-exchange
 
+## 0.1.23
+
+### Patch Changes
+
+- [#5747](https://github.com/reown-com/appkit/pull/5747) [`d6cb98d`](https://github.com/reown-com/appkit/commit/d6cb98d47eccd976ef47b016264708399bb0a175) Thanks [@santgr11](https://github.com/santgr11)! - Fix broken image in tokens with broken image url
+
+- [#5768](https://github.com/reown-com/appkit/pull/5768) [`cd395ad`](https://github.com/reown-com/appkit/commit/cd395addb82bf148a8b3739f8ab17a53f65b6e2d) Thanks [@0xmkh](https://github.com/0xmkh)! - Upgraded viem to latest version
+
+- [#5755](https://github.com/reown-com/appkit/pull/5755) [`3d181c8`](https://github.com/reown-com/appkit/commit/3d181c841d5c3708f5b874e0722092707546e8c6) Thanks [@santgr11](https://github.com/santgr11)! - Make default wallet icon bigget in Sign In message request
+
+- [#5760](https://github.com/reown-com/appkit/pull/5760) [`c2172e1`](https://github.com/reown-com/appkit/commit/c2172e1f24019c592d527f3ad59d04cd1bef87a3) Thanks [@santgr11](https://github.com/santgr11)! - Fixed the SIWX sign-message prompt not appearing after connecting until the page was refreshed, reproducible with the Solana adapter on email sign-in and more generally with Farcaster login or browser-injected-wallet connections.
+
+- [#5756](https://github.com/reown-com/appkit/pull/5756) [`af531f4`](https://github.com/reown-com/appkit/commit/af531f434a77a3c50f8afccbff5224135d63571c) Thanks [@santgr11](https://github.com/santgr11)! - Show the full wallet name in the "Don't have X?" download CTA instead of always hard-truncating it to 12 characters
+
+- [#5758](https://github.com/reown-com/appkit/pull/5758) [`0cec5de`](https://github.com/reown-com/appkit/commit/0cec5dee7d629f4bf602399e2e214b0d3e776ba3) Thanks [@santgr11](https://github.com/santgr11)! - Fix Sign modal Cancel/Sign buttons rendering outside the modal boundary when both show their loading label at once (e.g. after a network hiccup lets a user press both before either resolves). `wui-button` can now shrink as a flex item and truncates its label with an ellipsis instead of overflowing past its own bounds.
+
+- [#5746](https://github.com/reown-com/appkit/pull/5746) [`d8263cb`](https://github.com/reown-com/appkit/commit/d8263cb6ebb9e1618509f9d9311ea48850b80df1) Thanks [@santgr11](https://github.com/santgr11)! - Fix stored TRON wallet connections being silently wiped on reload when a wallet adapter (e.g. TronLink) is still resolving its `readyState` when boot sync runs. `TronAdapter.syncConnectors` now waits for a pending wallet adapter to settle before boot connection sync runs, but only when that adapter has an actual stored TRON connection to restore, so `useAppKitAccount` rehydrates correctly instead of staying disconnected, without adding a delay to every page load.
+
+- [#5745](https://github.com/reown-com/appkit/pull/5745) [`840dc8f`](https://github.com/reown-com/appkit/commit/840dc8fadc1ac8a18a5f6ce18e935860164382a7) Thanks [@tomiir](https://github.com/tomiir)! - Added Stellar support via WalletConnect through the new `@reown/appkit-adapter-stellar` package. Supports the `stellar:pubnet` and `stellar:testnet` networks and the `stellar_signXDR`, `stellar_signAndSubmitXDR`, `stellar_signMessage` and `stellar_signAuthEntry` methods, along with a SIWX verifier for SEP-53 signatures. Stellar wallets connect over WalletConnect only -- there is no extension wallet support.
+
+- [#5736](https://github.com/reown-com/appkit/pull/5736) [`8fe48b0`](https://github.com/reown-com/appkit/commit/8fe48b04adb2543c5c64b930bf9c6d21a6ca215d) Thanks [@0xmkh](https://github.com/0xmkh)! - fix(siwx): resolve multichain wallet signing race condition
+
+  Fixed an issue where SIWX signing would fail with multichain wallets (Trust Wallet, SafePal) when the active namespace changed between message creation and signing.
+
+- [#5723](https://github.com/reown-com/appkit/pull/5723) [`b9a2612`](https://github.com/reown-com/appkit/commit/b9a2612c9cd23c7a145a8d25fae86aac32cc5233) Thanks [@santgr11](https://github.com/santgr11)! - Fixed Rootstock network logo not being displayed in the network selectors.
+
+## 0.1.22
+
+### Patch Changes
+
+- [#5665](https://github.com/reown-com/appkit/pull/5665) [`e5ee43c`](https://github.com/reown-com/appkit/commit/e5ee43c7c4db6f2918d20f588b39f71f10ed2de8) Thanks [@Khizr97](https://github.com/Khizr97)! - Fix `coinbasePreference` option being ignored — `'all'` and `'eoaOnly'` now correctly use the `coinbaseWallet` connector (with QR code support) instead of always using `baseAccount`. `'smartWalletOnly'` uses `baseAccount`. Regression introduced in PR #5269.
+
+- [#5663](https://github.com/reown-com/appkit/pull/5663) [`da65c78`](https://github.com/reown-com/appkit/commit/da65c78e73f4ff3873150b3da6a9b303580217ee) Thanks [@Khizr97](https://github.com/Khizr97)! - fix(ethers,ethers5): resolve walletProvider after account switch in modal
+
+  `useAppKitProvider` returned a stale provider when switching accounts inside the
+  modal. In the early-return path of `connect()`, `connector.provider` was never
+  initialised, causing the base-client's `accountChanged` handler to skip
+  `syncProvider()`. The provider is now resolved from `ethersProviders` before the
+  event is emitted.
+
+## 0.1.21
+
+### Patch Changes
+
+- [#5447](https://github.com/reown-com/appkit/pull/5447) [`05762b5`](https://github.com/reown-com/appkit/commit/05762b5280c09a1bf72bc5d7617df3119be653a4) Thanks [@0xmkh](https://github.com/0xmkh)! - Added unsubscribe function to AppKit event listeners
+
+- [#5451](https://github.com/reown-com/appkit/pull/5451) [`dfb0893`](https://github.com/reown-com/appkit/commit/dfb0893141e07d9911459de640493642dcebd724) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed text color inconsistency in send amount input fields to properly apply theme primary text color
+
+- [#5452](https://github.com/reown-com/appkit/pull/5452) [`17b1a2c`](https://github.com/reown-com/appkit/commit/17b1a2c0879eb0cb670e457b25a7306ea3f84cda) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed an issue where the purpose type was not included in accounts returned by the bitcoin wallets
+
+- [#5450](https://github.com/reown-com/appkit/pull/5450) [`1c76e85`](https://github.com/reown-com/appkit/commit/1c76e853225fc85ab2b050de55adaae96f296c8f) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed an issue where the collapsed wallet button displayed a copy icon instead of a wallet icon
+
+- [#5444](https://github.com/reown-com/appkit/pull/5444) [`f8fec19`](https://github.com/reown-com/appkit/commit/f8fec190ec5754a78d819485d47fe37a168ffd3b) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed an issue where non-friendly error messages were displayed when failing to send a transaction on Solana
+
+- [#5449](https://github.com/reown-com/appkit/pull/5449) [`4a409be`](https://github.com/reown-com/appkit/commit/4a409bec5213638a33c7b3c22c94ea2828e37022) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed an issue where the checkmark icon was not displayed on iOS devices
+
+- [#5448](https://github.com/reown-com/appkit/pull/5448) [`e9f7498`](https://github.com/reown-com/appkit/commit/e9f7498b3f7938cfa4273429341ce0df8121b99a) Thanks [@0xmkh](https://github.com/0xmkh)! - Added support for directly opening the ProfileWallets view
+
+- [#5445](https://github.com/reown-com/appkit/pull/5445) [`0824170`](https://github.com/reown-com/appkit/commit/0824170ebb185fc40d4351ec3ed3a8ed11cd15c1) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed an issue where swaps failed when entering large amounts of high decimal tokens
+
+- [#5446](https://github.com/reown-com/appkit/pull/5446) [`9886b51`](https://github.com/reown-com/appkit/commit/9886b51d7d83b1340a9f116b9b9514ebf6bd14cd) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed an issue in headless mode where triggering a second WalletConnect connection attempt did not initiate the connection request
+
+## 0.1.20
+
+### Patch Changes
+
+- [#5437](https://github.com/reown-com/appkit/pull/5437) [`e542ebd`](https://github.com/reown-com/appkit/commit/e542ebdbef99791f91ab000a257dac73f96fd81b) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed an issue where WalletConnect would not reconnect after page refresh when using multi-wallet
+
+- [#5423](https://github.com/reown-com/appkit/pull/5423) [`73d2b61`](https://github.com/reown-com/appkit/commit/73d2b616ec1e7a919e90e9fd7c8619aedf74475b) Thanks [@0xmkh](https://github.com/0xmkh)! - This update brings another level of upgrade to AppKit Pay and AppKit Deposit 🔥
+
+  - Users can pay with any token they choose, while the recipient always receives their preferred token through automatic swapping and bridging
+  - Implemented fee splitting between Reown and partners
+
+- [#5405](https://github.com/reown-com/appkit/pull/5405) [`c1954be`](https://github.com/reown-com/appkit/commit/c1954befd87a53fda56e9d93b82d31ccb5074aff) Thanks [@0xmkh](https://github.com/0xmkh)! - Fixed an issue where selecting Base Account incorrectly triggered the Coinbase Wallet extension connection instead of the Base Account SDK connection
+
+## 0.1.19
+
+### Patch Changes
+
+- [#5378](https://github.com/reown-com/appkit/pull/5378) [`2867bfd`](https://github.com/reown-com/appkit/commit/2867bfd3f06394e559b918d46dc379dd498d1abf) Thanks [@magiziz](https://github.com/magiziz)! - Fixed an issue where profile wallets tabs were shown in the wrong order
+
+- [#5364](https://github.com/reown-com/appkit/pull/5364) [`d186212`](https://github.com/reown-com/appkit/commit/d1862126d3b7da93b52b99a4d709656311926c34) Thanks [@magiziz](https://github.com/magiziz)! - Fixed an issue where wallet buttons were not working in the in-app wallet browser
+
+## 0.1.18
+
+### Patch Changes
+
+- [#5296](https://github.com/reown-com/appkit/pull/5296) [`bc4a961`](https://github.com/reown-com/appkit/commit/bc4a961b448cedd0a8485a2188549b413b4e6512) Thanks [@magiziz](https://github.com/magiziz)! - Improved wallet search to filter out non-walletconnect and walletconnect wallets based on platform and SDK type
+
 ## 0.1.17
 
 ### Patch Changes

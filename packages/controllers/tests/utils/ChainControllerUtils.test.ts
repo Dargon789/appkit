@@ -24,7 +24,9 @@ describe('getChainsToDisconnect', () => {
       cosmos: 'cosmos-connector',
       sui: undefined,
       stacks: undefined,
-      ton: undefined
+      ton: undefined,
+      tron: undefined,
+      stellar: undefined
     }
 
     const result = getChainsToDisconnect()
@@ -47,7 +49,9 @@ describe('getChainsToDisconnect', () => {
       cosmos: 'cosmos-connector',
       sui: undefined,
       stacks: undefined,
-      ton: undefined
+      ton: undefined,
+      tron: undefined,
+      stellar: undefined
     }
 
     const result = getChainsToDisconnect('eip155')
@@ -74,7 +78,9 @@ describe('getChainsToDisconnect', () => {
       cosmos: 'cosmos-connector',
       sui: undefined,
       stacks: undefined,
-      ton: undefined
+      ton: undefined,
+      tron: undefined,
+      stellar: undefined
     }
 
     const result = getChainsToDisconnect('solana')

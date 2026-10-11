@@ -2,7 +2,10 @@ import type { CaipNetwork, SocialProvider } from '@reown/appkit'
 import type { Wallet } from '@reown/appkit-wallet-button'
 import {
   abstract,
+  adi,
   arbitrum,
+  arc,
+  arcTestnet,
   aurora,
   base,
   baseSepolia,
@@ -14,17 +17,24 @@ import {
   hedera,
   mainnet,
   mantle,
+  monad,
   monadTestnet,
   optimism,
   polygon,
+  robinhood,
+  robinhoodTestnet,
   rootstock,
   rootstockTestnet,
   sepolia,
   solana,
   solanaDevnet,
   solanaTestnet,
+  stellar,
+  stellarTestnet,
   ton,
   tonTestnet,
+  tronMainnet,
+  tronShastaTestnet,
   unichainSepolia,
   zkSync
 } from '@reown/appkit/networks'
@@ -88,9 +98,15 @@ const EvmNetworks = [
   aurora,
   mantle,
   abstract,
+  monad,
   monadTestnet,
   rootstock,
-  rootstockTestnet
+  rootstockTestnet,
+  adi,
+  arc,
+  arcTestnet,
+  robinhood,
+  robinhoodTestnet
 ] as [AppKitNetwork, ...AppKitNetwork[]]
 
 export const solanaNotExist = {
@@ -116,6 +132,10 @@ const BitcoinNetworks = [bitcoin, bitcoinTestnet, bitcoinSignet] as [
 ]
 
 const TonNetworks = [ton, tonTestnet] as [AppKitNetwork, ...AppKitNetwork[]]
+
+const TronNetworks = [tronMainnet, tronShastaTestnet] as [AppKitNetwork, ...AppKitNetwork[]]
+
+const StellarNetworks = [stellar, stellarTestnet] as [AppKitNetwork, ...AppKitNetwork[]]
 
 export const ConstantsUtil = {
   SigningSucceededToastTitle: 'Signing Succeeded',
@@ -173,10 +193,16 @@ export const ConstantsUtil = {
   SolanaNetworks,
   BitcoinNetworks,
   TonNetworks,
-  AllNetworks: [...EvmNetworks, ...SolanaNetworks, ...BitcoinNetworks, ...TonNetworks] as [
-    AppKitNetwork,
-    ...AppKitNetwork[]
-  ],
+  TronNetworks,
+  StellarNetworks,
+  AllNetworks: [
+    ...EvmNetworks,
+    ...SolanaNetworks,
+    ...BitcoinNetworks,
+    ...TonNetworks,
+    ...TronNetworks,
+    ...StellarNetworks
+  ] as [AppKitNetwork, ...AppKitNetwork[]],
   EvmWalletButtons: [
     'walletConnect',
     'metamask',

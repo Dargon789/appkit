@@ -225,6 +225,7 @@ const controller = {
 
   async connectWalletConnect({ cache = 'auto' }: ConnectWalletConnectParameters = {}) {
     state.wcFetchingUri = true
+    state.wcError = false
     const isInTelegramOrSafariIos =
       CoreHelperUtil.isTelegram() || (CoreHelperUtil.isSafari() && CoreHelperUtil.isIos())
 

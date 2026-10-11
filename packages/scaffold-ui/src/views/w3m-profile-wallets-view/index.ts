@@ -513,6 +513,7 @@ export class W3mProfileWalletsView extends LitElement {
     address: string,
     namespace: ChainNamespace
   ) {
+    const previousFilterByNamespace = ConnectorController.state.filterByNamespace
     try {
       this.isSwitching = true
       this.lastSelectedConnectorId = connection.connectorId
@@ -522,7 +523,9 @@ export class W3mProfileWalletsView extends LitElement {
 
       if (isDifferentNamespace && connection?.caipNetwork) {
         ConnectorController.setFilterByNamespace(namespace)
-        await ChainController.switchActiveNetwork(connection?.caipNetwork)
+        await ChainController.switchActiveNetwork(connection?.caipNetwork, {
+          throwOnFailure: true
+        })
       }
 
       await ConnectionController.switchConnection({
@@ -539,6 +542,7 @@ export class W3mProfileWalletsView extends LitElement {
         }
       })
     } catch (error) {
+      ConnectorController.setFilterByNamespace(previousFilterByNamespace)
       SnackController.showError('Failed to switch wallet')
     } finally {
       this.isSwitching = false

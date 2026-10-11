@@ -5,6 +5,8 @@ import {
   polygon,
   solana,
   solanaTestnet,
+  stellar,
+  stellarTestnet,
   ton,
   tonTestnet
 } from '@reown/appkit/networks'
@@ -15,6 +17,8 @@ export function getBalanceSymbolByLibrary(library: string) {
       return 'BTC'
     case 'solana':
       return 'SOL'
+    case 'stellar':
+      return 'XLM'
     case 'ton':
       return 'TON'
     default:
@@ -28,6 +32,8 @@ export function getNetworksByLibrary(library: string) {
       return [bitcoin, bitcoinTestnet]
     case 'solana':
       return [solana, solanaTestnet]
+    case 'stellar':
+      return [stellar, stellarTestnet]
     case 'ton':
       return [ton, tonTestnet]
     default:
@@ -41,6 +47,8 @@ export function getLastNetworkNameByLibrary(library: string) {
       return bitcoinTestnet.name
     case 'solana':
       return solanaTestnet.name
+    case 'stellar':
+      return stellarTestnet.name
     case 'ton':
       return tonTestnet.name
     default:

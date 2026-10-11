@@ -100,31 +100,46 @@ export const ConnectionControllerUtil = {
       recentConnections: dedupedRecentConnections
     }
   },
-  onConnectMobile(wallet: WcWallet | undefined) {
+  /*
+   * Not fetched here on purpose: the deeplink has to open inside the tap that triggered it
+   * (iOS Safari blocks a redirect issued after an await), so the caller pre-fetches the URI.
+   */
+  assertWcUriForDeeplink() {
+    if (!ConnectionController.state.wcUri) {
+      throw new Error(
+        'No WalletConnect URI available to deeplink into. Pre-fetch one (connectWalletConnect / prefetchWalletConnectUri) before connecting a mobile wallet.'
+      )
+    }
+  },
+  onConnectMobile(wallet: WcWallet | undefined, wcPayUrl?: string) {
     const wcUri = ConnectionController.state.wcUri
 
     if (wallet?.mobile_link && wcUri) {
       try {
         ConnectionController.setWcError(false)
         const { mobile_link, link_mode, name } = wallet
-        const { redirect, redirectUniversalLink, href } = CoreHelperUtil.formatNativeUrl(
-          mobile_link,
-          wcUri,
-          link_mode
-        )
+        const uriWithPay = CoreHelperUtil.appendPayToUri(wcUri, wcPayUrl)
+        const { redirect, redirectUniversalLink, href, universalHref } =
+          CoreHelperUtil.formatNativeUrl(mobile_link, uriWithPay, link_mode)
 
         const deepLink = redirect
         const universalLink = redirectUniversalLink
         const target = CoreHelperUtil.isIframe() ? '_top' : '_self'
 
-        ConnectionController.setWcLinking({ name, href })
+        /*
+         * The href persisted as the WC deeplink choice must match what we open with, so
+         * session-request re-opens (handled by universal-provider) use the same link.
+         */
+        const shouldPreferUniversal = Boolean(
+          OptionsController.state.experimental_preferUniversalLinks
+        )
+        const linkToOpen = shouldPreferUniversal && universalLink ? universalLink : deepLink
+        const hrefToPersist = shouldPreferUniversal && universalHref ? universalHref : href
+
+        ConnectionController.setWcLinking({ name, href: hrefToPersist })
         ConnectionController.setRecentWallet(wallet)
 
-        if (OptionsController.state.experimental_preferUniversalLinks && universalLink) {
-          CoreHelperUtil.openHref(universalLink, target)
-        } else {
-          CoreHelperUtil.openHref(deepLink, target)
-        }
+        CoreHelperUtil.openHref(linkToOpen, target)
       } catch (e) {
         EventsController.sendEvent({
           type: 'track',

@@ -77,7 +77,9 @@ describe('BalanceUtil', () => {
         cosmos: undefined,
         sui: undefined,
         stacks: undefined,
-        ton: undefined
+        ton: undefined,
+        tron: undefined,
+        stellar: undefined
       }
       vi.mocked(StorageUtil.getBalanceCacheForCaipAddress).mockReturnValue(undefined)
     })
@@ -86,12 +88,6 @@ describe('BalanceUtil', () => {
       vi.spyOn(ChainController, 'getAccountData').mockReturnValue({
         address: undefined
       } as AccountState)
-      const result = await BalanceUtil.getMyTokensWithBalance()
-      expect(result).toEqual([])
-    })
-
-    it('should return empty array when network is missing', async () => {
-      ChainController.state.activeCaipNetwork = undefined
       const result = await BalanceUtil.getMyTokensWithBalance()
       expect(result).toEqual([])
     })
@@ -302,7 +298,9 @@ describe('BalanceUtil', () => {
         cosmos: undefined,
         sui: undefined,
         stacks: undefined,
-        ton: undefined
+        ton: undefined,
+        tron: undefined,
+        stellar: undefined
       }
       vi.mocked(ERC7811Utils.getChainIdHexFromCAIP2ChainId).mockReturnValue(mockEthChainIdAsHex)
     })

@@ -32,7 +32,9 @@ const CLEAN_PROVIDERS_STATE = {
   cosmos: undefined,
   sui: undefined,
   stacks: undefined,
-  ton: undefined
+  ton: undefined,
+  tron: undefined,
+  stellar: undefined
 }
 
 const state = proxy<ProviderControllerState>({

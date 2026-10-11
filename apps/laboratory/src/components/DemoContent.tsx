@@ -7,6 +7,7 @@ import { AppKitConnections } from '@/src/components/AppKitConnections'
 import { AppKitInfoMultiChain } from '@/src/components/AppKitInfoMultiChain'
 import { AppKitWalletButtons } from '@/src/components/AppKitWalletButtons'
 import { BitcoinTests } from '@/src/components/Bitcoin/BitcoinTests'
+import { DefaultSIWXStatus } from '@/src/components/DefaultSIWXStatus'
 import { SolanaTests } from '@/src/components/Solana/SolanaTests'
 import { WagmiTests } from '@/src/components/Wagmi/WagmiTests'
 import { ConstantsUtil } from '@/src/utils/ConstantsUtil'
@@ -17,7 +18,9 @@ import { Ethers5Tests } from './Ethers/Ethers5Tests'
 import { EthersTests } from './Ethers/EthersTests'
 import { ReownAuthenticationTests } from './ReownAuthentication'
 import { SiweData } from './Siwe/SiweData'
+import { StellarTests } from './Stellar/StellarTests'
 import { TonTests } from './Ton/TonTests'
+import { TronTests } from './Tron/TronTests'
 import { UpaTests } from './UPA/UpaTests'
 
 const embeddedWalletOptions = [...ConstantsUtil.Socials, ConstantsUtil.Email]
@@ -31,10 +34,13 @@ export default function DemoContent({
   const solanaAdapter = config?.adapters?.find(adapter => adapter === 'solana')
   const bitcoinAdapter = config?.adapters?.find(adapter => adapter === 'bitcoin')
   const tonAdapter = config?.adapters?.find(adapter => adapter === 'ton')
+  const tronAdapter = config?.adapters?.find(adapter => adapter === 'tron')
+  const stellarAdapter = config?.adapters?.find(adapter => adapter === 'stellar')
   const evmAdapter = config?.adapters?.find(
     adapter => adapter === 'wagmi' || adapter === 'ethers' || adapter === 'ethers5'
   )
   const isSiwxReown = Boolean(config?.siwxReown)
+  const isSiwxDefault = Boolean(config?.siwx) && !isSiwxReown
   const isSiweEnabled = Boolean(config?.siweConfig)
   const isMultiChain = config?.adapters?.length && config?.adapters?.length > 1
   const isPayEnabled = Boolean(config?.features?.pay)
@@ -46,11 +52,14 @@ export default function DemoContent({
 
       {isSiweEnabled ? <SiweData /> : null}
       {isSiwxReown ? <ReownAuthenticationTests /> : null}
+      {isSiwxDefault ? <DefaultSIWXStatus /> : null}
 
       <AppKitConnections namespace="eip155" title="EVM Connections" />
       <AppKitConnections namespace="solana" title="Solana Connections" />
       <AppKitConnections namespace="bip122" title="Bitcoin Connections" />
       <AppKitConnections namespace="ton" title="TON Connections" />
+      <AppKitConnections namespace="tron" title="TRON Connections" />
+      <AppKitConnections namespace="stellar" title="Stellar Connections" />
 
       {evmAdapter === 'wagmi' && <WagmiTests />}
       {evmAdapter === 'ethers5' && <Ethers5Tests />}
@@ -58,6 +67,8 @@ export default function DemoContent({
       {solanaAdapter ? <SolanaTests /> : null}
       {bitcoinAdapter ? <BitcoinTests /> : null}
       {tonAdapter ? <TonTests /> : null}
+      {tronAdapter ? <TronTests /> : null}
+      {stellarAdapter ? <StellarTests /> : null}
       {hasNoAdapters ? <UpaTests /> : null}
 
       {isPayEnabled ? <AppKitPay /> : null}
