@@ -1,5 +1,9 @@
 name: UI Tests
 
+permissions:
+  contents: read
+  actions: read
+
 on:
   workflow_call:
     inputs:
