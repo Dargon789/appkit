@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "figlet": "1.9.1",
+    "figlet": "1.11.3",
     "inquirer": "12.9.4",
     "tiged": "2.12.7"
   },
